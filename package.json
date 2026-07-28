@@ -3,6 +3,10 @@
   "version": "2.0.0",
   "description": "Africa Prudential FaciliFlow — Monorepo",
   "private": true,
+  "workspaces": [
+    "facilflow-user",
+    "facilflow-admin"
+  ],
   "scripts": {
     "dev": "concurrently --names \"USER,ADMIN\" --prefix-colors \"red,blue\" \"npm run dev --prefix facilflow-user\" \"npm run dev --prefix facilflow-admin\"",
     "dev:user": "npm run dev --prefix facilflow-user",
