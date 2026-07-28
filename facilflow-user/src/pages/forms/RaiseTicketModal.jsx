@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { C, btn, inp, card, LBL } from "../../theme.js";
 
 export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachment,onClose,onCreate}){
