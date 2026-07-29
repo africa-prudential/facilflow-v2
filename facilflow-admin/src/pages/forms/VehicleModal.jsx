@@ -1,0 +1,35 @@
+import { useState } from "react";
+import { C, btn, inp, LBL } from "../../theme.js";
+import { Modal } from "../../components/ui.jsx";
+
+export default function VehicleModal({vehicle,onClose,onSave}){
+  const [d,setD]=useState(vehicle
+    ?{plate:vehicle.plate,model:vehicle.model,year:vehicle.year,color:vehicle.color,ownershipType:vehicle.ownershipType||"Company",companyName:vehicle.companyName||"",coOwnerName:vehicle.coOwnerName||""}
+    :{plate:"",model:"",year:new Date().getFullYear(),color:"White",ownershipType:"Company",companyName:"Africa Prudential",coOwnerName:""});
+  return (
+    <Modal title={vehicle?"Edit Vehicle":"Add Vehicle"} onClose={onClose} w={520}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <div style={{gridColumn:"1/-1"}}><label style={LBL}>Plate Number</label><input value={d.plate} onChange={e=>setD(p=>({...p,plate:e.target.value}))} style={inp()} placeholder="e.g. AAA-001BE"/></div>
+        <div><label style={LBL}>Model</label><input value={d.model} onChange={e=>setD(p=>({...p,model:e.target.value}))} style={inp()} placeholder="e.g. Toyota Camry"/></div>
+        <div><label style={LBL}>Year</label><input type="number" value={d.year} onChange={e=>setD(p=>({...p,year:+e.target.value}))} style={inp()}/></div>
+        <div><label style={LBL}>Colour</label><input value={d.color} onChange={e=>setD(p=>({...p,color:e.target.value}))} style={inp()} placeholder="e.g. Silver"/></div>
+        <div>
+          <label style={LBL}>Ownership Type</label>
+          <select value={d.ownershipType} onChange={e=>setD(p=>({...p,ownershipType:e.target.value}))} style={inp()}>
+            <option value="Company">Company</option>
+            <option value="Joint">Joint</option>
+          </select>
+        </div>
+        <div><label style={LBL}>Company Name</label><input value={d.companyName} onChange={e=>setD(p=>({...p,companyName:e.target.value}))} style={inp()} placeholder="e.g. Africa Prudential"/></div>
+        {d.ownershipType==="Joint"&&(
+          <div style={{gridColumn:"1/-1"}}><label style={LBL}>Co-owner Name</label><input value={d.coOwnerName} onChange={e=>setD(p=>({...p,coOwnerName:e.target.value}))} style={inp()} placeholder="e.g. Joseph Adeyemi"/></div>
+        )}
+      </div>
+      <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:16,borderTop:`1px solid ${C.border}`}}>
+        <button onClick={onClose} style={btn("ghost")}>Cancel</button>
+        <button onClick={()=>{if(!d.plate||!d.model)return;onSave(d);onClose();}} style={btn("primary")}>{vehicle?"Save Changes":"Add Vehicle"}</button>
+      </div>
+    </Modal>
+  );
+}
+

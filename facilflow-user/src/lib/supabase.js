@@ -205,7 +205,7 @@ export const fetchApprovalLevels = async (tenantId) => {
 export const fetchTenantConfig = async (tenantId) => {
   const { data, error } = await supabase
     .from('change_tenant_config')
-    .select('*, users(id,name,email,initials)')
+    .select('*, users!change_manager_id(id,name,email,initials)')
     .eq('tenant_id', tenantId)
     .single()
   if (error) return null
@@ -287,4 +287,9 @@ export const uploadTicketAttachment = async (ticketId, file) => {
   if (error) throw error
   const { data: { publicUrl } } = supabase.storage.from('ticket-attachments').getPublicUrl(path)
   return { name: file.name, size: file.size, url: publicUrl, path, type: file.type }
+}
+
+export const addAuditEntry = async (entry) => {
+  const { error } = await supabase.from('audit_log').insert([entry])
+  if (error) throw error
 }

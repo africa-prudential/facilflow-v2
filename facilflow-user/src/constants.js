@@ -1,0 +1,59 @@
+import { C } from "./theme.js";
+
+export const CR_STATUS = {
+  draft:                {label:"Draft",              color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
+  pending_line_manager: {label:"Pending L1",         color:C.amber,  bg:C.amberBg,   dot:C.amber},
+  pending_secondary:    {label:"Pending L2",         color:C.orange, bg:C.orangeBg,  dot:C.orange},
+  change_review:        {label:"In Review",          color:C.violet, bg:C.violetBg,  dot:C.violet},
+  scheduled:            {label:"Scheduled",          color:C.blue,   bg:C.blueBg,    dot:C.blue},
+  in_progress:          {label:"In Progress",        color:C.teal,   bg:C.tealBg,    dot:C.teal},
+  completed:            {label:"Completed",          color:C.green,  bg:C.greenBg,   dot:C.green},
+  post_review:          {label:"Post Review",        color:C.violet, bg:C.violetBg,  dot:C.violet},
+  closed:               {label:"Closed",             color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
+  rejected:             {label:"Rejected",           color:C.red,    bg:C.redBg,     dot:C.red},
+};
+
+export const REQ_STATUS = {
+  draft:            {label:"Draft",            color:C.muted,  bg:"#F8FAFC"},
+  pending_approval: {label:"Pending Approval", color:C.amber,  bg:C.amberBg},
+  approved:         {label:"Approved",         color:C.green,  bg:C.greenBg},
+  in_progress:      {label:"In Progress",      color:C.blue,   bg:C.blueBg},
+  completed:        {label:"Completed",        color:C.green,  bg:C.greenBg},
+  rejected:         {label:"Rejected",         color:C.red,    bg:C.redBg},
+};
+
+export const NAV_GROUPS = [
+  {group:"Main",items:[
+    {key:"dashboard",    label:"Dashboard",       icon:"◫",  roles:["employee","manager","resource_team"]},
+    {key:"my_requests",  label:"My Requests",      icon:"≡",  roles:["employee","manager","resource_team"]},
+    {key:"approvals",    label:"Approvals",        icon:"✓",  roles:["manager"]},
+    {key:"queue",        label:"Processing Queue", icon:"↻",  roles:["resource_team"]},
+  ]},
+  {group:"Change Management",items:[
+    {key:"change_requests",label:"Change Requests",icon:"⟳",  roles:["employee","manager","resource_team"]},
+    {key:"change_calendar",label:"Change Calendar",icon:"▦",  roles:["employee","manager","resource_team"]},
+    {key:"cr_approvals",   label:"CR Approvals",   icon:"✓",  roles:["manager"]},
+    {key:"cr_review",      label:"Review Queue",   icon:"◈",  roles:["resource_team"]},
+  ]},
+  {group:"Support",items:[
+    {key:"helpdesk", label:"My Tickets", icon:"🎫", roles:["employee","manager","resource_team"]},
+  ]},
+];
+
+export const TICKET_STATUS_USER = {
+  open:        {label:"Open",        color:C.amber,  bg:C.amberBg},
+  assigned:    {label:"Assigned",    color:C.blue,   bg:C.blueBg},
+  in_progress: {label:"In Progress", color:C.blue,   bg:C.blueBg},
+  pending:     {label:"Pending",     color:C.muted,  bg:"#EEF0F4"},
+  resolved:    {label:"Resolved",    color:C.green,  bg:C.greenBg},
+  fulfilled:   {label:"Fulfilled",   color:C.green,  bg:C.greenBg},
+  closed:      {label:"Closed",      color:C.muted,  bg:"#EEF0F4"},
+  rejected:    {label:"Rejected",    color:C.red,    bg:C.redBg},
+};
+
+export const TICKET_PRIORITY_USER = {
+  critical:{label:"Critical",color:C.red,   bg:C.redBg},
+  high:    {label:"High",    color:C.amber, bg:C.amberBg},
+  medium:  {label:"Medium",  color:C.blue,  bg:C.blueBg},
+  low:     {label:"Low",     color:C.green, bg:C.greenBg},
+};
