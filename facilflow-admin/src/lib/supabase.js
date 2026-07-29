@@ -152,6 +152,23 @@ export const fetchChangeRoles = async () => {
   return data
 }
 
+export const createChangeRole = async (key, label) => {
+  const { data, error } = await supabase.from('change_roles').insert([{ key, label }]).select().single()
+  if (error) throw error
+  return data
+}
+
+export const updateChangeRole = async (key, label) => {
+  const { data, error } = await supabase.from('change_roles').update({ label }).eq('key', key).select().single()
+  if (error) throw error
+  return data
+}
+
+export const deleteChangeRole = async (key) => {
+  const { error } = await supabase.from('change_roles').delete().eq('key', key)
+  if (error) throw error
+}
+
 export const fetchUserChangeRoles = async (tenantId) => {
   const { data, error } = await supabase
     .from('user_change_roles')
@@ -206,7 +223,7 @@ export const deleteApprovalLevel = async (id) => {
 export const fetchTenantConfig = async (tenantId) => {
   const { data, error } = await supabase
     .from('change_tenant_config')
-    .select('*, users(id,name,email,initials)')
+    .select('*, users!change_manager_id(id,name,email,initials)')
     .eq('tenant_id', tenantId)
     .single()
   if (error && error.code !== 'PGRST116') throw error

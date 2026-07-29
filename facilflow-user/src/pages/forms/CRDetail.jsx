@@ -16,15 +16,15 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
   const myRoles   = ctx.myChangeRoles||[];
   // Change manager can approve any pending_manager CR — not just ones they were assigned to at creation
   const isMgr     = myRoles.includes("change_manager");
-  const isApprL1  = myRoles.includes("change_approver_l1");
-  const isApprL2  = myRoles.includes("change_approver_l2");
   const isImpl    = myRoles.includes("change_implementer");
   const isRevwr   = myRoles.includes("change_reviewer") && (cr.reviewer_ids||[]).includes(uid);
   const isTech    = cr.initiator===uid;
 
+  // Current pending level, if any — driven by however many approval levels are configured
+  const currentLevel   = (cr.level_approvals||[]).find(l => cr.current_stage === `pending_level_${l.level}`);
+  const canLevelApprove= !!currentLevel && myRoles.includes(currentLevel.role_key);
+
   const canMgrApprove  = isMgr  && cr.status==="pending_manager";
-  const canL1Approve   = isApprL1 && cr.current_stage==="pending_level_1";
-  const canL2Approve   = isApprL2 && cr.current_stage==="pending_level_2";
   const canStartImpl   = isImpl && cr.status==="pending_implementation";
   const canCompleteImpl= isImpl && cr.status==="in_progress";
   const canReview      = isRevwr && !["rejected","completed","closed","failed"].includes(cr.status);
@@ -222,7 +222,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
       )}
 
       {/* Action note field */}
-      {(canMgrApprove||canL1Approve||canL2Approve||canStartImpl||canCompleteImpl)&&tab!=="comments"&&(
+      {(canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl)&&tab!=="comments"&&(
         <div style={{marginTop:14}}>
           <label style={LBL}>Note (optional)</label>
           <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Add a note for your decision…" style={{...inp(),minHeight:52,resize:"vertical"}}/>
@@ -256,13 +256,9 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
           <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
           <button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}>✓ Approve & Forward →</button>
         </>}
-        {canL1Approve&&<>
+        {canLevelApprove&&<>
           <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
-          <button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}>✓ Approve Level 1 →</button>
-        </>}
-        {canL2Approve&&<>
-          <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
-          <button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}>✓ Approve Level 2 →</button>
+          <button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}>✓ Approve {currentLevel.name} →</button>
         </>}
         {canStartImpl&&<button onClick={()=>doAction("start_implementation")} disabled={saving} style={{...btn("primary"),background:C.blue}}>🔧 Start Implementation</button>}
         {canCompleteImpl&&<button onClick={()=>doAction("complete_implementation",{implementationNotes:implNotes,outcome})} disabled={saving} style={{...btn("primary"),background:outcome==="failed"?C.red:C.green}}>

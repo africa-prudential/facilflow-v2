@@ -13,6 +13,7 @@ import {
   fetchTenantConfig,
   updateCRStage,
   fetchMyTickets, createTicket, updateTicket, fetchTicketComments, addTicketComment, fetchTicketCategories, uploadTicketAttachment,
+  addAuditEntry,
 } from "./lib/supabase.js";
 import { emailCRSubmitted, emailCRApproved, emailCRRejected, emailCRScheduled, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
@@ -213,11 +214,13 @@ export default function UserApp({ currentUser }){
         ],
         attachments:[...(data.attachments||[]).map(f=>({name:f.name,size:f.size}))],
         comments:[],
+        stage_entered_at: iso,
         created_at:iso, updated_at:iso,
       };
 
       const saved = await createCR(rec);
       setCrs(p=>[normCR(saved),...p]);
+      addAuditEntry({tenant_id:tenantId, performed_by:uid, action:"CR_SUBMITTED", target:id, detail:`${data.title} submitted (${data.changeType||"—"})`}).catch(console.warn);
 
       if(!managerId){
         flash(`${id} submitted — ⚠ No Change Manager configured. Go to Admin → CR Policy to set one.`, "error");
@@ -332,6 +335,13 @@ export default function UserApp({ currentUser }){
         newHistory.push({s:"reviewer_comment", at:iso, by:uid, label:`Reviewer comment`, note});
       }
 
+      const stageChanged = nextStage !== cr.current_stage;
+      if(stageChanged){
+        updates.stage_entered_at = iso;
+        updates.reminder_sent_at = null;
+        updates.escalated_at     = null;
+      }
+
       const saved = await updateCR(id,{
         ...updates,
         status:        nextStatus,
@@ -341,6 +351,7 @@ export default function UserApp({ currentUser }){
       });
       setCrs(p=>p.map(c=>c.id===id?normCR(saved):c));
       flash(`CR updated: ${nextStatus.replace(/_/g," ")}`);
+      if(stageChanged) addAuditEntry({tenant_id:cr.tenant_id, performed_by:uid, action:"CR_STAGE_ADVANCED", target:id, detail:`${cr.current_stage} → ${nextStage}${note?` (${note})`:""}`}).catch(console.warn);
 
       // Send stage notification emails — level-based, backward notification
       try {

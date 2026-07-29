@@ -24,20 +24,19 @@ export default function ChangePage({ctx}){
 
   const isTech   = (myChangeRoles||[]).includes("change_technician");
   const isMgr    = (myChangeRoles||[]).includes("change_manager");
-  const isApprL1 = (myChangeRoles||[]).includes("change_approver_l1");
-  const isApprL2 = (myChangeRoles||[]).includes("change_approver_l2");
+  const isApprover = (myChangeRoles||[]).some(r=>/^change_approver_l\d+$/.test(r));
   const isImpl   = (myChangeRoles||[]).includes("change_implementer");
   const isRevwr  = (myChangeRoles||[]).includes("change_reviewer");
 
   // Scope: technicians see only their own + involved; others see all
   const scopedCRs = useMemo(()=>{
-    if(isMgr||isApprL1||isApprL2||isImpl) return crs||[];
+    if(isMgr||isApprover||isImpl) return crs||[];
     return (crs||[]).filter(c=>
       c.initiator===uid ||
       (c.reviewer_ids||[]).includes(uid) ||
       c.change_manager_id===uid
     );
-  },[crs,uid,isMgr,isApprL1,isApprL2,isImpl]);
+  },[crs,uid,isMgr,isApprover,isImpl]);
 
   // ── METRICS (on scoped, unfiltered dataset) ─────────────
   const total       = scopedCRs.length;
