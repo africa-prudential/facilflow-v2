@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { SUB_STATUSES, SUB_CYCLES } from "../constants.js";
-import { genId, now, normSub, fmtSafe } from "../utils.js";
+import { genId, now, normSub, fmtSafe, exportCSV } from "../utils.js";
 import { createSubscription, updateSubscription, uploadSubInvoice } from "../lib/supabase.js";
 import { Chip, PageTitle, TH, Empty } from "../components/ui.jsx";
 import SubDetailModal from "./forms/SubDetailModal.jsx";
@@ -13,7 +13,7 @@ export default function ITSubscriptions({ctx}){
   const [modal,setModal]  = useState(null);
   const [detail,setDetail]= useState(null);
   const [page,setPage]    = useState(1);
-  const [pageSize]        = useState(20);
+  const [pageSize,setPageSize] = useState(20);
 
   const depts = [...new Set((users||[]).map(u=>u.dept).filter(Boolean))].sort();
 
@@ -57,8 +57,8 @@ export default function ITSubscriptions({ctx}){
   const totalPages = Math.max(1, Math.ceil(shown.length/pageSize));
   const paged = shown.slice((page-1)*pageSize, page*pageSize);
 
-  // Reset page on filter change
-  useEffect(()=>{ setPage(1); },[f]);
+  // Reset page on filter/page-size change
+  useEffect(()=>{ setPage(1); },[f,pageSize]);
 
   const expiringSoon = subscriptions.filter(s=>{
     if(s.status==="cancelled"||s.status==="expired") return false;
@@ -117,10 +117,32 @@ export default function ITSubscriptions({ctx}){
   const cats=[...new Set(subscriptions.map(s=>s.category).filter(Boolean))].sort();
   const vendors=[...new Set(subscriptions.map(s=>s.vendor).filter(Boolean))].sort();
 
+  const exportSubs = () => {
+    if(shown.length===0){ flash("No subscriptions to export","error"); return; }
+    exportCSV(`it-subscriptions-${new Date().toISOString().slice(0,10)}.csv`, [
+      {key:"name",           label:"Subscription"},
+      {key:"vendor",         label:"Vendor"},
+      {key:"category",       label:"Category"},
+      {key:"cost",           label:"Cost (NGN)"},
+      {key:"prevCost",       label:"Previous Cost (NGN)"},
+      {key:"billingCycle",   label:"Billing Cycle"},
+      {key:"renewalDate",    label:"Renewal Date"},
+      {key:"status",         label:"Status"},
+      {key:"assignedOwner",  label:"Owner"},
+      {key:"assignedDept",   label:"Department"},
+      {key:"notes",          label:"Notes"},
+      {key:"lastUpdated",    label:"Last Updated"},
+    ], shown);
+    flash(`Exported ${shown.length} subscription(s)`);
+  };
+
   return (
     <div>
       <PageTitle title="IT Subscriptions" sub="Track SaaS tools, renewals, billing cycles and reminders"
-        action={<button onClick={()=>setModal("add")} style={btn("primary")}>+ Add Subscription</button>}/>
+        action={<div style={{display:"flex",gap:8}}>
+          <button onClick={exportSubs} style={btn("ghost")}>Export CSV</button>
+          <button onClick={()=>setModal("add")} style={btn("primary")}>+ Add Subscription</button>
+        </div>}/>
 
       {expiringSoon.length>0&&(
         <div style={{padding:"10px 16px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600}}>
@@ -228,7 +250,13 @@ export default function ITSubscriptions({ctx}){
 
         {/* PAGINATION */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 14px",borderTop:`1px solid #FAFAFA`}}>
-          <div style={{fontSize:11,color:C.muted}}>{shown.length} subscription(s)</div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:11,color:C.muted}}>Rows per page</span>
+            <select value={pageSize} onChange={e=>setPageSize(Number(e.target.value))}
+              style={{fontSize:12,padding:"4px 8px",borderRadius:6,border:`1px solid ${C.border}`,background:"#fff",color:C.ink}}>
+              {[10,20,50,100].map(n=><option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
           {totalPages>1&&(
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
               <button onClick={()=>setPage(1)} disabled={page===1} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>«</button>

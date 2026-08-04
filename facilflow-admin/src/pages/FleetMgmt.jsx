@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, btn, card } from "../theme.js";
 import { VEHICLE_STATUSES } from "../constants.js";
 import { worstDocStatus, genId, now, vsm, normVeh } from "../utils.js";
@@ -12,6 +12,8 @@ export default function FleetMgmt({ctx}){
   const [f,setF]        = useState({});
   const [modal,setModal] = useState(null);
   const [detail,setDetail] = useState(null);
+  const [page,setPage]    = useState(1);
+  const [pageSize,setPageSize] = useState(20);
 
   const shown = vehicles.filter(v=>{
     if(f.status && v.status!==f.status) return false;
@@ -20,6 +22,10 @@ export default function FleetMgmt({ctx}){
     if(f.q){const q=f.q.toLowerCase();if(!v.model.toLowerCase().includes(q)&&!v.plate.toLowerCase().includes(q)) return false;}
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(shown.length/pageSize));
+  const paged = shown.slice((page-1)*pageSize, page*pageSize);
+  useEffect(()=>{ setPage(1); },[f,pageSize]);
 
   const updateStatus=async(id,status)=>{
     try{
@@ -115,9 +121,9 @@ export default function FleetMgmt({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Plate","Model","Year","Colour","Assigned Owner","Docs","Status","Driver",""]}/>
           <tbody>
-            {shown.length===0
+            {paged.length===0
               ?<tr><td colSpan={9}><Empty icon="🚗" title="No vehicles found"/></td></tr>
-              :shown.map((v,i)=>{
+              :paged.map((v,i)=>{
                 const drv=drivers.find(d=>d.id===v.driverId);
                 const vd=allDocs.filter(d=>d.vehicle_id===v.id);
                 const ws=worstDocStatus(vd);
@@ -126,7 +132,7 @@ export default function FleetMgmt({ctx}){
                   :(v.companyName||"—");
                 const rowBg = ws.l==="Expired"?`${C.red}07`:ws.l==="Expiring Soon"?`${C.amber}07`:"transparent";
                 return (
-                  <tr key={v.id} style={{borderBottom:i<shown.length-1?`1px solid #FAFAFA`:"none",background:rowBg}}>
+                  <tr key={v.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none",background:rowBg}}>
                     <td style={{padding:"11px 14px",fontSize:12,fontWeight:700,color:C.ink}}>{v.plate}</td>
                     <td style={{padding:"11px 14px",fontSize:13,color:C.ink}}>{v.model}</td>
                     <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{v.year}</td>
@@ -159,6 +165,29 @@ export default function FleetMgmt({ctx}){
               })}
           </tbody>
         </table>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 14px",borderTop:`1px solid #FAFAFA`}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:11,color:C.muted}}>Rows per page</span>
+            <select value={pageSize} onChange={e=>setPageSize(Number(e.target.value))}
+              style={{fontSize:12,padding:"4px 8px",borderRadius:6,border:`1px solid ${C.border}`,background:"#fff",color:C.ink}}>
+              {[10,20,50,100].map(n=><option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          {totalPages>1&&(
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              <button onClick={()=>setPage(1)} disabled={page===1} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>«</button>
+              <button onClick={()=>setPage(p=>p-1)} disabled={page===1} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>‹</button>
+              {Array.from({length:Math.min(5,totalPages)},(_,i)=>{
+                const pg=Math.max(1,Math.min(page-2,totalPages-4))+i;
+                if(pg<1||pg>totalPages) return null;
+                return <button key={pg} onClick={()=>setPage(pg)} style={{...btn(pg===page?"primary":"ghost"),padding:"4px 10px",fontSize:12,minWidth:32}}>{pg}</button>;
+              })}
+              <button onClick={()=>setPage(p=>p+1)} disabled={page===totalPages} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===totalPages?.4:1}}>›</button>
+              <button onClick={()=>setPage(totalPages)} disabled={page===totalPages} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===totalPages?.4:1}}>»</button>
+              <span style={{fontSize:11,color:C.muted,marginLeft:6}}>Page {page} of {totalPages}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {modal==="add"&&<VehicleModal onClose={()=>setModal(null)} onSave={d=>saveVehicle(d,null)}/>}

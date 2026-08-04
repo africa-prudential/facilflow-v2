@@ -14,7 +14,7 @@ function CRPolicyFull({ctx}){
   const [editing,setEditing]=useState(null);
   const [saving,setSaving]=useState(false);
   const [escForm,setEscForm]=useState(()=>({
-    escalation_authority_id: tenantConfig?.escalation_authority_id||"",
+    escalation_authority_id: tenantConfig?.escalation_authority_id||tenantConfig?.change_manager_id||"",
     escalation_cc_email:     tenantConfig?.escalation_cc_email||"",
     manager_sla_hours:              tenantConfig?.manager_sla_hours??"",
     manager_reminder_before_minutes:  tenantConfig?.manager_reminder_before_minutes??"",
@@ -25,7 +25,7 @@ function CRPolicyFull({ctx}){
 
   useEffect(()=>{
     setEscForm({
-      escalation_authority_id: tenantConfig?.escalation_authority_id||"",
+      escalation_authority_id: tenantConfig?.escalation_authority_id||tenantConfig?.change_manager_id||"",
       escalation_cc_email:     tenantConfig?.escalation_cc_email||"",
       manager_sla_hours:              tenantConfig?.manager_sla_hours??"",
       manager_reminder_before_minutes:  tenantConfig?.manager_reminder_before_minutes??"",
@@ -77,6 +77,11 @@ function CRPolicyFull({ctx}){
   };
 
   const saveEscalation = async () => {
+    if (!escForm.escalation_authority_id) { flash("Escalation Authority is required","error"); return; }
+    if (escForm.manager_sla_hours==="")               { flash("Change Manager SLA is required","error"); return; }
+    if (escForm.manager_reminder_before_minutes==="")  { flash("Change Manager SLA Reminder is required","error"); return; }
+    if (escForm.implementation_sla_hours==="")         { flash("Implementation SLA is required","error"); return; }
+    if (escForm.implementation_reminder_before_minutes==="") { flash("Implementation Reminder is required","error"); return; }
     setSavingEsc(true);
     try {
       const saved = await saveTenantConfig(tid, {
@@ -94,7 +99,7 @@ function CRPolicyFull({ctx}){
   };
 
   const cmUser = users.find(u=>u.id===tenantConfig?.change_manager_id);
-  const escUser = users.find(u=>u.id===tenantConfig?.escalation_authority_id);
+  const escUser = users.find(u=>u.id===(tenantConfig?.escalation_authority_id||tenantConfig?.change_manager_id));
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -133,7 +138,7 @@ function CRPolicyFull({ctx}){
       {/* Escalation & Default SLAs */}
       <div style={card(20)}>
         <div style={{fontSize:14,fontWeight:700,color:C.ink,marginBottom:4}}>Escalation & Default SLAs</div>
-        <div style={{fontSize:12,color:C.muted,marginBottom:14}}>Overdue approvals escalate to this person. SLA (hours) and reminder (minutes before) apply to the fixed Change Manager and Implementation stages — each approval level has its own SLA (set in its edit form below).</div>
+        <div style={{fontSize:12,color:C.muted,marginBottom:14}}>Overdue approvals escalate to the Change Manager unless overridden. SLA (hours) and reminder (minutes before) apply to the fixed Change Manager and Implementation stages.</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:12,alignItems:"end",marginBottom:14}}>
           <div>
             <label style={LBL}>Escalation Authority</label>
@@ -147,15 +152,15 @@ function CRPolicyFull({ctx}){
               ))}
             </select>
           </div>
-          {escUser&&(
-            <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:C.redBg,borderRadius:8,border:`1px solid ${C.red}30`}}>
-              <Av i={escUser.initials||"?"} s={28} bg={C.red}/>
-              <div>
-                <div style={{fontSize:12,fontWeight:700,color:C.ink}}>{escUser.name}</div>
-                <div style={{fontSize:10,color:C.red,fontWeight:600}}>Escalation Authority</div>
-              </div>
-            </div>
-          )}
+          {/*{escUser&&(*/}
+          {/*  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:C.redBg,borderRadius:8,border:`1px solid ${C.red}30`}}>*/}
+          {/*    <Av i={escUser.initials||"?"} s={28} bg={C.red}/>*/}
+          {/*    <div>*/}
+          {/*      <div style={{fontSize:12,fontWeight:700,color:C.ink}}>{escUser.name}</div>*/}
+          {/*      <div style={{fontSize:10,color:C.red,fontWeight:600}}>Escalation Authority</div>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*)}*/}
         </div>
         <div style={{marginBottom:14}}>
           <label style={LBL}>Escalation CC Email (optional)</label>
@@ -164,24 +169,24 @@ function CRPolicyFull({ctx}){
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
           <div>
-            <label style={LBL}>Change Manager SLA (hours)</label>
+            <label style={LBL}>Change Manager SLA</label>
             <input type="number" min={0} value={escForm.manager_sla_hours}
-              onChange={e=>setEscForm(p=>({...p,manager_sla_hours:e.target.value}))} style={inp()} placeholder="e.g. 24"/>
+              onChange={e=>setEscForm(p=>({...p,manager_sla_hours:e.target.value}))} style={inp()} placeholder="e.g. 2 hrs"/>
           </div>
           <div>
-            <label style={LBL}>Change Manager Reminder (minutes before)</label>
+            <label style={LBL}>Change manager sla Reminder</label>
             <input type="number" min={0} value={escForm.manager_reminder_before_minutes}
-              onChange={e=>setEscForm(p=>({...p,manager_reminder_before_minutes:e.target.value}))} style={inp()} placeholder="e.g. 60"/>
+              onChange={e=>setEscForm(p=>({...p,manager_reminder_before_minutes:e.target.value}))} style={inp()} placeholder="e.g. 30 mins"/>
           </div>
           <div>
-            <label style={LBL}>Implementation SLA (hours)</label>
+            <label style={LBL}>Implementation SLA</label>
             <input type="number" min={0} value={escForm.implementation_sla_hours}
-              onChange={e=>setEscForm(p=>({...p,implementation_sla_hours:e.target.value}))} style={inp()} placeholder="e.g. 48"/>
+              onChange={e=>setEscForm(p=>({...p,implementation_sla_hours:e.target.value}))} style={inp()} placeholder="e.g. 2 hrs"/>
           </div>
           <div>
             <label style={LBL}>Implementation Reminder (minutes before)</label>
             <input type="number" min={0} value={escForm.implementation_reminder_before_minutes}
-              onChange={e=>setEscForm(p=>({...p,implementation_reminder_before_minutes:e.target.value}))} style={inp()} placeholder="e.g. 120"/>
+              onChange={e=>setEscForm(p=>({...p,implementation_reminder_before_minutes:e.target.value}))} style={inp()} placeholder="e.g. 30 mins"/>
           </div>
         </div>
         <div style={{display:"flex",justifyContent:"flex-end"}}>

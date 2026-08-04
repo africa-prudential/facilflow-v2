@@ -55,3 +55,21 @@ export const normInv = i  => i  ? ({...i,  desc:i.description??i.desc, lastUpdat
 export const normAudit = a => a ? ({...a,  at:a.created_at??a.at, by:a.performed_by??a.by }) : a;
 export const fmtSafe = d => { if(!d) return "—"; const dt = new Date(d); return isNaN(dt) ? "—" : dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}); };
 export const normTicket = t => t ? ({...t, title:t.subject??t.title, ticketType:t.ticket_type??t.ticketType??t.type, priorityAuto:t.priority_auto??t.priorityAuto, impactDetails:t.impact_details??t.impactDetails, requesterId:t.requester_id??t.requesterId, assigneeId:t.assignee_id??t.assigneeId, productService:t.product_service??t.productService, supportLevel:t.support_level??t.supportLevel, assetId:t.asset_id??t.assetId, assetFreeText:t.asset_free_text??t.assetFreeText, linkedCrId:t.linked_cr_id??t.linkedCrId, resolutionNotes:t.resolution_notes??t.resolutionNotes, resolutionStatus:t.resolution_status??t.resolutionStatus, rootCause:t.root_cause??t.rootCause, resolvedAt:t.resolved_at??t.resolvedAt, closedAt:t.closed_at??t.closedAt, createdAt:t.created_at??t.createdAt, updatedAt:t.updated_at??t.updatedAt }) : t;
+
+// Exports rows to a downloaded CSV. `columns` is [{key, label}]; values are read via row[key].
+export const exportCSV = (filename, columns, rows) => {
+  const esc = v => {
+    const s = v==null ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+  const lines = [
+    columns.map(c=>esc(c.label)).join(","),
+    ...rows.map(row => columns.map(c=>esc(row[c.key])).join(",")),
+  ];
+  const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
