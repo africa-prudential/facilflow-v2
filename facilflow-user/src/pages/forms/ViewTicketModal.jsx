@@ -190,11 +190,11 @@ export default function ViewTicketModal({ticket,me,adminEmails,onClose,fetchComm
                 ?<div style={{borderTop:`1px solid ${C.border}`,paddingTop:14}}>
                    <div style={{fontSize:12,fontWeight:700,color:C.ink,marginBottom:8}}>Add a Follow-up</div>
                    <textarea value={commentText} onChange={e=>setCommentText(e.target.value)}
-                     placeholder="Provide more details, ask a question, attach new information, or let the team know about any changes since you raised this ticket…"
-                     style={{...inp(),resize:"vertical",minHeight:88,fontSize:13,lineHeight:1.65,width:"100%"}}
+                     placeholder="Provide more details…"
+                     style={{...inp(),resize:"vertical",minHeight:88,fontSize:12, fontStyle:"italic", color:C.muted, lineHeight:1.65,width:"100%"}}
                      onKeyDown={e=>{ if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){ e.preventDefault(); postComment(); } }}/>
-                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10}}>
-                     <span style={{fontSize:11,color:C.muted}}>Ctrl + Enter to send · IT team will be notified</span>
+                   <div style={{display:"flex",justifyContent:"right",alignItems:"center",marginTop:10}}>
+                     {/*<span style={{fontSize:11,color:C.muted}}>Ctrl + Enter to send · IT team will be notified</span>*/}
                      <button onClick={postComment} disabled={posting||!commentText.trim()} style={{...btn("primary"),padding:"7px 18px",opacity:(!commentText.trim())?0.5:1}}>
                        {posting?"Sending…":"Send Follow-up →"}
                      </button>

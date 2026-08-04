@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import Login from './Login.jsx'
 import { supabase, getProfile, updatePassword } from './lib/supabase.js'
@@ -310,5 +311,5 @@ function Root() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode><Root /></React.StrictMode>
+  <React.StrictMode><BrowserRouter><Root /></BrowserRouter></React.StrictMode>
 )

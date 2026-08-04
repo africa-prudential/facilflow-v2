@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import {
   supabase,
   fetchRequests, createRequest, updateRequest,
@@ -31,7 +32,10 @@ import CRReview from "./pages/CRReview.jsx";
 import HelpdeskUser from "./pages/HelpdeskUser.jsx";
 
 export default function UserApp({ currentUser }){
-  const [page,    setPage]   = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const page = location.pathname.replace(/^\//,"") || "dashboard";
+  const setPage = useCallback((key)=>navigate(`/${key}`),[navigate]);
   const [notifs,  setNotifs] = useState([]);
   const [bellOpen,setBell]   = useState(false);
   const [reqs,    setReqs]   = useState([]);
@@ -648,15 +652,19 @@ export default function UserApp({ currentUser }){
         {/* ── CONTENT ──────────────────────── */}
         <main style={{flex:1,padding:28,overflowY:"auto",maxHeight:"calc(100vh - 52px)"}}
           onClick={()=>bellOpen&&setBell(false)}>
-          {page==="dashboard"        && <Dashboard     ctx={ctx} setPage={setPage}/>}
-          {page==="my_requests"      && <MyRequests    ctx={ctx}/>}
-          {page==="approvals"        && <Approvals     ctx={ctx}/>}
-          {page==="queue"            && <Queue         ctx={ctx}/>}
-          {page==="change_requests"  && <ChangePage    ctx={ctx}/>}
-          {page==="change_calendar"  && <CalendarPage  ctx={ctx}/>}
-          {page==="cr_approvals"     && <CRApprovals   ctx={ctx}/>}
-          {page==="cr_review"        && <CRReview      ctx={ctx}/>}
-          {page==="helpdesk"         && <HelpdeskUser  ctx={ctx}/>}
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+            <Route path="/dashboard" element={<Dashboard ctx={ctx} setPage={setPage}/>}/>
+            <Route path="/my_requests" element={<MyRequests ctx={ctx}/>}/>
+            <Route path="/approvals" element={<Approvals ctx={ctx}/>}/>
+            <Route path="/queue" element={<Queue ctx={ctx}/>}/>
+            <Route path="/change_requests" element={<ChangePage ctx={ctx}/>}/>
+            <Route path="/change_calendar" element={<CalendarPage ctx={ctx}/>}/>
+            <Route path="/crapprovals" element={<CRApprovals ctx={ctx}/>}/>
+            <Route path="/cr_review" element={<CRReview ctx={ctx}/>}/>
+            <Route path="/helpdesk" element={<HelpdeskUser ctx={ctx}/>}/>
+            <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
+          </Routes>
         </main>
       </div>
 

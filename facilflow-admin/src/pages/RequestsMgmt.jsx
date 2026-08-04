@@ -431,9 +431,9 @@ export default function RequestsMgmt({ctx}){
               {[10,25,50,100].map(n=><option key={n} value={n}>{n}</option>)}
             </select>
           </div>
-          <div style={{fontSize:11,color:C.muted}}>
-            {filtered.length===0?"0 results":`${(page-1)*pageSize+1}–${Math.min(page*pageSize,filtered.length)} of ${filtered.length}`}
-          </div>
+          {/*<div style={{fontSize:11,color:C.muted}}>*/}
+          {/*  {filtered.length===0?"0 results":`${(page-1)*pageSize+1}–${Math.min(page*pageSize,filtered.length)} of ${filtered.length}`}*/}
+          {/*</div>*/}
           <div style={{display:"flex",gap:4}}>
             <button onClick={()=>setPage(1)}      disabled={page===1}          style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>«</button>
             <button onClick={()=>setPage(p=>p-1)} disabled={page===1}          style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>‹</button>

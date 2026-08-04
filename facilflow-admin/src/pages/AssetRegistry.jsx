@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, btn, card } from "../theme.js";
 import { ASSET_STATUS, ASSET_CATS } from "../constants.js";
 import { fmtSafe } from "../utils.js";
@@ -12,6 +12,8 @@ export default function AssetRegistry({ctx}){
   const [showNew,setShowNew]=useState(false);
   const [csvError,setCsvError]=useState("");
   const [csvUploading,setCsvUploading]=useState(false);
+  const [page,setPage]    = useState(1);
+  const [pageSize,setPageSize] = useState(20);
 
   const shown=(assets||[]).filter(a=>{
     if(f.q && !`${a.name} ${a.serial_number} ${a.tag} ${a.brand}`.toLowerCase().includes(f.q.toLowerCase())) return false;
@@ -19,6 +21,10 @@ export default function AssetRegistry({ctx}){
     if(f.category && a.category!==f.category) return false;
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(shown.length/pageSize));
+  const paged = shown.slice((page-1)*pageSize, page*pageSize);
+  useEffect(()=>{ setPage(1); },[f,pageSize]);
 
   const counts={
     total:(assets||[]).length,
@@ -93,10 +99,10 @@ export default function AssetRegistry({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Asset","Category","Serial / Tag","Status","Assigned To","Purchase Date","Actions"]}/>
           <tbody>
-            {shown.length===0
+            {paged.length===0
               ?<tr><td colSpan={7}><Empty icon="💻" title="No assets found" sub="Add assets individually or import via CSV"/></td></tr>
-              :shown.map((a,i)=>(
-                <tr key={a.id} style={{borderBottom:i<shown.length-1?`1px solid #FAFAFA`:"none"}}>
+              :paged.map((a,i)=>(
+                <tr key={a.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"10px 14px"}}>
                     <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{a.name}</div>
                     <div style={{fontSize:11,color:C.muted,marginTop:1}}>{[a.brand,a.model].filter(Boolean).join(" · ")||"—"}</div>
@@ -119,7 +125,29 @@ export default function AssetRegistry({ctx}){
             }
           </tbody>
         </table>
-        <div style={{padding:"9px 14px",borderTop:`1px solid #FAFAFA`,fontSize:11,color:C.muted}}>{shown.length} assets</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 14px",borderTop:`1px solid #FAFAFA`}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:11,color:C.muted}}>Rows per page</span>
+            <select value={pageSize} onChange={e=>setPageSize(Number(e.target.value))}
+              style={{fontSize:12,padding:"4px 8px",borderRadius:6,border:`1px solid ${C.border}`,background:"#fff",color:C.ink}}>
+              {[10,20,50,100].map(n=><option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          {totalPages>1&&(
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              <button onClick={()=>setPage(1)} disabled={page===1} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>«</button>
+              <button onClick={()=>setPage(p=>p-1)} disabled={page===1} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>‹</button>
+              {Array.from({length:Math.min(5,totalPages)},(_,i)=>{
+                const pg=Math.max(1,Math.min(page-2,totalPages-4))+i;
+                if(pg<1||pg>totalPages) return null;
+                return <button key={pg} onClick={()=>setPage(pg)} style={{...btn(pg===page?"primary":"ghost"),padding:"4px 10px",fontSize:12,minWidth:32}}>{pg}</button>;
+              })}
+              <button onClick={()=>setPage(p=>p+1)} disabled={page===totalPages} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===totalPages?.4:1}}>›</button>
+              <button onClick={()=>setPage(totalPages)} disabled={page===totalPages} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===totalPages?.4:1}}>»</button>
+              <span style={{fontSize:11,color:C.muted,marginLeft:6}}>Page {page} of {totalPages}</span>
+            </div>
+          )}
+        </div>
       </div>
       {sel&&<AssetModal asset={sel} users={users} onClose={()=>setSel(null)}
         onSave={async(id,upd)=>{ const n=await updateAssetFn(id,upd); setSel(n); flash("Asset updated"); }}/>}

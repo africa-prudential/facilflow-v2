@@ -170,7 +170,8 @@ serve(async (req) => {
       const elapsedHours = (now.getTime() - new Date(cr.stage_entered_at).getTime()) / 3600000
 
       if (elapsedHours >= slaHours && !cr.escalated_at) {
-        const escalationUser = tc?.escalation_authority_id ? usersById[tc.escalation_authority_id] : null
+        const escalationAuthorityId = tc?.escalation_authority_id || tc?.change_manager_id
+        const escalationUser = escalationAuthorityId ? usersById[escalationAuthorityId] : null
         const to = escalationUser?.email ? [escalationUser.email] : []
         const cc = tc?.escalation_cc_email ? [tc.escalation_cc_email] : undefined
 

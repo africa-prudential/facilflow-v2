@@ -1,6 +1,7 @@
 import { supabase } from "./lib/supabase.js";
 import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories } from "./lib/supabase.js";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { C, btn } from "./theme.js";
 import { NAV, ADMIN_ROLE_META } from "./constants.js";
 import { getAdminRoles, hasAdminAccess, genId, normCR, normVeh, normSub, normDrv, normInv, normAudit, normTicket } from "./utils.js";
@@ -21,7 +22,10 @@ import HelpdeskAdmin from "./pages/HelpdeskAdmin.jsx";
 import AssetRegistry from "./pages/AssetRegistry.jsx";
 
 export default function AdminApp({ currentUser }){
-  const [page,      setPage]     = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const page = location.pathname.replace(/^\//,"") || "dashboard";
+  const setPage = useCallback((key)=>navigate(`/${key}`),[navigate]);
   const [users,     setUsers]    = useState([]);
   const [vehicles,  setVehicles] = useState([]);
   const [drivers,   setDrivers]  = useState([]);
@@ -215,20 +219,24 @@ export default function AdminApp({ currentUser }){
 
         {/* ── CONTENT ── */}
         <main style={{flex:1,padding:28,overflowY:"auto",maxHeight:"calc(100vh - 52px)"}}>
-          {page==="dashboard"       && <AdminDash     ctx={ctx} setPage={setPage}/>}
-          {page==="users"           && (hasAdminAccess(me,["super_admin"]) ? <UserMgmt ctx={ctx}/> : <AccessDenied/>)}
-          {page==="requests"        && (hasAdminAccess(me,["super_admin","facility_admin"]) ? <RequestsMgmt ctx={ctx}/> : <AccessDenied/>)}
-          {page==="fleet"           && (hasAdminAccess(me,["super_admin","facility_admin"]) ? <FleetMgmt    ctx={ctx}/> : <AccessDenied/>)}
-          {page==="drivers"         && (hasAdminAccess(me,["super_admin","facility_admin"]) ? <DriverRoster ctx={ctx}/> : <AccessDenied/>)}
-          {page==="inventory"       && (hasAdminAccess(me,["super_admin","facility_admin"]) ? <InventoryMgmt ctx={ctx}/> : <AccessDenied/>)}
-          {page==="change_requests" && (hasAdminAccess(me,["super_admin","it_admin"])       ? <CRAdmin      ctx={ctx}/> : <AccessDenied/>)}
-          {page==="cr_policy"       && (hasAdminAccess(me,["super_admin","it_admin"])       ? <CRPolicy     ctx={ctx}/> : <AccessDenied/>)}
-          {page==="change_config"   && (hasAdminAccess(me,["super_admin","it_admin"])       ? <ChangeConfig ctx={ctx}/> : <AccessDenied/>)}
-          {page==="it_subscriptions" && (hasAdminAccess(me,["super_admin","it_admin"])       ? <ITSubscriptions ctx={ctx}/> : <AccessDenied/>)}
-          {page==="helpdesk"       && (hasAdminAccess(me,["super_admin","it_admin"])        ? <HelpdeskAdmin ctx={ctx}/> : <AccessDenied/>)}
-          {page==="asset_registry" && (hasAdminAccess(me,["super_admin","it_admin"])        ? <AssetRegistry ctx={ctx}/> : <AccessDenied/>)}
-          {page==="notifications"   && (hasAdminAccess(me,["super_admin"])                  ? <NotifPolicy  ctx={ctx}/> : <AccessDenied/>)}
-          {page==="audit"           && (hasAdminAccess(me,["super_admin"])                  ? <AuditLog     ctx={ctx}/> : <AccessDenied/>)}
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+            <Route path="/dashboard" element={<AdminDash ctx={ctx} setPage={setPage}/>}/>
+            <Route path="/users" element={hasAdminAccess(me,["super_admin"]) ? <UserMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/requests" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <RequestsMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/fleet" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <FleetMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/drivers" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <DriverRoster ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/inventory" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <InventoryMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/change_requests" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <CRAdmin ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/cr_policy" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <CRPolicy ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/change_config" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <ChangeConfig ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/it_subscriptions" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <ITSubscriptions ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/helpdesk" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <HelpdeskAdmin ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/asset_registry" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <AssetRegistry ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/notifications" element={hasAdminAccess(me,["super_admin"]) ? <NotifPolicy ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/audit" element={hasAdminAccess(me,["super_admin"]) ? <AuditLog ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
+          </Routes>
         </main>
       </div>
       <Toast t={toast}/>

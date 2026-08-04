@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { Av, EnvTag, RiskTag, PageTitle, TH, Filters } from "../components/ui.jsx";
@@ -18,7 +18,7 @@ export default function CRAdmin({ctx}){
   const [fTo,      setFTo]     = useState("");
   const [activeCard,setActiveCard]=useState("");
   const [page,     setPage]    = useState(1);
-  const PAGE_SIZE = 15;
+  const [pageSize, setPageSize]= useState(20);
 
   const allCRs = crs||[];
 
@@ -67,9 +67,10 @@ export default function CRAdmin({ctx}){
     });
   },[allCRs,search,fStatus,fType,fEnv,fRisk,fUser,fOutcome,fFrom,fTo,activeCard,users]);
 
-  const totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
-  const paged = filtered.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
+  const totalPages = Math.max(1,Math.ceil(filtered.length/pageSize));
+  const paged = filtered.slice((page-1)*pageSize,page*pageSize);
   const resetPage = fn=>(...args)=>{ fn(...args); setPage(1); };
+  useEffect(()=>{ setPage(1); },[pageSize]);
   const hasFilters = search||fStatus||fType||fEnv||fRisk||fUser||fOutcome||fFrom||fTo||activeCard;
 
   const clearAll=()=>{ setSearch("");setFStatus("");setFType("");setFEnv("");setFRisk("");setFUser("");setFOutcome("");setFFrom("");setFTo("");setActiveCard("");setPage(1); };
@@ -251,20 +252,18 @@ export default function CRAdmin({ctx}){
 
         {/* Pagination */}
         <div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",flexDirection:"column",gap:10}}>
-          {/* Load More button — shows when more pages available */}
-          {page < totalPages && (
-            <div style={{textAlign:"center"}}>
-              <button
-                onClick={()=>setPage(p=>p+1)}
-                style={{...btn("ghost"),fontSize:12,padding:"8px 28px",width:"100%",borderStyle:"dashed",color:C.brand,borderColor:C.brand+"40",background:C.brandLt}}>
-                Load More ({Math.min(PAGE_SIZE, filtered.length - page*PAGE_SIZE)} more of {filtered.length - page*PAGE_SIZE} remaining)
-              </button>
-            </div>
-          )}
-          {/* Standard pagination controls */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div style={{fontSize:11,color:C.muted}}>
-              {filtered.length===0?"0 results":`Showing ${(page-1)*PAGE_SIZE+1}–${Math.min(page*PAGE_SIZE,filtered.length)} of ${filtered.length} change requests`}
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              {/*<div style={{fontSize:11,color:C.muted}}>*/}
+              {/*  {filtered.length===0?"0 results":`Showing ${(page-1)*pageSize+1}–${Math.min(page*pageSize,filtered.length)} of ${filtered.length} change requests`}*/}
+              {/*</div>*/}
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <span style={{fontSize:11,color:C.muted}}>Rows per page</span>
+                <select value={pageSize} onChange={e=>setPageSize(Number(e.target.value))}
+                  style={{fontSize:12,padding:"4px 8px",borderRadius:6,border:`1px solid ${C.border}`,background:"#fff",color:C.ink}}>
+                  {[10,20,50,100].map(n=><option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
             </div>
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
               <button onClick={()=>setPage(1)} disabled={page===1} style={{...btn("ghost"),padding:"4px 8px",fontSize:12,opacity:page===1?.4:1}}>«</button>
