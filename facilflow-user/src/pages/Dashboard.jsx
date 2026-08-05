@@ -1,6 +1,6 @@
 import { C, btn, card } from "../theme.js";
 import { fmtD } from "../utils.js";
-import { CRChip, EnvTag, TH } from "../components/ui.jsx";
+import { CRChip, EnvTag, TH, Empty } from "../components/ui.jsx";
 
 export default function Dashboard({ctx,setPage}){
   const {me,uid,reqs,crs,users}=ctx;
@@ -53,24 +53,28 @@ export default function Dashboard({ctx,setPage}){
             <span style={{fontSize:14,fontWeight:700,color:C.ink}}>Recent Change Requests</span>
             <button onClick={()=>setPage("change_requests")} style={{...btn("ghost"),fontSize:11,padding:"4px 10px"}}>View all →</button>
           </div>
-          <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <TH cols={["CR ID","Title","Type","Environment","Status"]}/>
-            <tbody>
-              {crs.slice(0,5).map((c,i)=>(
-                <tr key={c.id} style={{borderBottom:i<4?`1px solid #FAFAFA`:"none"}}>
-                  <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink,whiteSpace:"nowrap"}}>{c.id}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}>
-                    <div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {c.is_emergency&&<span style={{color:C.red,marginRight:4}}>⚡</span>}{c.title}
-                    </div>
-                  </td>
-                  <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.change_type}</td>
-                  <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
-                  <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {myCRs.length===0 ? (
+            <Empty icon="⟳" title="No change requests yet" sub="Requests you raise will show up here."/>
+          ) : (
+            <table style={{width:"100%",borderCollapse:"collapse"}}>
+              <TH cols={["CR ID","Title","Type","Environment","Status"]}/>
+              <tbody>
+                {myCRs.slice(0,5).map((c,i)=>(
+                  <tr key={c.id} style={{borderBottom:i<4?`1px solid #FAFAFA`:"none"}}>
+                    <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink,whiteSpace:"nowrap"}}>{c.id}</td>
+                    <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}>
+                      <div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {c.is_emergency&&<span style={{color:C.red,marginRight:4}}>⚡</span>}{c.title}
+                      </div>
+                    </td>
+                    <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.change_type}</td>
+                    <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
+                    <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Right panel */}
