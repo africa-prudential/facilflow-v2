@@ -15,7 +15,7 @@ export const getSession = () => supabase.auth.getSession()
 
 export const onAuthChange = (cb) => supabase.auth.onAuthStateChange(cb)
 
-const APP_URL = import.meta.env.VITE_APP_URL || 'https://facilflowuser.vercel.app'
+export const APP_URL = import.meta.env.VITE_APP_URL || 'https://facilflow.africaprudential.com'
 
 export const sendPasswordReset = (email) =>
   supabase.functions.invoke('reset-password', { body: { email, redirect_to: APP_URL } })
@@ -31,6 +31,17 @@ export const getProfile = async (userId) => {
     .from('users')
     .select('*')
     .eq('id', userId)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export const updateProfile = async (userId, updates) => {
+  const { data, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', userId)
+    .select()
     .single()
   if (error) throw error
   return data

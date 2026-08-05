@@ -5,9 +5,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const SUPABASE_URL     = "https://jdvzoimemzijqamphgyg.supabase.co"
-const SERVICE_ROLE_KEY = Deno.env.get("SERVICE_ROLE_KEY") ?? ""
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 const RESEND_API_KEY   = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL       = "facilflow@thesegunadebayo.com"
+const FROM_EMAIL       = "noreply@facilflow.africaprudential.com"
 const FROM_NAME        = "FaciliFlow — Africa Prudential"
 
 const corsHeaders = {
@@ -42,7 +42,7 @@ serve(async (req) => {
     // 2. Create profile row with real auth UUID
     const { data: profile, error: profileError } = await admin
       .from("users")
-      .insert([{ id: userId, tenant_id, name, initials, email, role, dept, status: "active" }])
+      .insert([{ id: userId, tenant_id, name, initials, email, role, dept, status: "active", must_change_password: true }])
       .select()
       .single()
     if (profileError) throw profileError

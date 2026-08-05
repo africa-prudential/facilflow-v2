@@ -15,6 +15,7 @@ import {
   updateCRStage,
   fetchMyTickets, createTicket, updateTicket, fetchTicketComments, addTicketComment, fetchTicketCategories, uploadTicketAttachment,
   addAuditEntry,
+  APP_URL,
 } from "./lib/supabase.js";
 import { emailCRSubmitted, emailCRApproved, emailCRRejected, emailCRScheduled, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
@@ -248,7 +249,7 @@ export default function UserApp({ currentUser }){
                 stage:   "Change Manager Review",
                 subject: `${id} - ${data.title} - Change Manager Review`,
                 action:  `Hi ${mgrName}, a new change request has been submitted and requires your review and approval.`,
-                app_url: "https://facilflowuser.vercel.app",
+                app_url: APP_URL,
               }
             }});
             if(emailResult.error) flash(`CR submitted but email failed: ${emailResult.error.message}`, "error");
@@ -360,7 +361,7 @@ export default function UserApp({ currentUser }){
       // Send stage notification emails — level-based, backward notification
       try {
         const emailRecipients = [];
-        const appUrl = "https://facilflowuser.vercel.app";
+        const appUrl = APP_URL;
 
         // Helper: fetch user email from DB directly
         const getEmail = async (userId) => {

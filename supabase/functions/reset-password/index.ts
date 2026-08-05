@@ -5,9 +5,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const SUPABASE_URL     = "https://jdvzoimemzijqamphgyg.supabase.co"
-const SERVICE_ROLE_KEY = Deno.env.get("SERVICE_ROLE_KEY") ?? ""
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 const RESEND_API_KEY   = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL       = "facilflow@thesegunadebayo.com"
+const FROM_EMAIL       = "noreply@facilflow.africaprudential.com"
 const FROM_NAME        = "FaciliFlow — Africa Prudential"
 
 const corsHeaders = {
@@ -24,7 +24,7 @@ serve(async (req) => {
     const { email, redirect_to } = await req.json()
     if (!email) throw new Error("email is required")
 
-    const redirectTo = redirect_to || "https://facilflowuser.vercel.app"
+    const redirectTo = redirect_to || Deno.env.get("APP_URL") || "https://facilflow.africaprudential.com"
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
