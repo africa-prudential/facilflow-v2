@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { now } from "../utils.js";
 import { Av, PageTitle, TH, Filters } from "../components/ui.jsx";
-import { supabase, updateVehicle, updateInventoryItem, updateRequest } from "../lib/supabase.js";
+import { supabase, updateVehicle, updateInventoryItem, updateRequest, USER_APP_URL } from "../lib/supabase.js";
 import RequestDetailModal from "./forms/RequestDetailModal.jsx";
 
 export default function RequestsMgmt({ctx}){
@@ -109,7 +109,7 @@ export default function RequestsMgmt({ctx}){
               approver:       usersMap[uid]?.name || "Admin",
               approved_at:    new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}),
               reason:         note || null,
-              app_url:        "https://facilflowuser.vercel.app",
+              app_url:        USER_APP_URL,
             }
           }});
           if(emailErr) flash(`Request ${newStatus} but email failed: ${emailErr.message}`,"error");
@@ -147,7 +147,7 @@ export default function RequestsMgmt({ctx}){
               approved_at:    new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}),
               vehicle:        veh ? `${veh.plate} — ${veh.model} (${veh.color})` : null,
               driver:         drv ? `${drv.name} · ${drv.phone}` : null,
-              app_url:        "https://facilflowuser.vercel.app",
+              app_url:        USER_APP_URL,
             }
           }});
           if(emailErr) flash(`Request approved but email failed: ${emailErr.message}`,"error");
