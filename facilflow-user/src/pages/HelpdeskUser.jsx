@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Ticket } from "lucide-react";
 import { C, btn, inp, card } from "../theme.js";
 import { TICKET_STATUS_USER } from "../constants.js";
 import { TChipU, PChipU } from "../components/ui.jsx";
@@ -71,7 +72,7 @@ export default function HelpdeskUser({ctx}){
 
       {shown.length===0
         ? <div style={{...card(40),textAlign:"center"}}>
-            <div style={{fontSize:36,marginBottom:12}}>🎫</div>
+            <div style={{marginBottom:12,display:"flex",justifyContent:"center"}}><Ticket size={36}/></div>
             <div style={{fontSize:15,fontWeight:700,color:C.ink,marginBottom:6}}>No tickets yet</div>
             <div style={{fontSize:13,color:C.muted,marginBottom:20}}>Raise a ticket to get help from the IT team</div>
             <button onClick={()=>setShowRaise(true)} style={{...btn("primary")}}>Raise your first ticket</button>

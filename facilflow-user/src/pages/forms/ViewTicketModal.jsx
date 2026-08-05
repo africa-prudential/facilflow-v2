@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { C, btn, inp, card } from "../../theme.js";
 import { TICKET_STATUS_USER } from "../../constants.js";
 import { fmtDT } from "../../utils.js";
@@ -84,7 +85,7 @@ export default function ViewTicketModal({ticket,me,adminEmails,onClose,fetchComm
                 {ticket.updated_at&&<span>· Updated {fmtDT(ticket.updated_at)}</span>}
               </div>
             </div>
-            <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5,flexShrink:0}}>✕</button>
+            <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5,flexShrink:0}}><X size={14}/></button>
           </div>
         </div>
 

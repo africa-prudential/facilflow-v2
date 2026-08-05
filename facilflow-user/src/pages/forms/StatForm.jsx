@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { Modal } from "../../components/ui.jsx";
 
@@ -27,7 +28,7 @@ export default function StatForm({onClose,onSubmit,invItems=[]}){
                 {invItems.map(inv=><option key={inv.id} value={inv.id}>{inv.name} ({inv.stock} {inv.unit}s)</option>)}
               </select>
               <input type="number" min={1} value={it.qty} onChange={e=>setItems(p=>p.map((x,j)=>j===i?{...x,qty:+e.target.value}:x))} style={{...inp(),width:64}}/>
-              {items.length>1&&<button onClick={()=>setItems(p=>p.filter((_,j)=>j!==i))} style={{...btn("ghost"),padding:"6px 9px",color:C.red}}>✕</button>}
+              {items.length>1&&<button onClick={()=>setItems(p=>p.filter((_,j)=>j!==i))} style={{...btn("ghost"),padding:"6px 9px",color:C.red}}><X size={12}/></button>}
             </div>
           ))}
         </div>

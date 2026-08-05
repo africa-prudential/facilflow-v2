@@ -1,3 +1,4 @@
+import { Users, Car, ClipboardList, Zap, AlertTriangle, Info, RefreshCw } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { TENANTS, VEHICLE_STATUSES, ADMIN_ROLE_META } from "../constants.js";
 import { hasAdminAccess, isSuperAdmin } from "../utils.js";
@@ -24,17 +25,17 @@ export default function AdminDash({ctx,setPage}){
       {/* Role-scoped access notice for non-super admins */}
       {!isSuperAdmin(me)&&(
         <div style={{padding:"10px 16px",borderRadius:8,background:C.blueBg,border:`1px solid ${C.blue}30`,fontSize:13,color:C.blue,fontWeight:500,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:16}}>ℹ️</span>
+          <Info size={16}/>
           <span>You have access to: <strong>{adminRoles.map(r=>ADMIN_ROLE_META[r]?.label||r).join(" and ")}</strong> modules only.</span>
         </div>
       )}
 
       {/* Stats — show only what the role can access */}
       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
-        {isSuperAdmin(me)&&<StatCard label="Active Users" value={activeUsers} sub={`${users.length} total`} color={C.blue} icon="👥"/>}
-        {showFacility&&<StatCard label="Fleet Available" value={availVeh} sub={`${vehicles.length} vehicles`} color={C.green} icon="🚗"/>}
-        {showFacility&&<StatCard label="Pending Requests" value={pendingReqs} sub="Awaiting approval" color={C.brand} icon="📋"/>}
-        {showIT&&<StatCard label="Pending CRs" value={pendingCRs} sub="Awaiting action" color={C.violet} icon="⟳"/>}
+        {isSuperAdmin(me)&&<StatCard label="Active Users" value={activeUsers} sub={`${users.length} total`} color={C.blue} icon={<Users size={20}/>}/>}
+        {showFacility&&<StatCard label="Fleet Available" value={availVeh} sub={`${vehicles.length} vehicles`} color={C.green} icon={<Car size={20}/>}/>}
+        {showFacility&&<StatCard label="Pending Requests" value={pendingReqs} sub="Awaiting approval" color={C.brand} icon={<ClipboardList size={20}/>}/>}
+        {showIT&&<StatCard label="Pending CRs" value={pendingCRs} sub="Awaiting action" color={C.violet} icon={<RefreshCw size={20}/>}/>}
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:showFacility&&showIT?"1.4fr 1fr":"1fr",gap:16}}>
@@ -51,7 +52,7 @@ export default function AdminDash({ctx,setPage}){
                 {crs.slice(0,5).map((c,i)=>(
                   <tr key={c.id} style={{borderBottom:i<4?`1px solid #FAFAFA`:"none"}}>
                     <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink}}>{c.id}</td>
-                    <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.isEmergency&&"⚡ "}{c.title}</div></td>
+                    <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>{c.isEmergency&&<Zap size={12}/>}{c.title}</div></td>
                     <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.changeType}</td>
                     <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
                     <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
@@ -66,7 +67,7 @@ export default function AdminDash({ctx,setPage}){
         {showFacility&&(
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             <div style={card(16)}>
-              <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:12}}>🚗 Fleet Status</div>
+              <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:12,display:"flex",alignItems:"center",gap:6}}><Car size={14}/> Fleet Status</div>
               {VEHICLE_STATUSES.map(s=>{
                 const count=vehicles.filter(v=>v.status===s.v).length;
                 return count>0?(
@@ -79,7 +80,7 @@ export default function AdminDash({ctx,setPage}){
             </div>
             {lowStock>0&&(
               <div style={{...card(14),border:`1px solid ${C.amber}40`,background:C.amberBg}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.amber,marginBottom:10}}>⚠ Low Stock Alerts</div>
+                <div style={{fontSize:13,fontWeight:700,color:C.amber,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={14}/> Low Stock Alerts</div>
                 {inventory.filter(i=>i.stock<5).map(i=>(
                   <div key={i.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,color:C.amber,marginBottom:4}}>
                     <span>{i.name}</span><span style={{fontWeight:700}}>{i.stock} {i.unit}s</span>

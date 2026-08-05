@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Zap, PartyPopper } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { EnvTag, RiskTag, PageTitle, TH, Empty } from "../components/ui.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
@@ -15,13 +16,13 @@ export default function CRApprovals({ctx}){
       <PageTitle title="CR Approvals" sub="Line manager and secondary approval queues"/>
       {emrg.length>0&&(
         <div style={{...card(0),border:`1.5px solid ${C.red}`,marginBottom:16}}>
-          <div style={{padding:"11px 16px",background:C.redBg,borderBottom:`1px solid ${C.red}30`,fontSize:13,fontWeight:700,color:C.red}}>⚡ Emergency Changes — Immediate Action Required</div>
+          <div style={{padding:"11px 16px",background:C.redBg,borderBottom:`1px solid ${C.red}30`,fontSize:13,fontWeight:700,color:C.red,display:"flex",alignItems:"center",gap:6}}><Zap size={14}/> Emergency Changes — Immediate Action Required</div>
           {emrg.map((c,i)=>(
             <div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderBottom:i<emrg.length-1?`1px solid #FAFAFA`:"none"}}>
               <div><div style={{fontSize:13,fontWeight:700,color:C.ink}}>{c.title}</div><div style={{fontSize:11,color:C.muted}}>{c.id} · {users[c.initiator]?.name}</div></div>
               <div style={{display:"flex",gap:6}}>
                 <button onClick={()=>setDetail(c)} style={{...btn("ghost"),fontSize:11,padding:"4px 9px"}}>Details</button>
-                <button onClick={()=>transCR(c.id,"scheduled","Emergency approved")} style={{...btn("danger"),fontSize:11,padding:"4px 9px"}}>⚡ Approve</button>
+                <button onClick={()=>transCR(c.id,"scheduled","Emergency approved")} style={{...btn("danger"),fontSize:11,padding:"4px 9px"}}><Zap size={14}/> Approve</button>
               </div>
             </div>
           ))}
@@ -35,7 +36,7 @@ export default function CRApprovals({ctx}){
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <TH cols={["CR ID","Title","Type","Risk","Environment","Requested By",""]}/>
             <tbody>
-              {queue.length===0?<tr><td colSpan={7}><Empty icon="🎉" title="Queue is empty"/></td></tr>
+              {queue.length===0?<tr><td colSpan={7}><Empty icon={<PartyPopper size={32}/>} title="Queue is empty"/></td></tr>
               :queue.map((c,i)=>(
                 <tr key={c.id} style={{borderBottom:i<queue.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"11px 14px",fontSize:11,fontWeight:700}}>{c.id}</td>

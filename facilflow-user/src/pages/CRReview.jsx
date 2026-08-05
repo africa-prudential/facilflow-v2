@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Calendar, Check, CheckCircle2 } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { EnvTag, RiskTag, PageTitle, TH, Empty } from "../components/ui.jsx";
@@ -9,11 +10,11 @@ export default function CRReview({ctx}){
   const [detail,setDetail]=useState(null);
   const sections=[
     {title:"Change Review Queue",s:"change_review",
-      action:c=><><button onClick={()=>transCR(c.id,"pending_line_manager","Sent back")} style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>↩ Back</button><button onClick={()=>transCR(c.id,"scheduled","Approved for scheduling")} style={{...btn("violet"),fontSize:11,padding:"4px 8px"}}>📅 Schedule</button></>},
+      action:c=><><button onClick={()=>transCR(c.id,"pending_line_manager","Sent back")} style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>↩ Back</button><button onClick={()=>transCR(c.id,"scheduled","Approved for scheduling")} style={{...btn("violet"),fontSize:11,padding:"4px 8px"}}><Calendar size={14}/> Schedule</button></>},
     {title:"Scheduled",s:"scheduled",
       action:c=><button onClick={()=>transCR(c.id,"in_progress","Deployment started")} style={{...btn("primary"),fontSize:11,padding:"4px 8px"}}>▶ Start</button>},
     {title:"In Progress",s:"in_progress",
-      action:c=><button onClick={()=>transCR(c.id,"completed","Implementation completed")} style={{...btn("success"),fontSize:11,padding:"4px 8px"}}>✓ Complete</button>},
+      action:c=><button onClick={()=>transCR(c.id,"completed","Implementation completed")} style={{...btn("success"),fontSize:11,padding:"4px 8px"}}><Check size={14}/> Complete</button>},
     {title:"Post Review Due",s:"post_review",
       action:c=><button onClick={()=>setDetail(c)} style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.violet,borderColor:C.violet+"40"}}>Review →</button>},
   ];
@@ -28,7 +29,7 @@ export default function CRReview({ctx}){
             <table style={{width:"100%",borderCollapse:"collapse"}}>
               <TH cols={["CR ID","Title","Deploy Date","Env","Risk",""]}/>
               <tbody>
-                {q.length===0?<tr><td colSpan={6}><Empty icon="✅" title="Nothing here"/></td></tr>
+                {q.length===0?<tr><td colSpan={6}><Empty icon={<CheckCircle2 size={32}/>} title="Nothing here"/></td></tr>
                 :q.map((c,i)=>(
                   <tr key={c.id} style={{borderBottom:i<q.length-1?`1px solid #FAFAFA`:"none"}}>
                     <td style={{padding:"11px 14px",fontSize:11,fontWeight:700}}>{c.id}</td>

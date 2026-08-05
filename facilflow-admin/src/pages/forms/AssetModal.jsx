@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { User, AlertTriangle, ClipboardList, Check } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { ASSET_STATUS, ASSET_CATS } from "../../constants.js";
 import { fmtSafe } from "../../utils.js";
@@ -116,7 +117,7 @@ export default function AssetModal({asset,users,onClose,onSave}){
           {/* Current assignment banner */}
           {prevAssignee&&(
             <div style={{padding:"12px 14px",borderRadius:8,background:C.surface,border:`1px solid ${C.border}`,fontSize:12,color:C.ink2,display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:16}}>👤</span>
+              <User size={16}/>
               <div>
                 <div style={{fontWeight:700,color:C.ink}}>Currently assigned to: {users.find(u=>u.id===prevAssignee)?.name||prevAssignee}</div>
                 {asset?.assigned_date&&<div style={{fontSize:11,color:C.muted,marginTop:1}}>Since {fmtSafe(asset.assigned_date)}</div>}
@@ -150,10 +151,10 @@ export default function AssetModal({asset,users,onClose,onSave}){
             <div style={{padding:"12px 14px",borderRadius:8,
               background:newAssignee?C.greenBg:C.amberBg,
               border:`1px solid ${newAssignee?C.green:C.amber}30`,
-              fontSize:12,color:newAssignee?C.green:C.amber,fontWeight:600}}>
+              fontSize:12,color:newAssignee?C.green:C.amber,fontWeight:600,display:"flex",alignItems:"flex-start",gap:6}}>
               {newAssignee
-                ?`✓ Will be assigned to ${users.find(u=>u.id===newAssignee)?.name||"new user"} — history will be updated on save.`
-                :"⚠ Asset will be unassigned — previous assignment will be closed in history."}
+                ?<><Check size={14} style={{flexShrink:0,marginTop:1}}/> Will be assigned to {users.find(u=>u.id===newAssignee)?.name||"new user"} — history will be updated on save.</>
+                :<><AlertTriangle size={14} style={{flexShrink:0,marginTop:1}}/> Asset will be unassigned — previous assignment will be closed in history.</>}
             </div>
           )}
         </div>
@@ -163,7 +164,7 @@ export default function AssetModal({asset,users,onClose,onSave}){
       {tab==="history"&&(
         <div>
           {history.length===0
-            ?<Empty icon="📋" title="No assignment history yet" sub="History is recorded automatically each time this asset is assigned or reassigned"/>
+            ?<Empty icon={<ClipboardList size={32}/>} title="No assignment history yet" sub="History is recorded automatically each time this asset is assigned or reassigned"/>
             :<div style={{display:"flex",flexDirection:"column",gap:10}}>
                {history.map((h,i)=>{
                  const isCurrent=!h.returned_date;
@@ -179,7 +180,7 @@ export default function AssetModal({asset,users,onClose,onSave}){
                        background:isCurrent?C.green:C.muted,color:"#fff",
                        display:"flex",alignItems:"center",justifyContent:"center",
                        fontSize:13,marginTop:1,flexShrink:0}}>
-                       {isCurrent?"👤":"✓"}
+                       {isCurrent?<User size={13}/>:<Check size={13}/>}
                      </div>
                      <div>
                        <div style={{fontSize:14,fontWeight:700,color:C.ink}}>{h.assigned_to_name||"Unknown User"}</div>

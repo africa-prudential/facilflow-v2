@@ -21,7 +21,9 @@ import { emailCRSubmitted, emailCRApproved, emailCRRejected, emailCRScheduled, e
 import { C, btn } from "./theme.js";
 import { CR_STATUS, NAV_GROUPS } from "./constants.js";
 import { fmtDT, normCR, normReq } from "./utils.js";
-import { Av, Toast } from "./components/ui.jsx";
+import { Av } from "./components/ui.jsx";
+import { Bell } from "lucide-react";
+import { toast } from "sonner";
 import Dashboard from "./pages/Dashboard.jsx";
 import MyRequests from "./pages/MyRequests.jsx";
 import Approvals from "./pages/Approvals.jsx";
@@ -51,7 +53,6 @@ export default function UserApp({ currentUser }){
   const [users,      setUsers]     = useState({});
   const [tickets,    setTickets]   = useState([]);
   const [ticketCats, setTicketCats]= useState([]);
-  const [toast,   setToast]  = useState(null);
   const [loading, setLoading]= useState(true);
 
   const me = currentUser;
@@ -124,8 +125,7 @@ export default function UserApp({ currentUser }){
   const unread = notifs.filter(n=>!n.read).length;
 
   const flash = useCallback((msg,type="success")=>{
-    setToast({msg,type});
-    setTimeout(()=>setToast(null),3200);
+    type==="error" ? toast.error(msg) : toast.success(msg);
   },[]);
 
   // ── REQUESTS ──────────────────────────────────────────────
@@ -567,7 +567,7 @@ export default function UserApp({ currentUser }){
           {/* Bell */}
           <div style={{position:"relative"}}>
             <button onClick={()=>setBell(p=>!p)} style={{...btn("ghost"),padding:"5px 9px",position:"relative"}}>
-              <span style={{fontSize:14}}>🔔</span>
+              <Bell size={14}/>
               {unread>0&&<span style={{position:"absolute",top:2,right:2,width:15,height:15,borderRadius:"50%",
                 background:C.brand,fontSize:9,fontWeight:800,color:"#fff",
                 display:"flex",alignItems:"center",justifyContent:"center"}}>{unread}</span>}
@@ -668,8 +668,6 @@ export default function UserApp({ currentUser }){
           </Routes>
         </main>
       </div>
-
-      <Toast t={toast}/>
     </div>
   );
 }

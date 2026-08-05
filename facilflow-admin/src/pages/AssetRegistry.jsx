@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Laptop, Check, User, Wrench } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { ASSET_STATUS, ASSET_CATS } from "../constants.js";
 import { fmtSafe } from "../utils.js";
@@ -85,10 +86,10 @@ export default function AssetRegistry({ctx}){
       />
       {csvError&&<div style={{padding:"10px 14px",borderRadius:7,background:C.redBg,border:`1px solid ${C.red}30`,fontSize:13,color:C.red,marginBottom:12}}>{csvError}</div>}
       <div style={{display:"flex",gap:14,flexWrap:"wrap",marginBottom:20}}>
-        <StatCard label="Total Assets" value={counts.total} color={C.blue} icon="💻"/>
-        <StatCard label="Available" value={counts.available} color={C.green} icon="✓"/>
-        <StatCard label="Assigned" value={counts.assigned} color={C.violet} icon="👤"/>
-        <StatCard label="In Repair" value={counts.in_repair} color={C.amber} icon="🔧"/>
+        <StatCard label="Total Assets" value={counts.total} color={C.blue} icon={<Laptop size={20}/>}/>
+        <StatCard label="Available" value={counts.available} color={C.green} icon={<Check size={20}/>}/>
+        <StatCard label="Assigned" value={counts.assigned} color={C.violet} icon={<User size={20}/>}/>
+        <StatCard label="In Repair" value={counts.in_repair} color={C.amber} icon={<Wrench size={20}/>}/>
       </div>
       <Filters values={f} onChange={setF} fields={[
         {k:"q",label:"Search",w:260,ph:"Name, serial, tag…"},
@@ -100,7 +101,7 @@ export default function AssetRegistry({ctx}){
           <TH cols={["Asset","Category","Serial / Tag","Status","Assigned To","Purchase Date","Actions"]}/>
           <tbody>
             {paged.length===0
-              ?<tr><td colSpan={7}><Empty icon="💻" title="No assets found" sub="Add assets individually or import via CSV"/></td></tr>
+              ?<tr><td colSpan={7}><Empty icon={<Laptop size={32}/>} title="No assets found" sub="Add assets individually or import via CSV"/></td></tr>
               :paged.map((a,i)=>(
                 <tr key={a.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"10px 14px"}}>

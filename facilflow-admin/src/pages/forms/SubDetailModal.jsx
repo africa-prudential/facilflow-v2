@@ -1,3 +1,4 @@
+import { Paperclip } from "lucide-react";
 import { C, btn } from "../../theme.js";
 import { SUB_STATUSES, SUB_REMINDER_OPTS } from "../../constants.js";
 import { fmtSafe } from "../../utils.js";
@@ -37,7 +38,7 @@ export default function SubDetailModal({sub,depts,users,onClose,onEdit}){
 
       {sub.attachmentUrl&&(
         <div style={{marginBottom:16}}>
-          <a href={sub.attachmentUrl} target="_blank" rel="noreferrer" style={{color:C.blue,textDecoration:"none",fontSize:13,fontWeight:600}}>📎 View Invoice Attachment</a>
+          <a href={sub.attachmentUrl} target="_blank" rel="noreferrer" style={{color:C.blue,textDecoration:"none",fontSize:13,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}}><Paperclip size={14}/> View Invoice Attachment</a>
         </div>
       )}
 

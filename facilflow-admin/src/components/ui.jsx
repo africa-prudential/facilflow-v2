@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { X, Ban } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { CR_STATUS, TICKET_STATUS, TICKET_PRIORITY, ASSET_STATUS } from "../constants.js";
 import { vsm, dsm } from "../utils.js";
@@ -26,11 +27,6 @@ export const PChip = ({p})=>{ const m=TICKET_PRIORITY[p]||{label:p,color:C.muted
 
 export const AChip = ({s})=>{ const m=ASSET_STATUS[s]||{label:s,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
 
-export function Toast({t}){
-  if(!t)return null;
-  return <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,padding:"11px 18px",borderRadius:8,fontSize:13,fontWeight:600,color:"#fff",background:t.type==="error"?C.red:C.green,boxShadow:"0 4px 20px rgba(0,0,0,.18)",animation:"slideUp .2s ease"}}>{t.type==="error"?"✕ ":"✓ "}{t.msg}</div>;
-}
-
 export function Modal({title,sub,onClose,children,w=640}){
   useEffect(()=>{
     const handler=(e)=>{ if(e.key==="Escape") onClose(); };
@@ -42,7 +38,7 @@ export function Modal({title,sub,onClose,children,w=640}){
       <div style={{...card(0),width:w,maxWidth:"96vw",maxHeight:"92vh",display:"flex",flexDirection:"column",borderRadius:12}}>
         <div style={{padding:"16px 22px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
           <div><div style={{fontSize:15,fontWeight:700,color:C.ink}}>{title}</div>{sub&&<div style={{fontSize:12,color:C.muted,marginTop:1}}>{sub}</div>}</div>
-          <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5}}>✕</button>
+          <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5}}><X size={14}/></button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1}}>{children}</div>
       </div>
@@ -70,7 +66,7 @@ export function Empty({icon="—",title,sub}){
 export function AccessDenied(){
   return (
     <div style={{minHeight:"40vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12}}>
-      <div style={{width:60,height:60,borderRadius:16,background:C.redBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26}}>🚫</div>
+      <div style={{width:60,height:60,borderRadius:16,background:C.redBg,display:"flex",alignItems:"center",justifyContent:"center"}}><Ban size={26} color={C.red}/></div>
       <div style={{fontSize:16,fontWeight:700,color:C.ink}}>Access Denied</div>
       <div style={{fontSize:13,color:C.muted,textAlign:"center",maxWidth:320}}>You don't have permission to access this module. Contact your Super Admin if you need access.</div>
     </div>

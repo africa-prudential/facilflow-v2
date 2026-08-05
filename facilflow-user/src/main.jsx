@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import ReactDOM from 'react-dom/client'
+import { Lock } from 'lucide-react'
+import { Toaster } from 'sonner'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import Login from './Login.jsx'
@@ -90,7 +92,7 @@ function SessionTimeout({ onSignOut }) {
           transition:'border-color .4s, background .4s, color .4s',
         }}>{count}</div>
 
-        <div style={{fontSize:22, marginBottom:10}}>🔒</div>
+        <div style={{marginBottom:10}}><Lock size={22} /></div>
 
         <div style={{fontSize:19, fontWeight:800, color:'#0F172A', marginBottom:8}}>
           Session Timing Out
@@ -414,5 +416,5 @@ function Root() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode><BrowserRouter><Root /></BrowserRouter></React.StrictMode>
+  <React.StrictMode><BrowserRouter><Root /><Toaster richColors position="top-right"/></BrowserRouter></React.StrictMode>
 )

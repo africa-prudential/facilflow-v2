@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Mail, Bell } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { DEFAULT_TRIGGERS } from "../constants.js";
 import { Modal, PageTitle, TH } from "../components/ui.jsx";
@@ -54,8 +55,8 @@ export default function NotifPolicy({ctx}){
                       <button key={ch} onClick={()=>toggleCh(t.id,ch)} style={{padding:"3px 8px",borderRadius:4,fontSize:11,fontWeight:600,fontFamily:"inherit",cursor:"pointer",
                         border:`1px solid ${t.channels.includes(ch)?C.blue:C.border}`,
                         background:t.channels.includes(ch)?C.blueBg:"transparent",
-                        color:t.channels.includes(ch)?C.blue:C.muted}}>
-                        {ch==="email"?"📧 Email":"🔔 In-App"}
+                        color:t.channels.includes(ch)?C.blue:C.muted,display:"inline-flex",alignItems:"center",gap:4}}>
+                        {ch==="email"?<><Mail size={12}/> Email</>:<><Bell size={12}/> In-App</>}
                       </button>
                     ))}
                   </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check, Zap, Paperclip, FileText, X, ClipboardList } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { Av, Modal } from "../../components/ui.jsx";
 
@@ -66,7 +67,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
               fontSize:11,fontWeight:700,
               background:step>i+1?C.green:step===i+1?C.brand:C.border,
               color:step>=i+1?"#fff":C.muted}}>
-              {step>i+1?"✓":i+1}
+              {step>i+1?<Check size={14}/>:i+1}
             </div>
             <div style={{fontSize:10,fontWeight:600,color:step===i+1?C.ink:C.muted,textAlign:"center"}}>{sl}</div>
           </div>
@@ -82,7 +83,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
           <div style={{gridColumn:"1/-1"}}>
             <label style={LBL}>Change Type</label>
             <div style={{display:"flex",gap:10}}>
-              {[{v:"Standard",icon:"⬡",desc:"Pre-approved, low risk"},{v:"Normal",icon:"◈",desc:"Full approval workflow"},{v:"Major",icon:"◉",desc:"Full chain + L2 approval"},{v:"Emergency",icon:"⚡",desc:"Bypass L2 — senior only"}].map(t=>{
+              {[{v:"Standard",icon:"⬡",desc:"Pre-approved, low risk"},{v:"Normal",icon:"◈",desc:"Full approval workflow"},{v:"Major",icon:"◉",desc:"Full chain + L2 approval"},{v:"Emergency",icon:<Zap size={16}/>,desc:"Bypass L2 — senior only"}].map(t=>{
                 const active=changeType===t.v;
                 const tc={Standard:C.blue,Normal:C.violet,Major:C.orange,Emergency:C.red}[t.v];
                 return <button key={t.v} onClick={()=>setCType(t.v)} style={{flex:1,padding:"10px 8px",border:`1.5px solid ${active?tc:C.border}`,borderRadius:8,background:active?tc+"0D":"#fff",cursor:"pointer",fontFamily:"inherit"}}>
@@ -145,7 +146,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
                         <div style={{fontSize:12,fontWeight:600,color:sel?C.green:C.ink}}>{r.name}</div>
                         <div style={{fontSize:10,color:C.muted}}>{r.dept}</div>
                       </div>
-                      {sel&&<span style={{fontSize:11,color:C.green,marginLeft:2}}>✓</span>}
+                      {sel&&<span style={{color:C.green,marginLeft:2,display:"inline-flex"}}><Check size={11}/></span>}
                     </button>
                   );
                 })}
@@ -173,15 +174,15 @@ export default function CRForm({onClose,onSubmit,ctx}){
           <div>
             <label style={LBL}>Attachments (optional)</label>
             <label style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",border:`2px dashed ${C.border}`,borderRadius:8,cursor:"pointer",background:"#FAFAFA",color:C.muted,fontSize:12}}>
-              <span style={{fontSize:20}}>📎</span>
+              <Paperclip size={20}/>
               <div><div style={{fontWeight:600,color:C.ink}}>Click to attach files</div><div style={{fontSize:11,marginTop:2}}>Plans, diagrams, test evidence, screenshots</div></div>
               <input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt" onChange={handleFiles} style={{display:"none"}}/>
             </label>
             {attachments.length>0&&<div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>
               {attachments.map((f,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 12px",background:"#F8FAFC",borderRadius:6,border:`1px solid ${C.border}`}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}><span>📄</span><div><div style={{fontSize:12,fontWeight:600,color:C.ink}}>{f.name}</div><div style={{fontSize:10,color:C.muted}}>{(f.size/1024).toFixed(1)} KB</div></div></div>
-                  <button onClick={()=>setAttach(p=>p.filter((_,j)=>j!==i))} style={{...btn("ghost"),padding:"3px 7px",fontSize:11,color:C.red}}>✕</button>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}><FileText size={16}/><div><div style={{fontSize:12,fontWeight:600,color:C.ink}}>{f.name}</div><div style={{fontSize:10,color:C.muted}}>{(f.size/1024).toFixed(1)} KB</div></div></div>
+                  <button onClick={()=>setAttach(p=>p.filter((_,j)=>j!==i))} style={{...btn("ghost"),padding:"3px 7px",fontSize:11,color:C.red}}><X size={12}/></button>
                 </div>
               ))}
             </div>}
@@ -223,7 +224,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
             {reviewerIds.map(id=>{const r=reviewers.find(x=>x.id===id);return r?<div key={id} style={{fontSize:12,color:C.ink,padding:"2px 0"}}>{r.name}</div>:null;})}
           </div>}
           <div style={{padding:"12px 14px",borderRadius:8,fontSize:12,background:C.violetBg,border:`1px solid ${C.violet}22`,color:C.violet,fontWeight:600,lineHeight:1.7}}>
-            <div style={{marginBottom:4}}>📋 Approval Route</div>
+            <div style={{marginBottom:4,display:"flex",alignItems:"center",gap:6}}><ClipboardList size={14}/> Approval Route</div>
             <div style={{fontWeight:500}}>{approvalRoute}</div>
           </div>
         </div>
@@ -233,7 +234,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
         <button onClick={step>1?()=>setStep(p=>p-1):onClose} style={btn("ghost")}>{step>1?"← Back":"Cancel"}</button>
         {step<3
           ?<button onClick={()=>{if(step===1&&!validate1())return;if(step===2&&!validate2())return;setErrs({});setStep(p=>p+1)}} style={btn("primary")}>Next →</button>
-          :<button onClick={handleSubmit} style={btn("primary")}>Submit CR ✓</button>}
+          :<button onClick={handleSubmit} style={btn("primary")}>Submit CR <Check size={14}/></button>}
       </div>
     </Modal>
   );

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { X, Search, Car, Pencil } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { now } from "../utils.js";
 import { Av, PageTitle, TH, Filters } from "../components/ui.jsx";
@@ -273,7 +274,7 @@ export default function RequestsMgmt({ctx}){
       <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <span style={{fontSize:12,fontWeight:700,color:C.ink}}>Filters</span>
-          {hasFilters&&<button onClick={clearFilters} style={{...btn("ghost"),fontSize:11,padding:"3px 10px",color:C.red}}>✕ Clear all</button>}
+          {hasFilters&&<button onClick={clearFilters} style={{...btn("ghost"),fontSize:11,padding:"3px 10px",color:C.red,display:"inline-flex",alignItems:"center",gap:4}}><X size={11}/> Clear all</button>}
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
           <div>
@@ -346,7 +347,7 @@ export default function RequestsMgmt({ctx}){
       {/* ── SEARCH + EXPORT BAR ── */}
       <div style={{display:"flex",gap:10,alignItems:"center"}}>
         <div style={{flex:1,position:"relative"}}>
-          <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.muted,fontSize:14}}>🔍</span>
+          <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.muted,display:"flex"}}><Search size={14}/></span>
           <input
             value={search}
             onChange={e=>resetPage(setSearch)(e.target.value)}
@@ -387,8 +388,8 @@ export default function RequestsMgmt({ctx}){
                   <td style={{padding:"11px 14px"}}>
                     <span style={{fontSize:11,fontWeight:600,padding:"3px 8px",borderRadius:5,
                       background:r.type==="pool_car"?"#FEF2F2":"#EFF6FF",
-                      color:r.type==="pool_car"?C.brand:"#2563EB"}}>
-                      {r.type==="pool_car"?"🚗 Pool Car":"✏️ Stationery"}
+                      color:r.type==="pool_car"?C.brand:"#2563EB",display:"inline-flex",alignItems:"center",gap:4}}>
+                      {r.type==="pool_car"?<><Car size={12}/> Pool Car</>:<><Pencil size={12}/> Stationery</>}
                     </span>
                   </td>
                   <td style={{padding:"11px 14px"}}>

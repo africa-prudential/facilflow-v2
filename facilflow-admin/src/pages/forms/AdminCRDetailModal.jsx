@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { fmtDT, fmtD, now } from "../../utils.js";
 import { CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
@@ -111,8 +112,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
         <EnvTag e={cr.environment}/>
         <RiskTag r={cr.risk_level||cr.riskLevel}/>
         <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:C.surface,color:C.ink2}}>{cr.change_type||cr.changeType}</span>
-        {(cr.is_emergency||cr.isEmergency)&&<span style={{fontSize:11,fontWeight:700,color:C.red,background:C.redBg,padding:"2px 8px",borderRadius:4}}>⚡ Emergency</span>}
-        {hasAction&&<span style={{fontSize:11,fontWeight:700,color:C.brand,background:C.brandLt,padding:"2px 8px",borderRadius:4,marginLeft:"auto"}}>⚡ Action Required</span>}
+        {(cr.is_emergency||cr.isEmergency)&&<span style={{fontSize:11,fontWeight:700,color:C.red,background:C.redBg,padding:"2px 8px",borderRadius:4,display:"inline-flex",alignItems:"center",gap:4}}><Zap size={11}/> Emergency</span>}
+        {hasAction&&<span style={{fontSize:11,fontWeight:700,color:C.brand,background:C.brandLt,padding:"2px 8px",borderRadius:4,marginLeft:"auto",display:"inline-flex",alignItems:"center",gap:4}}><Zap size={11}/> Action Required</span>}
       </div>
 
       {/* Stage tracker */}
@@ -127,7 +128,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
                   <div style={{width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
                     background:s.done?C.green:s.active?C.brand:C.border,color:s.done||s.active?"#fff":C.muted,
                     fontSize:12,fontWeight:700,boxShadow:s.active?`0 0 0 3px ${C.brand}25`:"none"}}>
-                    {s.done?"✓":s.active?"●":"○"}
+                    {s.done?<Check size={13}/>:s.active?"●":"○"}
                   </div>
                   <div style={{fontSize:9,fontWeight:700,color,textAlign:"center",whiteSpace:"nowrap",maxWidth:64,overflow:"hidden",textOverflow:"ellipsis"}}>{s.label}</div>
                   {s.at&&s.done&&<div style={{fontSize:8,color:C.muted}}>{fmtD(s.at)}</div>}
@@ -171,8 +172,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
               <span style={{fontSize:13,color:C.muted}}>{uniqueUsers.find(u=>u.id===cr.change_manager_id)?.name||"Not assigned"}</span>
               <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:20,
                 background:cr.status==="pending_manager"?C.amberBg:cr.status==="rejected"?C.redBg:C.greenBg,
-                color:cr.status==="pending_manager"?C.amber:cr.status==="rejected"?C.red:C.green}}>
-                {cr.status==="pending_manager"?"Pending":cr.status==="rejected"?"Rejected":"Approved ✓"}
+                color:cr.status==="pending_manager"?C.amber:cr.status==="rejected"?C.red:C.green,display:"inline-flex",alignItems:"center",gap:4}}>
+                {cr.status==="pending_manager"?"Pending":cr.status==="rejected"?"Rejected":<>Approved <Check size={11}/></>}
               </span>
             </div>
           </div>
@@ -182,8 +183,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
                 <div style={{fontSize:11,fontWeight:700,color:C.ink}}>{l.name}</div>
                 <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:20,
                   background:l.status==="approved"?C.greenBg:cr.current_stage===`pending_level_${l.level}`?C.amberBg:"#F8FAFC",
-                  color:l.status==="approved"?C.green:cr.current_stage===`pending_level_${l.level}`?C.amber:C.muted}}>
-                  {l.status==="approved"?`Approved ✓ — ${fmtD(l.approved_at)}`:cr.current_stage===`pending_level_${l.level}`?"Pending":"Awaiting"}
+                  color:l.status==="approved"?C.green:cr.current_stage===`pending_level_${l.level}`?C.amber:C.muted,display:"inline-flex",alignItems:"center",gap:4}}>
+                  {l.status==="approved"?<>Approved <Check size={11}/> — {fmtD(l.approved_at)}</>:cr.current_stage===`pending_level_${l.level}`?"Pending":"Awaiting"}
                 </span>
               </div>
               {l.note&&<div style={{fontSize:11,color:C.muted,marginTop:4,fontStyle:"italic"}}>"{l.note}"</div>}
@@ -209,8 +210,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       {/* Action section */}
       {hasAction&&(
         <div style={{marginTop:14,border:`1px solid ${C.brand}30`,borderRadius:8,padding:14,background:C.brandLt}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.brand,marginBottom:10}}>
-            ⚡ Action Required — {stageLabel(cr).label}
+          <div style={{fontSize:12,fontWeight:700,color:C.brand,marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+            <Zap size={13}/> Action Required — {stageLabel(cr).label}
           </div>
           {canCompleteImpl&&(
             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
@@ -222,8 +223,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
                 <label style={LBL}>Outcome</label>
                 <div style={{display:"flex",gap:8}}>
                   {["successful","failed"].map(o=>(
-                    <button key={o} onClick={()=>setOutcome(o)} style={{flex:1,padding:"8px",border:`1.5px solid ${outcome===o?(o==="successful"?C.green:C.red):C.border}`,borderRadius:6,background:outcome===o?(o==="successful"?C.greenBg:C.redBg):"#fff",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,color:outcome===o?(o==="successful"?C.green:C.red):C.muted,textTransform:"capitalize"}}>
-                      {o==="successful"?"✅ Successful":"❌ Failed"}
+                    <button key={o} onClick={()=>setOutcome(o)} style={{flex:1,padding:"8px",border:`1.5px solid ${outcome===o?(o==="successful"?C.green:C.red):C.border}`,borderRadius:6,background:outcome===o?(o==="successful"?C.greenBg:C.redBg):"#fff",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,color:outcome===o?(o==="successful"?C.green:C.red):C.muted,textTransform:"capitalize",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      {o==="successful"?<><CheckCircle2 size={13}/> Successful</>:<><XCircle size={13}/> Failed</>}
                     </button>
                   ))}
                 </div>
@@ -243,12 +244,12 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
         {(canMgrApprove||canL1Approve||canL2Approve)&&(
           <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
         )}
-        {canMgrApprove&&<button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}>✓ Approve & Forward →</button>}
-        {canL1Approve&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}>✓ Approve Level 1 →</button>}
-        {canL2Approve&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}>✓ Approve Level 2 →</button>}
-        {canStartImpl&&<button onClick={()=>doAction("start_implementation")} disabled={saving} style={{...btn("primary"),background:C.blue}}>🔧 Start Implementation</button>}
-        {canCompleteImpl&&<button onClick={()=>doAction("complete_implementation")} disabled={saving} style={{...btn("primary"),background:outcome==="failed"?C.red:C.green}}>{outcome==="failed"?"❌ Mark Failed":"✅ Mark Complete"}</button>}
-        {canClose&&<button onClick={()=>doAction("close")} disabled={saving} style={{...btn("primary"),background:C.muted}}>🔒 Close CR</button>}
+        {canMgrApprove&&<button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>}
+        {canL1Approve&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve Level 1 →</button>}
+        {canL2Approve&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve Level 2 →</button>}
+        {canStartImpl&&<button onClick={()=>doAction("start_implementation")} disabled={saving} style={{...btn("primary"),background:C.blue}}><Wrench size={14}/> Start Implementation</button>}
+        {canCompleteImpl&&<button onClick={()=>doAction("complete_implementation")} disabled={saving} style={{...btn("primary"),background:outcome==="failed"?C.red:C.green}}>{outcome==="failed"?<><XCircle size={14}/> Mark Failed</>:<><CheckCircle2 size={14}/> Mark Complete</>}</button>}
+        {canClose&&<button onClick={()=>doAction("close")} disabled={saving} style={{...btn("primary"),background:C.muted}}><Lock size={14}/> Close CR</button>}
       </div>
     </Modal>
   );

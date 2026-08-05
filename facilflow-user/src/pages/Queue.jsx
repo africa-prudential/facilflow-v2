@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCircle2, Check } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { RQChip, PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
 import ReqDetail from "./forms/ReqDetail.jsx";
@@ -19,7 +20,7 @@ export default function Queue({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["ID","Type","Title","Requested By","Status","Action"]}/>
           <tbody>
-            {shown.length===0?<tr><td colSpan={6}><Empty icon="✅" title="Queue is empty"/></td></tr>
+            {shown.length===0?<tr><td colSpan={6}><Empty icon={<CheckCircle2 size={32}/>} title="Queue is empty"/></td></tr>
             :shown.map((r,i)=>(
               <tr key={r.id} style={{borderBottom:i<shown.length-1?`1px solid #FAFAFA`:"none"}}>
                 <td style={{padding:"11px 14px",fontSize:11,fontWeight:700}}>{r.id}</td>
@@ -31,7 +32,7 @@ export default function Queue({ctx}){
                   <div style={{display:"flex",gap:5}}>
                     <button onClick={()=>setDetail(r)} style={{...btn("ghost"),fontSize:11,padding:"4px 9px"}}>View</button>
                     {r.status==="approved"    &&<button onClick={()=>transReq(r.id,"in_progress")} style={{...btn("primary"),fontSize:11,padding:"4px 9px"}}>▶ Process</button>}
-                    {r.status==="in_progress" &&<button onClick={()=>transReq(r.id,"completed")}  style={{...btn("success"),fontSize:11,padding:"4px 9px"}}>✓ Complete</button>}
+                    {r.status==="in_progress" &&<button onClick={()=>transReq(r.id,"completed")}  style={{...btn("success"),fontSize:11,padding:"4px 9px"}}><Check size={12}/> Complete</button>}
                   </div>
                 </td>
               </tr>

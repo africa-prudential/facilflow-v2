@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { User } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../constants.js";
 import { getAdminRoles, fmtSafe, exportCSV } from "../utils.js";
@@ -124,7 +125,7 @@ export default function UserMgmt({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Name","Email","Roles","Department","Status","Date Created",""]}/>
           <tbody>
-            {paged.length===0?<tr><td colSpan={7}><Empty icon="👤" title="No users found"/></td></tr>
+            {paged.length===0?<tr><td colSpan={7}><Empty icon={<User size={32}/>} title="No users found"/></td></tr>
             :paged.map((u,i)=>{
               // Build the full role list for display
               const isAdmin = ADMIN_ROLE_TYPES.includes(u.role) || u.role==="admin";

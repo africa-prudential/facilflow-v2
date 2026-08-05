@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Zap, Monitor, XCircle, Check, CheckCircle2, Wrench } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { CR_STATUS } from "../../constants.js";
 import { fmtDT, fmtD } from "../../utils.js";
@@ -61,20 +62,20 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
     <Modal title={`${cr.id}${cr.version>1?` v${cr.version}`:""}`} sub={cr.title} onClose={onClose} w={860}>
       {/* Header badges */}
       <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:16,padding:"10px 12px",background:C.pageBg,borderRadius:8}}>
-        {cr.is_emergency&&<span style={{fontSize:11,fontWeight:700,color:C.red,background:"#fff",padding:"2px 8px",borderRadius:4,border:`1px solid ${C.red}30`}}>⚡ EMERGENCY</span>}
+        {cr.is_emergency&&<span style={{fontSize:11,fontWeight:700,color:C.red,background:"#fff",padding:"2px 8px",borderRadius:4,border:`1px solid ${C.red}30`,display:"inline-flex",alignItems:"center",gap:4}}><Zap size={12}/> EMERGENCY</span>}
         <CRChip s={cr.status}/>
         <EnvTag e={cr.environment}/>
         <RiskTag r={cr.risk_level||cr.riskLevel}/>
         <span style={{fontSize:11,padding:"2px 8px",borderRadius:4,background:"#fff",border:`1px solid ${C.border}`,color:C.muted,fontWeight:600}}>{cr.change_type||cr.changeType}</span>
-        {cr.system_name&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:4,background:"#fff",border:`1px solid ${C.border}`,color:C.muted}}>🖥 {cr.system_name}</span>}
+        {cr.system_name&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:4,background:"#fff",border:`1px solid ${C.border}`,color:C.muted,display:"inline-flex",alignItems:"center",gap:4}}><Monitor size={12}/> {cr.system_name}</span>}
       </div>
 
       {/* ── STAGE TRACKER ── */}
       <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 20px",marginBottom:16}}>
         <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".07em",marginBottom:14}}>Change Progress</div>
         {isRejected?(
-          <div style={{padding:"10px 14px",background:C.redBg,borderRadius:8,fontSize:13,color:C.red,fontWeight:600}}>
-            ❌ This change request was rejected. A new CR must be raised to proceed.
+          <div style={{padding:"10px 14px",background:C.redBg,borderRadius:8,fontSize:13,color:C.red,fontWeight:600,display:"flex",alignItems:"center",gap:8}}>
+            <XCircle size={16}/> This change request was rejected. A new CR must be raised to proceed.
           </div>
         ):(
           <div style={{display:"flex",alignItems:"flex-start",overflowX:"auto",paddingBottom:4}}>
@@ -89,7 +90,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
                       color:s.done||isActive?"#fff":C.muted,
                       fontSize:14,fontWeight:700,
                       boxShadow:isActive?`0 0 0 3px ${C.brand}30`:s.done?`0 0 0 3px ${C.green}20`:"none"}}>
-                      {s.done?"✓":isActive?"●":"○"}
+                      {s.done?<Check size={16}/>:isActive?"●":"○"}
                     </div>
                     <div style={{fontSize:10,fontWeight:700,color,textAlign:"center",lineHeight:1.3}}>{s.label}</div>
                     {s.who&&<div style={{fontSize:9,color:C.muted,textAlign:"center"}}>{s.who}</div>}
@@ -152,7 +153,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
                   ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.amberBg,color:C.amber}}>Pending</span>
                   :cr.status==="rejected"
                     ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.redBg,color:C.red}}>Rejected</span>
-                    :<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.greenBg,color:C.green}}>Approved ✓</span>}
+                    :<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.greenBg,color:C.green,display:"inline-flex",alignItems:"center",gap:4}}>Approved <Check size={12}/></span>}
               </div>
             </div>
           </div>
@@ -162,9 +163,10 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{fontSize:12,color:C.muted}}>{l.role_key?.replace(/_/g," ")}</div>
                 <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,
+                  display:"inline-flex",alignItems:"center",gap:4,
                   background:l.status==="approved"?C.greenBg:cr.current_stage===`pending_level_${l.level}`?C.amberBg:"#F8FAFC",
                   color:l.status==="approved"?C.green:cr.current_stage===`pending_level_${l.level}`?C.amber:C.muted}}>
-                  {l.status==="approved"?`Approved ✓ — ${fmtD(l.approved_at)}`:cr.current_stage===`pending_level_${l.level}`?"Pending":"Awaiting"}
+                  {l.status==="approved"?<>Approved <Check size={12}/> — {fmtD(l.approved_at)}</>:cr.current_stage===`pending_level_${l.level}`?"Pending":"Awaiting"}
                 </span>
               </div>
               {l.note&&<div style={{fontSize:12,color:C.muted,marginTop:8,fontStyle:"italic"}}>"{l.note}"</div>}
@@ -214,7 +216,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
               <textarea value={comment} onChange={e=>setComment(e.target.value)} placeholder="Your review comments or concurrence…" style={{...inp(),minHeight:70,resize:"vertical"}}/>
               <div style={{display:"flex",gap:8,marginTop:10}}>
                 <button onClick={()=>doAction("reviewer_comment",{concur:false})} style={btn("ghost")}>Note Only</button>
-                <button onClick={()=>doAction("reviewer_comment",{concur:true})} style={{...btn("primary"),background:C.green}}>✓ Concur</button>
+                <button onClick={()=>doAction("reviewer_comment",{concur:true})} style={{...btn("primary"),background:C.green}}><Check size={14}/> Concur</button>
               </div>
             </div>
           )}
@@ -240,8 +242,8 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
             <label style={LBL}>Outcome</label>
             <div style={{display:"flex",gap:10}}>
               {["successful","failed"].map(o=>(
-                <button key={o} onClick={()=>setOutcome(o)} style={{flex:1,padding:"10px",border:`1.5px solid ${outcome===o?(o==="successful"?C.green:C.red):C.border}`,borderRadius:8,background:outcome===o?(o==="successful"?C.greenBg:C.redBg):"#fff",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,color:outcome===o?(o==="successful"?C.green:C.red):C.muted,textTransform:"capitalize"}}>
-                  {o==="successful"?"✅ Successful":"❌ Failed"}
+                <button key={o} onClick={()=>setOutcome(o)} style={{flex:1,padding:"10px",border:`1.5px solid ${outcome===o?(o==="successful"?C.green:C.red):C.border}`,borderRadius:8,background:outcome===o?(o==="successful"?C.greenBg:C.redBg):"#fff",cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:700,color:outcome===o?(o==="successful"?C.green:C.red):C.muted,textTransform:"capitalize",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                  {o==="successful"?<><CheckCircle2 size={14}/> Successful</>:<><XCircle size={14}/> Failed</>}
                 </button>
               ))}
             </div>
@@ -254,15 +256,15 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
         <button onClick={onClose} style={btn("ghost")}>Close</button>
         {canMgrApprove&&<>
           <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
-          <button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}>✓ Approve & Forward →</button>
+          <button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>
         </>}
         {canLevelApprove&&<>
           <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
-          <button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}>✓ Approve {currentLevel.name} →</button>
+          <button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve {currentLevel.name} →</button>
         </>}
-        {canStartImpl&&<button onClick={()=>doAction("start_implementation")} disabled={saving} style={{...btn("primary"),background:C.blue}}>🔧 Start Implementation</button>}
+        {canStartImpl&&<button onClick={()=>doAction("start_implementation")} disabled={saving} style={{...btn("primary"),background:C.blue}}><Wrench size={14}/> Start Implementation</button>}
         {canCompleteImpl&&<button onClick={()=>doAction("complete_implementation",{implementationNotes:implNotes,outcome})} disabled={saving} style={{...btn("primary"),background:outcome==="failed"?C.red:C.green}}>
-          {outcome==="failed"?"❌ Mark Failed":"✅ Mark Complete"}
+          {outcome==="failed"?<><XCircle size={14}/> Mark Failed</>:<><CheckCircle2 size={14}/> Mark Complete</>}
         </button>}
       </div>
     </Modal>

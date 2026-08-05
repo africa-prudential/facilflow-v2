@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Mail } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../../constants.js";
 import { Chip, Modal } from "../../components/ui.jsx";
@@ -126,8 +127,8 @@ export default function InviteModal({onClose,onInvite}){
         </div>
 
         {err && <div style={{padding:"9px 13px",borderRadius:7,background:C.redBg,border:`1px solid ${C.red}30`,fontSize:13,color:C.red,fontWeight:500}}>{err}</div>}
-        <div style={{padding:"10px 13px",borderRadius:7,background:C.blueBg,border:`1px solid ${C.blue}30`,fontSize:12,color:C.blue,fontWeight:600}}>
-          📧 User will receive an invite email with this temporary password, and will be required to set their own on first login.
+        <div style={{padding:"10px 13px",borderRadius:7,background:C.blueBg,border:`1px solid ${C.blue}30`,fontSize:12,color:C.blue,fontWeight:600,display:"flex",alignItems:"flex-start",gap:6}}>
+          <Mail size={14} style={{flexShrink:0,marginTop:1}}/> User will receive an invite email with this temporary password, and will be required to set their own on first login.
         </div>
       </div>
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:16,borderTop:`1px solid ${C.border}`}}>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X, Search, Check } from "lucide-react";
 import { C, btn, inp, card } from "../theme.js";
 import { Av, Chip, Modal, PageTitle } from "../components/ui.jsx";
 import AddRoleControl from "../components/AddRoleControl.jsx";
@@ -68,7 +69,7 @@ export default function ChangeConfig({ctx}){
             {canDeleteRoles&&(
               <button type="button" onClick={()=>setConfirmDelete(r)} title="Delete role"
                 style={{...btn("ghost"),padding:"3px 7px",fontSize:11,color:C.red}}>
-                ✕
+                <X size={11}/>
               </button>
             )}
           </div>
@@ -77,7 +78,7 @@ export default function ChangeConfig({ctx}){
 
       {/* Search */}
       <div style={{position:"relative"}}>
-        <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.muted}}>🔍</span>
+        <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.muted,display:"flex"}}><Search size={14}/></span>
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search users…" style={{...inp(),paddingLeft:30}}/>
       </div>
 
@@ -146,7 +147,7 @@ export default function ChangeConfig({ctx}){
                       background:has?C.green:"#fff",cursor:"pointer",
                       display:"flex",alignItems:"center",justifyContent:"center",
                       fontSize:13,opacity:isSaving?.5:1}}>
-                    {isSaving?"…":has?"✓":""}
+                    {isSaving?"…":has?<Check size={13} color="#fff"/>:""}
                   </button>
                 </div>
               );

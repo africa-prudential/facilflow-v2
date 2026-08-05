@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { Modal } from "../../components/ui.jsx";
 
@@ -27,8 +28,8 @@ export default function StockModal({item,onClose,onSave}){
           onChange={e=>setQty(Math.max(1,+e.target.value))} style={inp(removeErr)}/>
       </div>
       {removeErr
-        ?<div style={{marginTop:8,padding:"9px 12px",borderRadius:7,background:C.redBg,fontSize:12,color:C.red,fontWeight:600}}>
-           ⚠ Cannot remove {qty} — only {item.stock} in stock. Adjust quantity.
+        ?<div style={{marginTop:8,padding:"9px 12px",borderRadius:7,background:C.redBg,fontSize:12,color:C.red,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+           <AlertTriangle size={13}/> Cannot remove {qty} — only {item.stock} in stock. Adjust quantity.
          </div>
         :<div style={{marginTop:10,padding:"10px 13px",borderRadius:7,background:op==="add"?C.greenBg:C.redBg,fontSize:13,fontWeight:600,color:op==="add"?C.green:C.red}}>
            New stock: {newStock} {item.unit}s
