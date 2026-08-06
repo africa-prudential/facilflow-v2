@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Lock } from 'lucide-react'
-import { Toaster } from 'sonner'
+import { Toaster, toast } from 'sonner'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
@@ -335,7 +335,10 @@ function Root() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const handleSignOut = useCallback(() => supabase.auth.signOut(), [])
+  const handleSignOut = useCallback(() => {
+    supabase.auth.signOut()
+    toast.success('Signed out')
+  }, [])
 
   useEffect(() => {
     if (screen === 'recovery') { setLoading(false); return }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { signIn, sendPasswordReset } from './lib/supabase.js'
 
 const C = {
@@ -86,6 +87,7 @@ export default function Login({ onLogin }) {
     try {
       const { data, error } = await signIn(email, password)
       if (error) throw error
+      toast.success('Welcome back!')
       onLogin(data.user)
     } catch (err) {
       setError(err.message || 'Invalid email or password')

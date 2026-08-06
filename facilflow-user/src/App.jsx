@@ -478,6 +478,7 @@ export default function UserApp({ currentUser }){
 
   const handleSignOut = async ()=>{
     await supabase.auth.signOut();
+    toast.success("Signed out");
   };
 
   const ctx = {
@@ -631,7 +632,7 @@ export default function UserApp({ currentUser }){
                       background:active?ac+"0E":"transparent",color:active?ac:C.ink2,
                       fontSize:12,fontWeight:active?700:500,cursor:"pointer",
                       fontFamily:"inherit",textAlign:"left",transition:"all .1s"}}>
-                      <span style={{fontSize:13,opacity:active?1:.5}}>{n.icon}</span>
+                      <n.icon size={14} style={{opacity:active?1:.5,flexShrink:0}}/>
                       {n.label}
                     </button>
                   );

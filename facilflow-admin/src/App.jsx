@@ -184,7 +184,7 @@ export default function AdminApp({ currentUser }){
               {adminRoles.map(r=>ADMIN_ROLE_META[r]?.label||r).join(" · ")}
             </div>
           </div>
-          <button onClick={()=>supabase.auth.signOut()} style={{...btn("ghost"),fontSize:11,padding:"4px 9px",marginLeft:4,color:"#94A3B8",borderColor:"#334155"}}>Sign out</button>
+          <button onClick={()=>{supabase.auth.signOut();toast.success("Signed out");}} style={{...btn("ghost"),fontSize:11,padding:"4px 9px",marginLeft:4,color:"#94A3B8",borderColor:"#334155"}}>Sign out</button>
         </div>
       </header>
 
@@ -204,7 +204,7 @@ export default function AdminApp({ currentUser }){
                       background:active?"rgba(200,16,46,.12)":"transparent",
                       color:active?"#fff":"#94A3B8",
                       fontSize:12,fontWeight:active?700:500,cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
-                      <span style={{fontSize:13}}>{n.icon}</span>{n.l}
+                      <n.icon size={14} style={{flexShrink:0}}/>{n.l}
                     </button>
                   );
                 })}
