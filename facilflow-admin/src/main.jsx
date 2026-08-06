@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Lock } from 'lucide-react'
+import { Toaster, toast } from 'sonner'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import Login from './Login.jsx'
-import { supabase, getProfile, updatePassword } from './lib/supabase.js'
+import { supabase, getProfile, updatePassword, updateUser } from './lib/supabase.js'
 
 // ── SESSION TIMEOUT ────────────────────────────────────────────
 const IDLE_MS = 5 * 60 * 1000   // 5 minutes of inactivity
@@ -92,7 +94,7 @@ function SessionTimeout({ onSignOut }) {
         }}>{count}</div>
 
         {/* Icon */}
-        <div style={{fontSize:22, marginBottom:10}}>🔒</div>
+        <Lock size={22} style={{marginBottom:10}} />
 
         <div style={{fontSize:19, fontWeight:800, color:'#0F172A', marginBottom:8}}>
           Session Timing Out
@@ -228,6 +230,92 @@ function ResetPassword() {
   )
 }
 
+// ── FORCE PASSWORD CHANGE (first login after invite) ────────────
+function ForcePasswordChange({ onDone }) {
+  const [password, setPassword] = useState('')
+  const [confirm,  setConfirm]  = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState('')
+  const [show,     setShow]     = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
+    if (password !== confirm) { setError('Passwords do not match.'); return }
+    setLoading(true); setError('')
+    try {
+      const { error } = await updatePassword(password)
+      if (error) throw error
+      await onDone()
+    } catch (err) {
+      setError(err.message || 'Failed to update password. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const B = '#C8102E'
+  return (
+    <div style={{ minHeight:'100dvh', display:'flex', alignItems:'center', justifyContent:'center',
+      background:'#F7F8FA', fontFamily:"'Inter',system-ui,sans-serif", padding:16 }}>
+      <div style={{ width:'100%', maxWidth:400, background:'#fff', borderRadius:16,
+        padding:'40px 36px', boxShadow:'0 8px 40px rgba(0,0,0,.1)', border:'1px solid #E2E8F0' }}>
+        <div style={{ width:50, height:50, borderRadius:13, background:'linear-gradient(135deg,#FEF2F4,#fff)',
+          border:`1.5px solid rgba(200,16,46,.2)`, display:'flex', alignItems:'center', justifyContent:'center',
+          marginBottom:22, boxShadow:'0 2px 12px rgba(200,16,46,.08)' }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="3" y="9" width="16" height="11" rx="2" stroke={B} strokeWidth="1.6"/>
+            <path d="M7 9V6a4 4 0 018 0v3" stroke={B} strokeWidth="1.6" strokeLinecap="round"/>
+            <circle cx="11" cy="14.5" r="1.5" fill={B}/>
+          </svg>
+        </div>
+        <h2 style={{ fontSize:22, fontWeight:800, color:'#0F172A', marginBottom:6 }}>Set your password</h2>
+        <p style={{ fontSize:13.5, color:'#64748B', lineHeight:1.6, marginBottom:28 }}>
+          You signed in with a temporary password. Choose a new password to continue to the Admin Console.
+        </p>
+        <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          <div>
+            <label style={{ fontSize:12.5, fontWeight:600, color:'#0F172A', display:'block', marginBottom:6 }}>New password</label>
+            <div style={{ position:'relative' }}>
+              <input type={show?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)}
+                required placeholder="At least 8 characters"
+                style={{ width:'100%', padding:'11px 42px 11px 14px', border:'1.5px solid #E2E8F0', borderRadius:8,
+                  fontSize:14, color:'#0F172A', fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}
+                onFocus={e=>e.target.style.borderColor=B} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
+              <button type="button" onClick={()=>setShow(v=>!v)}
+                style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)',
+                  background:'none', border:'none', cursor:'pointer', color:'#94A3B8', padding:4 }}>
+                <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+                  <path d="M2 8.5s3-5.5 6.5-5.5S15 8.5 15 8.5s-3 5.5-6.5 5.5S2 8.5 2 8.5z" stroke="currentColor" strokeWidth="1.3"/>
+                  <circle cx="8.5" cy="8.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize:12.5, fontWeight:600, color:'#0F172A', display:'block', marginBottom:6 }}>Confirm password</label>
+            <input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)}
+              required placeholder="Repeat your new password"
+              style={{ width:'100%', padding:'11px 14px', border:'1.5px solid #E2E8F0', borderRadius:8,
+                fontSize:14, color:'#0F172A', fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}
+              onFocus={e=>e.target.style.borderColor=B} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
+          </div>
+          {error && (
+            <div style={{ padding:'10px 14px', borderRadius:8, background:'#FEF2F2', border:'1px solid #FCA5A5',
+              fontSize:13, color:'#DC2626', fontWeight:500 }}>{error}</div>
+          )}
+          <button type="submit" disabled={loading}
+            style={{ padding:'12px', background:`linear-gradient(135deg,${B},#A00D24)`, color:'#fff',
+              border:'none', borderRadius:8, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
+              opacity:loading?0.7:1, boxShadow:'0 4px 18px rgba(200,16,46,.3)' }}>
+            {loading ? 'Updating…' : 'Set password & continue →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ── URL MODE ───────────────────────────────────────────────────
 function getUrlMode() {
   const hash = window.location.hash
@@ -247,7 +335,10 @@ function Root() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const handleSignOut = useCallback(() => supabase.auth.signOut(), [])
+  const handleSignOut = useCallback(() => {
+    supabase.auth.signOut()
+    toast.success('Signed out')
+  }, [])
 
   useEffect(() => {
     if (screen === 'recovery') { setLoading(false); return }
@@ -302,6 +393,13 @@ function Root() {
 
   if (!session || !profile) return <Login appName="Admin Console" onLogin={() => {}} />
 
+  if (profile.must_change_password) return (
+    <ForcePasswordChange onDone={async () => {
+      const updated = await updateUser(profile.id, { must_change_password: false })
+      setProfile({ ...profile, ...updated, role: profile.role })
+    }} />
+  )
+
   return (
     <>
       <App currentUser={profile} />
@@ -311,5 +409,5 @@ function Root() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode><BrowserRouter><Root /></BrowserRouter></React.StrictMode>
+  <React.StrictMode><BrowserRouter><Root /><Toaster richColors position="top-right"/></BrowserRouter></React.StrictMode>
 )

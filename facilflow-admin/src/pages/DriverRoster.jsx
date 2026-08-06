@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { IdCard } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { DRIVER_STATUSES } from "../constants.js";
 import { fmtD, genId, normDrv } from "../utils.js";
@@ -56,7 +57,7 @@ export default function DriverRoster({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Driver Name","Licence Number","Phone","Status","Assigned Vehicle","Last Updated",""]}/>
           <tbody>
-            {paged.length===0?<tr><td colSpan={7}><Empty icon="🪪" title="No drivers found"/></td></tr>
+            {paged.length===0?<tr><td colSpan={7}><Empty icon={<IdCard size={32}/>} title="No drivers found"/></td></tr>
             :paged.map((d,i)=>{
               const veh=vehicles.find(v=>v.id===d.vehicleId);
               return (

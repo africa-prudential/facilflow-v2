@@ -1,8 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL     = "facilflow@thesegunadebayo.com"
-const FROM_NAME      = "FaciliFlow — Africa Prudential"
+const FROM_EMAIL     = "noreply@facilflow.africaprudential.com"
+const FROM_NAME      = "Facilflow — Africa Prudential"
+const APP_URL        = Deno.env.get("APP_URL") ?? "https://facilflow.africaprudential.com"
+const ADMIN_APP_URL  = Deno.env.get("ADMIN_APP_URL") ?? "https://admin-facilflow.africaprudential.com"
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -95,7 +97,7 @@ const templates = {
       ${p(`Hi <strong>${d.name || "there"}</strong>,`)}
       ${p("You have been invited to join <strong>Africa Prudential FaciliFlow</strong> — the facilities and IT change management platform.")}
       ${table(row("Name", d.name) + row("Email", d.email) + row("Role", (d.role||"").replace(/_/g," ")) + row("Department", d.dept) + row("Temp Password", d.temp_password ? `<code style="background:#F1F5F9;padding:2px 8px;border-radius:4px;color:${B};font-weight:700">${d.temp_password}</code>` : "Set on first login"))}
-      ${cta(d.invite_url || "https://facilflowuser.vercel.app", "Access FaciliFlow →", B)}
+      ${cta(d.invite_url || APP_URL, "Access FaciliFlow →", B)}
       <p style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-top:20px">If you were not expecting this, please ignore this email.</p>
     `))
   }),
@@ -112,9 +114,9 @@ const templates = {
         row("Approved On", d.approved_at) +
         (d.vehicle ? row("Assigned Vehicle", d.vehicle) : "") +
         (d.driver  ? row("Assigned Driver",  d.driver)  : "")
-      )}
+    )}
       ${d.note ? hl(`<strong>Note:</strong> "${d.note}"`, GRN, GBG) : ""}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Request →", GRN)}
+      ${cta(d.app_url || APP_URL, "View Request →", GRN)}
     `))
   }),
 
@@ -125,7 +127,7 @@ const templates = {
       ${p(`Your <strong>${d.type}</strong> request has not been approved at this time.`)}
       ${table(row("Request ID", d.request_id) + row("Title", d.title) + row("Reviewed By", d.approver))}
       ${d.reason ? hl(`<strong>Reason:</strong> "${d.reason}"`, RED, RBG) : ""}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Request →", RED)}
+      ${cta(d.app_url || APP_URL, "View Request →", RED)}
     `))
   }),
 
@@ -135,7 +137,7 @@ const templates = {
       ${p(`Hi <strong>${d.requester_name || "there"}</strong>,`)}
       ${p(`Your <strong>${d.type}</strong> request has been <strong style="color:${BLU}">delivered</strong> and marked complete.`)}
       ${table(row("Request ID", d.request_id) + row("Title", d.title) + row("Delivered On", d.delivered_at) + row("Processed By", d.processed_by || "Facilities Team"))}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Request History →", BLU)}
+      ${cta(d.app_url || APP_URL, "View Request History →", BLU)}
     `))
   }),
 
@@ -146,7 +148,7 @@ const templates = {
       ${p("A new change request has been submitted and requires your review and approval.")}
       ${d.is_emergency ? hl("⚡ <strong>EMERGENCY CHANGE REQUEST</strong> — Immediate attention required.", RED, RBG) : ""}
       ${table(row("CR ID", d.cr_id) + row("Title", d.title) + row("Change Type", d.change_type) + row("Risk Level", d.risk_level) + row("System", d.system_name) + row("Environment", d.environment) + row("Raised By", d.raised_by) + row("Proposed Date", d.deploy_date))}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "Review & Approve →", B)}
+      ${cta(d.app_url || APP_URL, "Review & Approve →", B)}
     `))
   }),
 
@@ -157,7 +159,7 @@ const templates = {
       ${p(`Your change request <strong>${d.cr_id}</strong> has been approved at <strong>Stage ${d.stage}</strong>.`)}
       ${table(row("CR ID", d.cr_id) + row("Title", d.title) + row("Approved By", d.approver) + row("Next Step", d.next_step))}
       ${d.comment ? hl(`<strong>Comment:</strong> "${d.comment}"`, GRN, GBG) : ""}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Change Request →", GRN)}
+      ${cta(d.app_url || APP_URL, "View Change Request →", GRN)}
     `))
   }),
 
@@ -168,7 +170,7 @@ const templates = {
       ${p(`Your change request <strong>${d.cr_id}: ${d.title}</strong> has been rejected.`)}
       ${table(row("CR ID", d.cr_id) + row("Title", d.title) + row("Rejected By", d.approver))}
       ${d.reason ? hl(`<strong>Reason:</strong> "${d.reason}"`, RED, RBG) : ""}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Change Request →", RED)}
+      ${cta(d.app_url || APP_URL, "View Change Request →", RED)}
     `))
   }),
 
@@ -183,7 +185,7 @@ const templates = {
         <div style="font-family:Arial,sans-serif;font-size:15px;color:${BLU};margin-top:6px;font-weight:600">${d.deploy_start} – ${d.deploy_end}</div>
         <div style="font-family:Arial,sans-serif;font-size:12px;color:${MUT};margin-top:4px">${d.environment}</div>
       </div>
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View on Calendar →", BLU)}
+      ${cta(d.app_url || APP_URL, "View on Calendar →", BLU)}
     `))
   }),
 
@@ -198,12 +200,12 @@ const templates = {
         row("Title", d.title) +
         row("Current Stage", d.stage) +
         row("Action Required", d.action||"Please review and take action.")
-      )}
+    )}
       ${d.note ? hl(`<strong>Note:</strong> "${d.note}"`, AMB, ABG) : ""}
       <p style="font-family:Arial,sans-serif;font-size:13px;color:${MUT};margin:16px 0;line-height:1.6">
         If you are unable to access the link below, please contact your system administrator.
       </p>
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Change Request →", B)}
+      ${cta(d.app_url || APP_URL, "View Change Request →", B)}
       ${d.participants&&d.participants.length>0?`<p style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-top:16px">This notification was also sent to: ${d.participants.join(", ")}</p>`:""}
     `))
   }),
@@ -215,7 +217,7 @@ const templates = {
       ${p("This is a reminder that the following change request is still awaiting your approval.")}
       ${hl(`⏳ Pending for <strong>${d.hours_pending || "some"} hours</strong>. Please review at your earliest convenience.`, AMB, ABG)}
       ${table(row("CR ID", d.cr_id) + row("Title", d.title) + row("Raised By", d.raised_by) + row("Submitted On", d.submitted_date))}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "Review & Approve Now →", AMB)}
+      ${cta(d.app_url || APP_URL, "Review & Approve Now →", AMB)}
     `))
   }),
 
@@ -237,12 +239,12 @@ const templates = {
         row("Category",   d.category) +
         row("Department", d.department) +
         row("Raised By",  d.raised_by)
-      )}
+    )}
       ${d.description ? `<div style="margin-bottom:20px">
         <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:${MUT};text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Description</div>
         <div style="background:#F8FAFC;border:1px solid ${BDR};border-radius:8px;padding:14px 16px;font-family:Arial,sans-serif;font-size:13px;color:${INK};line-height:1.7">${d.description}</div>
       </div>` : ""}
-      ${cta(d.app_url || "https://facilflow-v2-admin.vercel.app", "View & Assign Ticket →", B)}
+      ${cta(d.app_url || ADMIN_APP_URL, "View & Assign Ticket →", B)}
     `))
   }),
 
@@ -261,9 +263,9 @@ const templates = {
         row("Type",     d.type) +
         row("Priority", (d.priority || "medium").charAt(0).toUpperCase() + (d.priority || "medium").slice(1)) +
         row("Status",   "Open — Awaiting Assignment")
-      )}
+    )}
       ${hl("You will receive an email when your ticket is updated or when a support agent responds.", GRN, GBG)}
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "Track Your Ticket →", GRN)}
+      ${cta(d.app_url || APP_URL, "Track Your Ticket →", GRN)}
     `))
   }),
 
@@ -293,7 +295,7 @@ const templates = {
         ${isResolved
           ? hl("Your ticket has been resolved. If you feel the issue is not fully resolved, you can reopen it from the portal.", GRN, GBG)
           : hl("You will continue to receive updates as your ticket progresses. You can also add follow-up comments from the portal.", BLU, BBG)}
-        ${cta(d.app_url || "https://facilflowuser.vercel.app", "View Your Ticket →", s.color)}
+        ${cta(d.app_url || APP_URL, "View Your Ticket →", s.color)}
       `))
     }
   },
@@ -308,7 +310,7 @@ const templates = {
         <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:${MUT};text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Message</div>
         <div style="background:#F8FAFC;border-left:3px solid ${BLU};border-radius:0 8px 8px 0;padding:14px 16px;font-family:Arial,sans-serif;font-size:13px;color:${INK};line-height:1.7">${d.comment || ""}</div>
       </div>
-      ${cta(d.app_url || "https://facilflowuser.vercel.app", "Reply to Ticket →", BLU)}
+      ${cta(d.app_url || APP_URL, "Reply to Ticket →", BLU)}
     `))
   }),
 }
@@ -322,15 +324,15 @@ serve(async (req) => {
 
     if (!template || !templates[template]) {
       return new Response(
-        JSON.stringify({ error: `Unknown template: ${template}. Valid: ${Object.keys(templates).join(", ")}` }),
-        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+          JSON.stringify({ error: `Unknown template: ${template}. Valid: ${Object.keys(templates).join(", ")}` }),
+          { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       )
     }
 
     if (!to) {
       return new Response(
-        JSON.stringify({ error: "Missing 'to' field" }),
-        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Missing 'to' field" }),
+          { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       )
     }
 
@@ -355,21 +357,21 @@ serve(async (req) => {
     if (!res.ok) {
       console.error("Resend error:", JSON.stringify(result))
       return new Response(
-        JSON.stringify({ error: result }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+          JSON.stringify({ error: result }),
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
       )
     }
 
     return new Response(
-      JSON.stringify({ success: true, id: result.id }),
-      { headers: { ...CORS, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true, id: result.id }),
+        { headers: { ...CORS, "Content-Type": "application/json" } }
     )
 
   } catch (err) {
     console.error("Function error:", err.message)
     return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+        JSON.stringify({ error: err.message }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
     )
   }
 })

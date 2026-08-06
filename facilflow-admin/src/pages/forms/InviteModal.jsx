@@ -1,7 +1,17 @@
 import { useState } from "react";
+import { Mail } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../../constants.js";
 import { Chip, Modal } from "../../components/ui.jsx";
+
+// Unambiguous charset (no 0/O/1/l/I) so temp passwords are easy to read/type off an email
+const PASSWORD_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+
+function generatePassword(length = 12) {
+  const bytes = new Uint32Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, n => PASSWORD_CHARS[n % PASSWORD_CHARS.length]).join("");
+}
 
 export default function InviteModal({onClose,onInvite}){
   const [firstName,  setFirstName] = useState("");
@@ -11,8 +21,8 @@ export default function InviteModal({onClose,onInvite}){
   const [staffRole,  setStaffRole] = useState("employee");
   const [adminRoles, setAdminRoles]= useState(["facility_admin"]);
   const [dept,       setDept]      = useState("Finance");
-  const [password,   setPass]      = useState("");
-  const [confirm,    setConfirm]   = useState("");
+  const [password,   setPass]      = useState(() => generatePassword());
+  const [showPass,   setShowPass]  = useState(false);
   const [err,        setErr]       = useState("");
 
   const toggleAdminRole = (r) => {
@@ -28,8 +38,6 @@ export default function InviteModal({onClose,onInvite}){
     if(!firstName.trim()) return setErr("First name is required.");
     if(!lastName.trim())  return setErr("Last name is required.");
     if(!email)            return setErr("Email is required.");
-    if(password.length < 8) return setErr("Temporary password must be at least 8 characters.");
-    if(password !== confirm) return setErr("Passwords do not match.");
     if(roleType==="admin" && adminRoles.length===0) return setErr("Select at least one admin role.");
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
     const primaryRole = roleType==="admin" ? adminRoles[0] : staffRole;
@@ -107,19 +115,20 @@ export default function InviteModal({onClose,onInvite}){
             </select>
           </div>
           <div/>
-          <div>
-            <label style={LBL}>Temporary Password</label>
-            <input type="password" value={password} onChange={e=>setPass(e.target.value)} style={inp()} placeholder="Min 8 characters"/>
-          </div>
-          <div>
-            <label style={LBL}>Confirm Password</label>
-            <input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} style={inp()} placeholder="Re-enter password"/>
+        </div>
+
+        <div>
+          <label style={LBL}>Temporary Password (auto-generated)</label>
+          <div style={{display:"flex",gap:8}}>
+            <input readOnly type={showPass?"text":"password"} value={password} style={{...inp(),flex:1,fontFamily:"monospace",letterSpacing:1}}/>
+            <button type="button" onClick={()=>setShowPass(v=>!v)} style={btn("ghost")}>{showPass?"Hide":"Show"}</button>
+            <button type="button" onClick={()=>setPass(generatePassword())} style={btn("ghost")}>Regenerate</button>
           </div>
         </div>
 
         {err && <div style={{padding:"9px 13px",borderRadius:7,background:C.redBg,border:`1px solid ${C.red}30`,fontSize:13,color:C.red,fontWeight:500}}>{err}</div>}
-        <div style={{padding:"10px 13px",borderRadius:7,background:C.blueBg,border:`1px solid ${C.blue}30`,fontSize:12,color:C.blue,fontWeight:600}}>
-          📧 User will receive an invite email. They can log in immediately with the temporary password you set.
+        <div style={{padding:"10px 13px",borderRadius:7,background:C.blueBg,border:`1px solid ${C.blue}30`,fontSize:12,color:C.blue,fontWeight:600,display:"flex",alignItems:"flex-start",gap:6}}>
+          <Mail size={14} style={{flexShrink:0,marginTop:1}}/> User will receive an invite email with this temporary password, and will be required to set their own on first login.
         </div>
       </div>
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:16,borderTop:`1px solid ${C.border}`}}>

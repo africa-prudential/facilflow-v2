@@ -1,6 +1,7 @@
+import { Zap, Car, Pencil, Calendar, RefreshCw, Hourglass } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { fmtD } from "../utils.js";
-import { CRChip, EnvTag, TH } from "../components/ui.jsx";
+import { CRChip, EnvTag, TH, Empty } from "../components/ui.jsx";
 
 export default function Dashboard({ctx,setPage}){
   const {me,uid,reqs,crs,users}=ctx;
@@ -24,7 +25,7 @@ export default function Dashboard({ctx,setPage}){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>
             <div style={{fontSize:21,fontWeight:800,color:"#fff",letterSpacing:"-.025em"}}>
-              Good morning, {me.name.split(" ")[0]} 👋
+              Good morning, {me.name.split(" ")[0]}
             </div>
             <div style={{fontSize:12,color:"rgba(255,255,255,.65)",marginTop:4}}>
               {new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · Africa Prudential Plc
@@ -33,7 +34,7 @@ export default function Dashboard({ctx,setPage}){
           {crs.filter(c=>c.is_emergency&&c.status==="in_progress").length>0&&(
             <div style={{background:"rgba(255,255,255,.15)",border:"1px solid rgba(255,255,255,.3)",
               borderRadius:8,padding:"8px 14px"}}>
-              <div style={{color:"#fff",fontWeight:700,fontSize:12}}>⚡ Emergency CR Active</div>
+              <div style={{color:"#fff",fontWeight:700,fontSize:12,display:"flex",alignItems:"center",gap:6}}><Zap size={14}/> Emergency CR Active</div>
             </div>
           )}
         </div>
@@ -51,26 +52,30 @@ export default function Dashboard({ctx,setPage}){
           <div style={{padding:"14px 16px",borderBottom:`1px solid ${C.border}`,
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <span style={{fontSize:14,fontWeight:700,color:C.ink}}>Recent Change Requests</span>
-            <button onClick={()=>setPage("change_requests")} style={{...btn("ghost"),fontSize:11,padding:"4px 10px"}}>View all →</button>
+            {myCRs.length>0&&<button onClick={()=>setPage("change_requests")} style={{...btn("ghost"),fontSize:11,padding:"4px 10px"}}>View all →</button>}
           </div>
-          <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <TH cols={["CR ID","Title","Type","Environment","Status"]}/>
-            <tbody>
-              {crs.slice(0,5).map((c,i)=>(
-                <tr key={c.id} style={{borderBottom:i<4?`1px solid #FAFAFA`:"none"}}>
-                  <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink,whiteSpace:"nowrap"}}>{c.id}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}>
-                    <div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {c.is_emergency&&<span style={{color:C.red,marginRight:4}}>⚡</span>}{c.title}
-                    </div>
-                  </td>
-                  <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.change_type}</td>
-                  <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
-                  <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {myCRs.length===0 ? (
+            <Empty icon={<RefreshCw size={32}/>} title="No change requests yet" sub="Requests you raise will show up here."/>
+          ) : (
+            <table style={{width:"100%",borderCollapse:"collapse"}}>
+              <TH cols={["CR ID","Title","Type","Environment","Status"]}/>
+              <tbody>
+                {myCRs.slice(0,5).map((c,i)=>(
+                  <tr key={c.id} style={{borderBottom:i<4?`1px solid #FAFAFA`:"none"}}>
+                    <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink,whiteSpace:"nowrap"}}>{c.id}</td>
+                    <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}>
+                      <div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {c.is_emergency&&<span style={{color:C.red,marginRight:4,display:"inline-flex",verticalAlign:"middle"}}><Zap size={12}/></span>}{c.title}
+                      </div>
+                    </td>
+                    <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.change_type}</td>
+                    <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
+                    <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Right panel */}
@@ -79,21 +84,21 @@ export default function Dashboard({ctx,setPage}){
           <div style={{...card(16)}}>
             <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:12}}>Quick Actions</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              <button onClick={()=>setPage("change_requests")} style={{...btn("primary"),justifyContent:"flex-start",fontSize:12,width:"100%"}}>⟳ Raise Change Request</button>
+              <button onClick={()=>setPage("change_requests")} style={{...btn("primary"),justifyContent:"flex-start",fontSize:12,width:"100%"}}><RefreshCw size={14}/> Raise Change Request</button>
               {(me.role==="employee"||me.role==="manager")&&<>
-                <button onClick={()=>setPage("my_requests")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}>🚗 Pool Car Request</button>
-                <button onClick={()=>setPage("my_requests")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}>✏️ Stationery Request</button>
+                <button onClick={()=>setPage("my_requests")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Car size={14}/> Pool Car Request</button>
+                <button onClick={()=>setPage("my_requests")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Pencil size={14}/> Stationery Request</button>
               </>}
               {me.role==="manager"&&pending.length>0&&(
-                <button onClick={()=>setPage("cr_approvals")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",background:C.amberBg,color:C.amber,border:`1px solid ${C.amber}30`}}>
-                  ⏳ {pending.length} CR approval{pending.length>1?"s":""} pending
+                <button onClick={()=>setPage("cr_approvals")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",background:C.amberBg,color:C.amber,border:`1px solid ${C.amber}30`,display:"flex",alignItems:"center",gap:6}}>
+                  <Hourglass size={14}/> {pending.length} CR approval{pending.length>1?"s":""} pending
                 </button>
               )}
             </div>
           </div>
           {/* Upcoming */}
           <div style={{...card(16)}}>
-            <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:10}}>📅 Upcoming Deployments</div>
+            <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Calendar size={14}/> Upcoming Deployments</div>
             {scheduled.slice(0,3).map((c,i)=>(
               <div key={c.id} style={{padding:"8px 0",borderBottom:i<2?`1px solid ${C.border}`:"none"}}>
                 <div style={{fontSize:12,fontWeight:600,color:C.ink,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>

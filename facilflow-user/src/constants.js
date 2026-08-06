@@ -22,21 +22,23 @@ export const REQ_STATUS = {
   rejected:         {label:"Rejected",         color:C.red,    bg:C.redBg},
 };
 
+import { LayoutDashboard, List, Check, RotateCcw, RefreshCw, Grid2x2, SearchCheck, Ticket } from "lucide-react";
+
 export const NAV_GROUPS = [
   {group:"Main",items:[
-    {key:"dashboard",    label:"Dashboard",       icon:"◫",  roles:["employee","manager","resource_team"]},
-    {key:"my_requests",  label:"My Requests",      icon:"≡",  roles:["employee","manager","resource_team"]},
-    {key:"approvals",    label:"Approvals",        icon:"✓",  roles:["manager"]},
-    {key:"queue",        label:"Processing Queue", icon:"↻",  roles:["resource_team"]},
+    {key:"dashboard",    label:"Dashboard",       icon:LayoutDashboard,  roles:["employee","manager","resource_team"]},
+    {key:"my_requests",  label:"My Requests",      icon:List,  roles:["employee","manager","resource_team"]},
+    {key:"approvals",    label:"Approvals",        icon:Check,  roles:["manager"]},
+    {key:"queue",        label:"Processing Queue", icon:RotateCcw,  roles:["resource_team"]},
   ]},
   {group:"Change Management",items:[
-    {key:"change_requests",label:"Change Requests",icon:"⟳",  roles:["employee","manager","resource_team"]},
-    {key:"change_calendar",label:"Change Calendar",icon:"▦",  roles:["employee","manager","resource_team"]},
-    {key:"cr_approvals",   label:"CR Approvals",   icon:"✓",  roles:["manager"]},
-    {key:"cr_review",      label:"Review Queue",   icon:"◈",  roles:["resource_team"]},
+    {key:"change_requests",label:"Change Requests",icon:RefreshCw,  roles:["employee","manager","resource_team"]},
+    {key:"change_calendar",label:"Change Calendar",icon:Grid2x2,  roles:["employee","manager","resource_team"]},
+    {key:"cr_approvals",   label:"CR Approvals",   icon:Check,  roles:["manager"]},
+    {key:"cr_review",      label:"Review Queue",   icon:SearchCheck,  roles:["resource_team"]},
   ]},
   {group:"Support",items:[
-    {key:"helpdesk", label:"My Tickets", icon:"🎫", roles:["employee","manager","resource_team"]},
+    {key:"helpdesk", label:"My Tickets", icon:Ticket, roles:["employee","manager","resource_team"]},
   ]},
 ];
 

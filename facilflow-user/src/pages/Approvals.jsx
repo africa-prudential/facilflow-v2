@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PartyPopper } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { RQChip, PageTitle, TH, Empty } from "../components/ui.jsx";
@@ -19,7 +20,7 @@ export default function Approvals({ctx}){
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <TH cols={["ID","Type","Title","Requested By","Date","Status",""]}/>
             <tbody>
-              {rows.length===0?<tr><td colSpan={7}><Empty icon="🎉" title={pending?"All caught up!":"No actioned requests yet"}/></td></tr>
+              {rows.length===0?<tr><td colSpan={7}><Empty icon={<PartyPopper size={32}/>} title={pending?"All caught up!":"No actioned requests yet"}/></td></tr>
               :rows.map((r,i)=>(
                 <tr key={r.id} style={{borderBottom:i<rows.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"11px 14px",fontSize:11,fontWeight:700}}>{r.id}</td>

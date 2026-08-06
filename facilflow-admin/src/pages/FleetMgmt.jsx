@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { AlertTriangle, Car } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { VEHICLE_STATUSES } from "../constants.js";
 import { worstDocStatus, genId, now, vsm, normVeh } from "../utils.js";
@@ -105,8 +106,8 @@ export default function FleetMgmt({ctx}){
         action={<button onClick={()=>setModal("add")} style={btn("primary")}>+ Add Vehicle</button>}/>
 
       {expiringVehicles.length>0&&(
-        <div style={{padding:"10px 16px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600}}>
-          ⚠ {expiringVehicles.length} vehicle(s) have expired or expiring compliance documents — review below.
+        <div style={{padding:"10px 16px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+          <AlertTriangle size={14}/> {expiringVehicles.length} vehicle(s) have expired or expiring compliance documents — review below.
         </div>
       )}
 
@@ -122,7 +123,7 @@ export default function FleetMgmt({ctx}){
           <TH cols={["Plate","Model","Year","Colour","Assigned Owner","Docs","Status","Driver",""]}/>
           <tbody>
             {paged.length===0
-              ?<tr><td colSpan={9}><Empty icon="🚗" title="No vehicles found"/></td></tr>
+              ?<tr><td colSpan={9}><Empty icon={<Car size={32}/>} title="No vehicles found"/></td></tr>
               :paged.map((v,i)=>{
                 const drv=drivers.find(d=>d.id===v.driverId);
                 const vd=allDocs.filter(d=>d.vehicle_id===v.id);

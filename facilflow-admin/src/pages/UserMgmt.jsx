@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { User } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../constants.js";
 import { getAdminRoles, fmtSafe, exportCSV } from "../utils.js";
 import { Av, Chip, UChip, Modal, PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
-import { supabase, updateUser, deleteUser } from "../lib/supabase.js";
+import { supabase, updateUser, deleteUser, APP_URL, USER_APP_URL } from "../lib/supabase.js";
 import InviteModal from "./forms/InviteModal.jsx";
 import EditUserModal from "./forms/EditUserModal.jsx";
 
@@ -55,9 +56,7 @@ export default function UserMgmt({ctx}){
   const invite=async(email,name,role,dept,tempPassword,adminRoles=[],firstName="",lastName="")=>{
     try{
       const isAdminRole = ADMIN_ROLE_TYPES.includes(role);
-      const redirectTo  = isAdminRole
-        ? "https://facilflow-v2-admin.vercel.app"
-        : "https://facilflowuser.vercel.app";
+      const redirectTo  = isAdminRole ? APP_URL : USER_APP_URL;
 
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: { email, name, role, dept, tenant_id:tid, temp_password:tempPassword, redirect_to:redirectTo }
@@ -126,7 +125,7 @@ export default function UserMgmt({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Name","Email","Roles","Department","Status","Date Created",""]}/>
           <tbody>
-            {paged.length===0?<tr><td colSpan={7}><Empty icon="👤" title="No users found"/></td></tr>
+            {paged.length===0?<tr><td colSpan={7}><Empty icon={<User size={32}/>} title="No users found"/></td></tr>
             :paged.map((u,i)=>{
               // Build the full role list for display
               const isAdmin = ADMIN_ROLE_TYPES.includes(u.role) || u.role==="admin";

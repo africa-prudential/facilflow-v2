@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { X } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { CR_STATUS, REQ_STATUS, TICKET_STATUS_USER, TICKET_PRIORITY_USER } from "../constants.js";
 
@@ -27,19 +28,6 @@ export const RiskTag = ({r}) => {
   return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{r}</span>;
 };
 
-export function Toast({t}){
-  if(!t)return null;
-  return (
-    <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,padding:"11px 18px",
-      borderRadius:8,fontSize:13,fontWeight:600,color:"#fff",
-      background:t.type==="error"?C.red:C.green,
-      boxShadow:"0 4px 20px rgba(0,0,0,.18)",
-      animation:"slideUp .2s ease"}}>
-      {t.type==="error"?"✕ ":"✓ "}{t.msg}
-    </div>
-  );
-}
-
 export function Modal({title,sub,onClose,children,w=640}){
   useEffect(()=>{
     const handler=(e)=>{ if(e.key==="Escape") onClose(); };
@@ -56,7 +44,7 @@ export function Modal({title,sub,onClose,children,w=640}){
             <div style={{fontSize:15,fontWeight:700,color:C.ink}}>{title}</div>
             {sub&&<div style={{fontSize:12,color:C.muted,marginTop:1}}>{sub}</div>}
           </div>
-          <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5}}>✕</button>
+          <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5}}><X size={14}/></button>
         </div>
         <div style={{padding:"20px 22px",overflowY:"auto",flex:1}}>{children}</div>
       </div>

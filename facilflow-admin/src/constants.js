@@ -120,32 +120,34 @@ export const TICKET_PRIORITY = { critical:{label:"Critical",color:C.red,bg:C.red
 
 export const ASSET_STATUS = { new:{label:"New",color:C.violet,bg:C.violetBg}, in_store:{label:"In Store",color:C.teal,bg:C.tealBg}, available:{label:"Available",color:C.green,bg:C.greenBg}, assigned:{label:"Assigned",color:C.blue,bg:C.blueBg}, in_repair:{label:"In Repair",color:C.amber,bg:C.amberBg}, condemned:{label:"Condemned",color:C.red,bg:C.redBg}, bidded:{label:"Bidded",color:C.orange,bg:C.orangeBg}, retired:{label:"Retired",color:C.muted,bg:C.surface}, lost:{label:"Lost",color:C.red,bg:C.redBg} };
 
+import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell } from "lucide-react";
+
 export const NAV = [
   {group:"Overview", roles:["super_admin","facility_admin","it_admin"], items:[
-    {k:"dashboard",  l:"Dashboard",        icon:"◫"},
+    {k:"dashboard",  l:"Dashboard",        icon:LayoutDashboard},
   ]},
   {group:"People & Access", roles:["super_admin"], items:[
-    {k:"users",      l:"User Management",  icon:"👤"},
+    {k:"users",      l:"User Management",  icon:User},
   ]},
   {group:"Facilities", roles:["super_admin","facility_admin"], items:[
-    {k:"requests",   l:"Facility Requests",icon:"📋"},
-    {k:"fleet",      l:"Fleet Management", icon:"🚗"},
-    {k:"drivers",    l:"Driver Roster",    icon:"🪪"},
-    {k:"inventory",  l:"Inventory",        icon:"📦"},
+    {k:"requests",   l:"Facility Requests",icon:ClipboardList},
+    {k:"fleet",      l:"Fleet Management", icon:Car},
+    {k:"drivers",    l:"Driver Roster",    icon:IdCard},
+    {k:"inventory",  l:"Inventory",        icon:Package},
   ]},
   {group:"Change Management", roles:["super_admin","it_admin"], items:[
-    {k:"change_requests", l:"Change Requests",  icon:"⟳"},
-    {k:"cr_policy",       l:"CR Policy",        icon:"⚙"},
-    {k:"change_config",   l:"Change Config",    icon:"🔧"},
+    {k:"change_requests", l:"Change Requests",  icon:RefreshCw},
+    {k:"cr_policy",       l:"CR Policy",        icon:Settings},
+    {k:"change_config",   l:"Change Config",    icon:Wrench},
   ]},
   {group:"IT Management", roles:["super_admin","it_admin"], items:[
-    {k:"it_subscriptions",l:"IT Subscriptions", icon:"💳"},
-    {k:"helpdesk",        l:"Helpdesk",         icon:"🎫"},
-    {k:"asset_registry",  l:"Asset Registry",   icon:"💻"},
+    {k:"it_subscriptions",l:"IT Subscriptions", icon:CreditCard},
+    {k:"helpdesk",        l:"Helpdesk",         icon:Ticket},
+    {k:"asset_registry",  l:"Asset Registry",   icon:Laptop},
   ]},
   {group:"System", roles:["super_admin"], items:[
-    {k:"notifications",l:"Notifications",  icon:"🔔"},
-    {k:"audit",        l:"Audit Log",       icon:"📋"},
+    {k:"notifications",l:"Notifications",  icon:Bell},
+    {k:"audit",        l:"Audit Log",       icon:ClipboardList},
   ]},
 ];
 

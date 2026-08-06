@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { AlertTriangle, Package } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { fmtD, genId, normInv } from "../utils.js";
 import { createInventoryItem, updateInventoryItem } from "../lib/supabase.js";
@@ -60,15 +61,15 @@ export default function InventoryMgmt({ctx}){
         {k:"category",label:"Category", type:"select",w:150,opts:cats.map(v=>({v,l:v}))},
       ]}/>
       {inventory.filter(i=>i.stock<5).length>0&&(
-        <div style={{padding:"10px 14px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600}}>
-          ⚠ {inventory.filter(i=>i.stock<5).length} item(s) are low on stock. Review and reorder as needed.
+        <div style={{padding:"10px 14px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+          <AlertTriangle size={14}/> {inventory.filter(i=>i.stock<5).length} item(s) are low on stock. Review and reorder as needed.
         </div>
       )}
       <div style={card(0)}>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Item Name","Item Code","Category","Units Available","Unit","Description","Last Updated",""]}/>
           <tbody>
-            {paged.length===0?<tr><td colSpan={8}><Empty icon="📦" title="No items found"/></td></tr>
+            {paged.length===0?<tr><td colSpan={8}><Empty icon={<Package size={32}/>} title="No items found"/></td></tr>
             :paged.map((item,i)=>(
               <tr key={item.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                 <td style={{padding:"11px 14px",fontSize:13,fontWeight:600,color:C.ink}}>{item.name}</td>

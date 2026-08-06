@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Paperclip, AlertTriangle } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { DOC_TYPES } from "../../constants.js";
 import { docStatus, fmtSafe } from "../../utils.js";
@@ -50,7 +51,7 @@ function VehicleDocRow({docType,vehicle,doc,onSave,onUpload}){
         <Chip label={st.l} color={st.color} bg={st.bg}/>
         <div style={{fontSize:11,color:C.muted}}>
           {doc?.attachment_url
-            ?<a href={doc.attachment_url} target="_blank" rel="noreferrer" style={{color:C.blue,textDecoration:"none",fontWeight:600}}>📎 View</a>
+            ?<a href={doc.attachment_url} target="_blank" rel="noreferrer" style={{color:C.blue,textDecoration:"none",fontWeight:600,display:"inline-flex",alignItems:"center",gap:4}}><Paperclip size={12}/> View</a>
             :"No attachment"}
         </div>
         <button onClick={()=>setEditing(e=>!e)} style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>{editing?"Cancel":"Edit"}</button>
@@ -70,7 +71,7 @@ function VehicleDocRow({docType,vehicle,doc,onSave,onUpload}){
               {saving?"Saving…":"Save"}
             </button>
           </div>
-          {err&&<div style={{fontSize:11,color:C.red,fontWeight:600,marginTop:8}}>⚠ {err}</div>}
+          {err&&<div style={{fontSize:11,color:C.red,fontWeight:600,marginTop:8,display:"flex",alignItems:"center",gap:4}}><AlertTriangle size={12}/> {err}</div>}
         </div>
       )}
     </div>

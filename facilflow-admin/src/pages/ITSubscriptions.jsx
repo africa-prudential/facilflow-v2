@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { AlertTriangle, CreditCard, Paperclip } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { SUB_STATUSES, SUB_CYCLES } from "../constants.js";
 import { genId, now, normSub, fmtSafe, exportCSV } from "../utils.js";
@@ -145,8 +146,8 @@ export default function ITSubscriptions({ctx}){
         </div>}/>
 
       {expiringSoon.length>0&&(
-        <div style={{padding:"10px 16px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600}}>
-          ⚠ {expiringSoon.length} subscription(s) renewing within 7 days — review and action.
+        <div style={{padding:"10px 16px",borderRadius:8,background:C.amberBg,border:`1px solid ${C.amber}40`,marginBottom:14,fontSize:12,color:C.amber,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+          <AlertTriangle size={14}/> {expiringSoon.length} subscription(s) renewing within 7 days — review and action.
         </div>
       )}
 
@@ -211,7 +212,7 @@ export default function ITSubscriptions({ctx}){
           <TH cols={["Subscription","Vendor","Cost (₦)","Cycle","Renewal Date","Status","Dept / Owner","Last Updated",""]}/>
           <tbody>
             {paged.length===0
-              ?<tr><td colSpan={9}><Empty icon="💳" title="No subscriptions found"/></td></tr>
+              ?<tr><td colSpan={9}><Empty icon={<CreditCard size={32}/>} title="No subscriptions found"/></td></tr>
               :paged.map((s,i)=>{
                 const rowBg = s.status==="expired"?`${C.red}06`:s.status==="pending_renewal"?`${C.amber}06`:"transparent";
                 return (
@@ -238,7 +239,7 @@ export default function ITSubscriptions({ctx}){
                     <td style={{padding:"11px 14px",fontSize:11,color:C.muted,whiteSpace:"nowrap"}}>{fmtSafe(s.lastUpdated)}</td>
                     <td style={{padding:"11px 14px"}} onClick={e=>e.stopPropagation()}>
                       <div style={{display:"flex",gap:5,alignItems:"center"}}>
-                        {s.attachmentUrl&&<a href={s.attachmentUrl} target="_blank" rel="noreferrer" style={{...btn("ghost"),fontSize:11,padding:"4px 8px",textDecoration:"none",color:C.blue}}>📎</a>}
+                        {s.attachmentUrl&&<a href={s.attachmentUrl} target="_blank" rel="noreferrer" style={{...btn("ghost"),fontSize:11,padding:"4px 8px",textDecoration:"none",color:C.blue,display:"inline-flex",alignItems:"center"}}><Paperclip size={14}/></a>}
                         <button onClick={()=>setModal({edit:s})} style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>Edit</button>
                       </div>
                     </td>

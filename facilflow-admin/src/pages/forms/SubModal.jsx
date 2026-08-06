@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { SUB_CATEGORIES, SUB_STATUSES, SUB_CYCLES, SUB_REMINDER_OPTS } from "../../constants.js";
 import { Modal } from "../../components/ui.jsx";
@@ -73,8 +74,8 @@ export default function SubModal({sub,depts,onClose,onSave}){
                   style={{padding:"6px 14px",borderRadius:6,fontSize:12,fontWeight:active?700:500,cursor:"pointer",fontFamily:"inherit",
                     border:`1.5px solid ${active?C.brand:C.border}`,
                     background:active?C.brandLt:"#fff",
-                    color:active?C.brand:C.muted}}>
-                  {active?"✓ ":""}{opt.l}
+                    color:active?C.brand:C.muted,display:"inline-flex",alignItems:"center",gap:4}}>
+                  {active?<Check size={12}/>:""}{opt.l}
                 </button>
               );
             })}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { X, Check } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../../theme.js";
 
 export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachment,onClose,onCreate}){
@@ -94,7 +95,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
               ))}
             </div>
           </div>
-          <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5}}>✕</button>
+          <button onClick={onClose} style={{...btn("ghost"),padding:"4px 9px",borderRadius:5}}><X size={14}/></button>
         </div>
 
         {/* ─── FORM STEP ─── */}
@@ -293,7 +294,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                       <button type="button" onClick={()=>removeFile(i)}
                         style={{position:"absolute",top:3,right:3,width:18,height:18,borderRadius:"50%",
                           background:"rgba(0,0,0,.55)",border:"none",color:"#fff",fontSize:10,cursor:"pointer",
-                          display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>✕</button>
+                          display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}><X size={10}/></button>
                     </div>
                   ))}
                 </div>
@@ -397,7 +398,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
             <div style={{display:"flex",justifyContent:"space-between",gap:10,paddingTop:8,borderTop:`1px solid ${C.border}`,flexShrink:0}}>
               <button onClick={()=>setStep("form")} style={{...btn("ghost")}}>← Edit Details</button>
               <button onClick={handleSubmit} disabled={saving} style={{...btn("primary"),padding:"8px 24px"}}>
-                {saving?"Submitting…":"Submit Ticket ✓"}
+                {saving?"Submitting…":<><Check size={14}/> Submit Ticket</>}
               </button>
             </div>
           </div>

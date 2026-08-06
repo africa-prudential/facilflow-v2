@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCircle2, Car, Check, Package, RefreshCw } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { now } from "../../utils.js";
 import { Av, Modal } from "../../components/ui.jsx";
@@ -74,7 +75,7 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
           )}
           {assignedVeh&&(
             <div style={{background:"#ECFDF5",border:`1px solid #059669`,borderRadius:8,padding:12}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#059669",marginBottom:8}}>✅ Vehicle Assigned</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#059669",marginBottom:8,display:"flex",alignItems:"center",gap:6}}><CheckCircle2 size={13}/> Vehicle Assigned</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                 <div><div style={{fontSize:10,color:"#059669",fontWeight:700,marginBottom:2}}>VEHICLE</div><div style={{fontSize:13,color:C.ink,fontWeight:600}}>{assignedVeh.plate} — {assignedVeh.model}</div></div>
                 {assignedDrv&&<div><div style={{fontSize:10,color:"#059669",fontWeight:700,marginBottom:2}}>DRIVER</div><div style={{fontSize:13,color:C.ink,fontWeight:600}}>{assignedDrv.name}<br/><span style={{fontSize:11,color:C.muted}}>{assignedDrv.phone}</span></div></div>}
@@ -83,8 +84,8 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
           )}
           {(isPending||isApproved)&&isCarReq&&(
             <div style={{border:`1px solid ${isApproved?C.green:C.border}`,borderRadius:8,padding:14,background:isApproved?"#F0FDF4":"#fff"}}>
-              <div style={{fontSize:13,fontWeight:700,color:isApproved?C.green:C.ink,marginBottom:12}}>
-                🚗 {isApproved?"Change Vehicle / Driver Assignment":"Assign Vehicle & Driver"}
+              <div style={{fontSize:13,fontWeight:700,color:isApproved?C.green:C.ink,marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+                <Car size={14}/> {isApproved?"Change Vehicle / Driver Assignment":"Assign Vehicle & Driver"}
               </div>
               {availVeh.length===0 && !assignedVeh
                 ? <div style={{fontSize:13,color:C.muted}}>No vehicles available right now.</div>
@@ -144,16 +145,16 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
         {isPending&&!isCarReq&&(
           <>
             <button onClick={()=>onAction(req.id,"rejected",note)} style={btn("danger")}>Reject</button>
-            <button onClick={()=>onAction(req.id,"approved",note)} style={btn("primary")}>✓ Approve</button>
+            <button onClick={()=>onAction(req.id,"approved",note)} style={btn("primary")}><Check size={14}/> Approve</button>
           </>
         )}
-        {isApproved&&!isCarReq&&<button onClick={()=>onDeliver(req.id)} style={{...btn("primary"),background:"#059669"}}>📦 Mark Delivered</button>}
+        {isApproved&&!isCarReq&&<button onClick={()=>onDeliver(req.id)} style={{...btn("primary"),background:"#059669"}}><Package size={14}/> Mark Delivered</button>}
         {isApproved&&isCarReq&&(
           <>
             {vehId&&vehId!==req.assigned_vehicle&&(
-              <button onClick={()=>onAssign(req.id,vehId,drvId)} style={{...btn("primary"),background:C.blue}}>🔄 Update Assignment</button>
+              <button onClick={()=>onAssign(req.id,vehId,drvId)} style={{...btn("primary"),background:C.blue}}><RefreshCw size={14}/> Update Assignment</button>
             )}
-            <button onClick={()=>onDeliver(req.id)} style={{...btn("primary"),background:"#059669"}}>✅ Mark Complete</button>
+            <button onClick={()=>onDeliver(req.id)} style={{...btn("primary"),background:"#059669"}}><CheckCircle2 size={14}/> Mark Complete</button>
           </>
         )}
       </div>

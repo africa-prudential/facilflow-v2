@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { X, Search, Zap } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { Av, EnvTag, RiskTag, PageTitle, TH, Filters } from "../components/ui.jsx";
@@ -136,7 +137,7 @@ export default function CRAdmin({ctx}){
       <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <span style={{fontSize:12,fontWeight:700,color:C.ink}}>Filters</span>
-          {hasFilters&&<button onClick={clearAll} style={{...btn("ghost"),fontSize:11,padding:"3px 10px",color:C.red}}>✕ Clear all</button>}
+          {hasFilters&&<button onClick={clearAll} style={{...btn("ghost"),fontSize:11,padding:"3px 10px",color:C.red,display:"inline-flex",alignItems:"center",gap:4}}><X size={11}/> Clear all</button>}
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
           <div><label style={LBL}>Status / Stage</label>
@@ -192,7 +193,7 @@ export default function CRAdmin({ctx}){
       {/* ── SEARCH + EXPORT ── */}
       <div style={{display:"flex",gap:10,alignItems:"center"}}>
         <div style={{flex:1,position:"relative"}}>
-          <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.muted,fontSize:14}}>🔍</span>
+          <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.muted,display:"flex"}}><Search size={14}/></span>
           <input value={search} onChange={e=>resetPage(setSearch)(e.target.value)}
             placeholder="Search by CR code, title, requester, system name, description…"
             style={{...inp(),paddingLeft:32,width:"100%"}}/>
@@ -221,7 +222,7 @@ export default function CRAdmin({ctx}){
                 <tr key={c.id} onClick={()=>setDetail(c)}
                   style={{borderBottom:i<paged.length-1?`1px solid #F1F5F9`:"none",cursor:"pointer"}}>
                   <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink,whiteSpace:"nowrap"}}>
-                    {(c.is_emergency||c.isEmergency)&&<span style={{color:C.red,marginRight:4}}>⚡</span>}{c.id}
+                    {(c.is_emergency||c.isEmergency)&&<span style={{color:C.red,marginRight:4,display:"inline-flex",verticalAlign:"middle"}}><Zap size={11}/></span>}{c.id}
                     {c.version>1&&<span style={{fontSize:9,color:C.muted,marginLeft:4}}>v{c.version}</span>}
                   </td>
                   <td style={{padding:"10px 14px",maxWidth:200}}>

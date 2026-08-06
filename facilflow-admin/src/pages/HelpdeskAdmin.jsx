@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Ticket, Unlock, Check } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { TICKET_STATUS, TICKET_PRIORITY } from "../constants.js";
 import { fmtD } from "../utils.js";
@@ -35,10 +36,10 @@ export default function HelpdeskAdmin({ctx}){
     <div>
       <PageTitle title="Helpdesk" sub="Service requests and incidents"/>
       <div style={{display:"flex",gap:14,flexWrap:"wrap",marginBottom:20}}>
-        <StatCard label="Total Tickets" value={counts.total} color={C.blue} icon="🎫"/>
-        <StatCard label="Open" value={counts.open} color={C.amber} icon="🔓"/>
+        <StatCard label="Total Tickets" value={counts.total} color={C.blue} icon={<Ticket size={20}/>}/>
+        <StatCard label="Open" value={counts.open} color={C.amber} icon={<Unlock size={20}/>}/>
         <StatCard label="In Progress" value={counts.in_progress} color={C.blue} icon="⚙"/>
-        <StatCard label="Resolved / Closed" value={counts.resolved} color={C.green} icon="✓"/>
+        <StatCard label="Resolved / Closed" value={counts.resolved} color={C.green} icon={<Check size={20}/>}/>
       </div>
       <Filters values={f} onChange={setF} fields={[
         {k:"q",label:"Search",w:260,ph:"Title, description…"},
@@ -51,7 +52,7 @@ export default function HelpdeskAdmin({ctx}){
           <TH cols={["Ticket","Type","Priority","Status","Requester","Created","Actions"]}/>
           <tbody>
             {paged.length===0
-              ?<tr><td colSpan={7}><Empty icon="🎫" title="No tickets found" sub="Tickets raised by staff will appear here"/></td></tr>
+              ?<tr><td colSpan={7}><Empty icon={<Ticket size={32}/>} title="No tickets found" sub="Tickets raised by staff will appear here"/></td></tr>
               :paged.map((t,i)=>(
                 <tr key={t.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"10px 14px",maxWidth:260}}>

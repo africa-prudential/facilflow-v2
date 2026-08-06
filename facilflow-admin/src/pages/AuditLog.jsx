@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ClipboardList } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { fmtDT } from "../utils.js";
 import { PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
@@ -24,7 +25,7 @@ export default function AuditLog({ctx}){
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <TH cols={["Timestamp","Action","Target","Detail","Performed By"]}/>
           <tbody>
-            {paged.length===0?<tr><td colSpan={5}><Empty icon="📋" title="No audit entries found"/></td></tr>
+            {paged.length===0?<tr><td colSpan={5}><Empty icon={<ClipboardList size={32}/>} title="No audit entries found"/></td></tr>
             :paged.map((a,i)=>(
               <tr key={a.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                 <td style={{padding:"10px 14px",fontSize:11,color:C.muted,whiteSpace:"nowrap"}}>{fmtDT(a.at)}</td>

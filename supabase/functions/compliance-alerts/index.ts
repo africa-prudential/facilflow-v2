@@ -7,9 +7,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const RESEND_API_KEY    = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL        = "facilflow@thesegunadebayo.com"
+const FROM_EMAIL        = "noreply@facilflow.africaprudential.com"
 const FROM_NAME         = "FaciliFlow — Africa Prudential"
-const APP_URL           = "https://facilflowadmin.vercel.app"
+const ADMIN_APP_URL     = Deno.env.get("ADMIN_APP_URL") ?? "https://admin-facilflow.africaprudential.com"
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -162,7 +162,7 @@ serve(async (req) => {
             hasExpired ? RBG : ABG)}
           ${tbl(rows)}
           ${p("Log in to the Admin Console to update documents and upload renewal certificates.")}
-          ${cta(APP_URL, "Go to Fleet Management →", headerColor)}
+          ${cta(ADMIN_APP_URL, "Go to Fleet Management →", headerColor)}
         `)
       )
 
@@ -224,7 +224,7 @@ serve(async (req) => {
             ${isToday
               ? hl("⚠ This subscription is due for renewal <strong>today</strong>. Please process payment to avoid service interruption.", RED, RBG)
               : hl(`⏰ Renewal in <strong>${sub.daysRemaining} day(s)</strong>. Ensure payment is arranged before the renewal date.`, AMB, ABG)}
-            ${cta(APP_URL, "View IT Subscriptions →", isToday ? RED : AMB)}
+            ${cta(ADMIN_APP_URL, "View IT Subscriptions →", isToday ? RED : AMB)}
           `)
         )
 

@@ -10,7 +10,8 @@ export const signIn  = (email, password) => supabase.auth.signInWithPassword({ e
 export const signOut = () => supabase.auth.signOut()
 export const getSession = () => supabase.auth.getSession()
 export const onAuthChange = (cb) => supabase.auth.onAuthStateChange(cb)
-const APP_URL = import.meta.env.VITE_APP_URL || 'https://facilflow-v2-admin.vercel.app'
+export const APP_URL = import.meta.env.VITE_APP_URL || 'https://admin-facilflow.africaprudential.com'
+export const USER_APP_URL = import.meta.env.VITE_USER_APP_URL || 'https://facilflow.africaprudential.com'
 
 export const sendPasswordReset = (email) =>
   supabase.functions.invoke('reset-password', { body: { email, redirect_to: APP_URL } })

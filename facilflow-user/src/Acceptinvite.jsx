@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link2, CheckCircle2 } from 'lucide-react'
 import { supabase } from './lib/supabase.js'
 
 const C = {
@@ -100,7 +101,7 @@ export default function AcceptInvite({ onComplete, appName='Staff Portal' }) {
 
         {step==='error' && (
           <div style={{ textAlign:'center', padding:'20px 0' }}>
-            <div style={{ fontSize:40,marginBottom:14 }}>🔗</div>
+            <Link2 size={40} style={{marginBottom:14}} />
             <div style={{ fontSize:17,fontWeight:800,color:C.ink,marginBottom:10 }}>Invitation link expired</div>
             <div style={{ fontSize:13,color:C.muted,lineHeight:1.7,marginBottom:20 }}>This invite link is invalid or has already been used.<br/>Ask your administrator to send a new invitation.</div>
             <button onClick={()=>window.location.href=window.location.origin} style={{ padding:'9px 20px',background:C.brand,color:'#fff',border:'none',borderRadius:7,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit' }}>Go to Login →</button>
@@ -109,7 +110,7 @@ export default function AcceptInvite({ onComplete, appName='Staff Portal' }) {
 
         {step==='success' && (
           <div style={{ textAlign:'center', padding:'20px 0' }}>
-            <div style={{ fontSize:40,marginBottom:14 }}>✅</div>
+            <CheckCircle2 size={40} style={{marginBottom:14}} />
             <div style={{ fontSize:17,fontWeight:800,color:C.green,marginBottom:8 }}>Account ready!</div>
             <div style={{ fontSize:13,color:C.muted }}>Taking you to FaciliFlow…</div>
           </div>

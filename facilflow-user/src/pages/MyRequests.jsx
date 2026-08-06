@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Car, Pencil, Search, X, Inbox } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { RQChip, PageTitle, TH, Empty } from "../components/ui.jsx";
@@ -61,8 +62,8 @@ export default function MyRequests({ctx}){
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <PageTitle title="My Requests" sub="Your pool car and stationery requests"
         action={<div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setModal("car")}  style={btn("primary")}>🚗 Pool Car</button>
-          <button onClick={()=>setModal("stat")} style={btn("outline")}>✏️ Stationery</button>
+          <button onClick={()=>setModal("car")}  style={btn("primary")}><Car size={14}/> Pool Car</button>
+          <button onClick={()=>setModal("stat")} style={btn("outline")}><Pencil size={14}/> Stationery</button>
         </div>}/>
 
       {/* ── QUICK STATUS TABS ── */}
@@ -97,7 +98,7 @@ export default function MyRequests({ctx}){
           {/* Search */}
           <div style={{flex:2,minWidth:200,position:"relative"}}>
             <label style={LBL}>Search</label>
-            <span style={{position:"absolute",left:9,top:28,color:C.muted,fontSize:13}}>🔍</span>
+            <span style={{position:"absolute",left:9,top:28,color:C.muted,display:"flex"}}><Search size={13}/></span>
             <input value={search} onChange={e=>setSearch(e.target.value)}
               placeholder="Request ID, title, destination, vehicle plate…"
               style={{...inp(),paddingLeft:28}}/>
@@ -123,7 +124,7 @@ export default function MyRequests({ctx}){
           </div>
           {hasFilters&&(
             <div style={{alignSelf:"flex-end"}}>
-              <button onClick={clearAll} style={{...btn("ghost"),color:C.red,borderColor:C.red+"30",fontSize:11,padding:"7px 12px"}}>✕ Clear</button>
+              <button onClick={clearAll} style={{...btn("ghost"),color:C.red,borderColor:C.red+"30",fontSize:11,padding:"7px 12px"}}><X size={12}/> Clear</button>
             </div>
           )}
         </div>
@@ -136,7 +137,7 @@ export default function MyRequests({ctx}){
           <TH cols={["Request ID","Type","Title / Details","Date Requested","Approved On","Resource","Status",""]}/>
           <tbody>
             {shown.length===0
-              ?<tr><td colSpan={8}><Empty icon="📭" title={hasFilters?"No requests match your search":"No requests yet"} sub={hasFilters?"Try adjusting your filters":"Use the buttons above to raise a request"}/></td></tr>
+              ?<tr><td colSpan={8}><Empty icon={<Inbox size={32}/>} title={hasFilters?"No requests match your search":"No requests yet"} sub={hasFilters?"Try adjusting your filters":"Use the buttons above to raise a request"}/></td></tr>
               :shown.map((r,i)=>{
                 const approvedAt = r.approved_at ? fmtD(r.approved_at) : (r.history||[]).find(h=>h.s==="approved")?.at ? fmtD((r.history||[]).find(h=>h.s==="approved").at) : "—";
                 const veh = r.assigned_vehicle ? (vehicles||[]).find(v=>v.id===r.assigned_vehicle) : null;
@@ -155,8 +156,9 @@ export default function MyRequests({ctx}){
                   <td style={{padding:"11px 14px"}}>
                     <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
                       background:r.type==="pool_car"?C.brandLt:C.blueBg,
-                      color:r.type==="pool_car"?C.brand:C.blue}}>
-                      {r.type==="pool_car"?"🚗 Pool Car":"✏️ Stationery"}
+                      color:r.type==="pool_car"?C.brand:C.blue,
+                      display:"inline-flex",alignItems:"center",gap:4}}>
+                      {r.type==="pool_car"?<><Car size={12}/> Pool Car</>:<><Pencil size={12}/> Stationery</>}
                     </span>
                   </td>
                   <td style={{padding:"11px 14px",maxWidth:220}}>

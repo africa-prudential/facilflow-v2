@@ -5,7 +5,8 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-
 import { C, btn } from "./theme.js";
 import { NAV, ADMIN_ROLE_META } from "./constants.js";
 import { getAdminRoles, hasAdminAccess, genId, normCR, normVeh, normSub, normDrv, normInv, normAudit, normTicket } from "./utils.js";
-import { Av, Toast, AccessDenied } from "./components/ui.jsx";
+import { Av, AccessDenied } from "./components/ui.jsx";
+import { toast } from "sonner";
 import AdminDash from "./pages/AdminDash.jsx";
 import RequestsMgmt from "./pages/RequestsMgmt.jsx";
 import UserMgmt from "./pages/UserMgmt.jsx";
@@ -42,7 +43,6 @@ export default function AdminApp({ currentUser }){
   const [tickets,    setTickets]   = useState([]);
   const [assets,     setAssets]    = useState([]);
   const [ticketCats, setTicketCats]= useState([]);
-  const [toast,     setToast]    = useState(null);
   const [loading,   setLoading]  = useState(true);
 
   const me  = currentUser;
@@ -100,8 +100,7 @@ export default function AdminApp({ currentUser }){
   },[tid]);
 
   const flash = useCallback((msg,type="success")=>{
-    setToast({msg,type});
-    setTimeout(()=>setToast(null),3200);
+    type==="error" ? toast.error(msg) : toast.success(msg);
   },[]);
 
   // ── ADD AUDIT ENTRY ───────────────────────────────────────
@@ -185,7 +184,7 @@ export default function AdminApp({ currentUser }){
               {adminRoles.map(r=>ADMIN_ROLE_META[r]?.label||r).join(" · ")}
             </div>
           </div>
-          <button onClick={()=>supabase.auth.signOut()} style={{...btn("ghost"),fontSize:11,padding:"4px 9px",marginLeft:4,color:"#94A3B8",borderColor:"#334155"}}>Sign out</button>
+          <button onClick={()=>{supabase.auth.signOut();toast.success("Signed out");}} style={{...btn("ghost"),fontSize:11,padding:"4px 9px",marginLeft:4,color:"#94A3B8",borderColor:"#334155"}}>Sign out</button>
         </div>
       </header>
 
@@ -205,7 +204,7 @@ export default function AdminApp({ currentUser }){
                       background:active?"rgba(200,16,46,.12)":"transparent",
                       color:active?"#fff":"#94A3B8",
                       fontSize:12,fontWeight:active?700:500,cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
-                      <span style={{fontSize:13}}>{n.icon}</span>{n.l}
+                      <n.icon size={14} style={{flexShrink:0}}/>{n.l}
                     </button>
                   );
                 })}
@@ -239,7 +238,6 @@ export default function AdminApp({ currentUser }){
           </Routes>
         </main>
       </div>
-      <Toast t={toast}/>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCircle2, Check } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { REQ_STATUS } from "../../constants.js";
 import { fmtDT, fmtD } from "../../utils.js";
@@ -31,7 +32,7 @@ export default function ReqDetail({req,onClose,ctx}){
           ):null)}
           {assignedVeh&&(
             <div style={{gridColumn:"1/-1",background:"#ECFDF5",border:"1px solid #059669",borderRadius:8,padding:12}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#059669",marginBottom:6}}>✅ Vehicle Assigned</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#059669",marginBottom:6,display:"flex",alignItems:"center",gap:6}}><CheckCircle2 size={14}/> Vehicle Assigned</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                 <div><div style={{fontSize:10,color:"#059669",fontWeight:700,marginBottom:2}}>VEHICLE</div><div style={{fontSize:13,color:C.ink,fontWeight:600}}>{assignedVeh.plate} — {assignedVeh.model}</div></div>
                 {assignedDrv&&<div><div style={{fontSize:10,color:"#059669",fontWeight:700,marginBottom:2}}>DRIVER</div><div style={{fontSize:13,color:C.ink,fontWeight:600}}>{assignedDrv.name} · {assignedDrv.phone}</div></div>}
@@ -106,9 +107,9 @@ export default function ReqDetail({req,onClose,ctx}){
 
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:16,borderTop:`1px solid ${C.border}`}}>
         {canApprove&&<><button onClick={()=>{transReq(req.id,"rejected",note);onClose()}} style={btn("ghost")}>Reject</button>
-          <button onClick={()=>{transReq(req.id,"approved",note);onClose()}} style={btn("success")}>✓ Approve</button></>}
+          <button onClick={()=>{transReq(req.id,"approved",note);onClose()}} style={btn("success")}><Check size={14}/> Approve</button></>}
         {canProcess&&<button onClick={()=>{transReq(req.id,"in_progress");onClose()}} style={btn("primary")}>▶ Process</button>}
-        {canComplete&&<button onClick={()=>{transReq(req.id,"completed");onClose()}} style={btn("success")}>✓ Mark Complete</button>}
+        {canComplete&&<button onClick={()=>{transReq(req.id,"completed");onClose()}} style={btn("success")}><Check size={14}/> Mark Complete</button>}
         <button onClick={onClose} style={btn("ghost")}>Close</button>
       </div>
     </Modal>

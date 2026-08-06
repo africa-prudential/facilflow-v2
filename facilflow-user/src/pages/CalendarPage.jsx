@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Calendar } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { CRChip, EnvTag, PageTitle, TH, Empty } from "../components/ui.jsx";
 
@@ -139,7 +140,7 @@ export default function CalendarPage({ctx}){
 
       {scheduled.length===0&&(
         <div style={card(40)}>
-          <Empty icon="📅" title="No scheduled deployments" sub="Change requests approved and scheduled will appear here"/>
+          <Empty icon={<Calendar size={32}/>} title="No scheduled deployments" sub="Change requests approved and scheduled will appear here"/>
         </div>
       )}
     </div>
