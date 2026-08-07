@@ -5,15 +5,6 @@ export const TENANTS = [
   {id:"T002", name:"Lagos State Pension",    domain:"lspc.gov.ng",           plan:"Business",   users:12, status:"active"},
 ];
 
-let USERS_SEED = [
-  {id:"U001",tenantId:"T001",name:"Adaeze Okonkwo",   initials:"AO",email:"adaeze@africaprudential.com",  role:"employee",      dept:"Finance",    status:"active",   createdAt:"2023-06-01T09:00:00"},
-  {id:"U002",tenantId:"T001",name:"Chukwuemeka Eze",  initials:"CE",email:"chukwu@africaprudential.com",  role:"manager",       dept:"Finance",    status:"active",   createdAt:"2023-06-01T09:00:00"},
-  {id:"U003",tenantId:"T001",name:"Ngozi Adeyemi",    initials:"NA",email:"ngozi@africaprudential.com",   role:"resource_team", dept:"Facilities", status:"active",   createdAt:"2023-06-05T10:00:00"},
-  {id:"U004",tenantId:"T001",name:"Oluwaseun Balogun",initials:"OB",email:"seun@africaprudential.com",    role:"admin",         dept:"IT",         status:"active",   createdAt:"2023-06-01T08:00:00"},
-  {id:"U005",tenantId:"T001",name:"Amaka Ihejirika",  initials:"AI",email:"amaka@africaprudential.com",   role:"employee",      dept:"HR",         status:"active",   createdAt:"2023-07-10T09:00:00"},
-  {id:"U006",tenantId:"T001",name:"Tunde Fashola",    initials:"TF",email:"tunde@africaprudential.com",   role:"manager",       dept:"IT",         status:"suspended",createdAt:"2023-07-15T09:00:00"},
-];
-
 let VEHICLES_SEED = [
   {id:"CAR001",tenantId:"T001",plate:"AAA-001BE",model:"Toyota Camry",    year:2022,color:"Silver", status:"available",       driverId:"DRV001",lastUpdated:"2024-01-15T09:00:00"},
   {id:"CAR002",tenantId:"T001",plate:"BBB-234FG",model:"Toyota Corolla",  year:2021,color:"White",  status:"in_use",          driverId:"DRV002",lastUpdated:"2024-01-16T08:30:00"},
@@ -43,6 +34,7 @@ let INVENTORY_SEED = [
 
 export const CR_STATUS = {
   draft:{label:"Draft",color:C.muted,bg:"#F8FAFC"},
+  pending_line_manager:{label:"Pending Line Manager",color:C.orange,bg:C.orangeBg},
   pending_manager:{label:"Submitted",color:C.amber,bg:C.amberBg},
   pending_approval:{label:"Pending Approval",color:C.orange,bg:C.orangeBg},
   pending_implementation:{label:"Scheduled",color:C.blue,bg:C.blueBg},
@@ -85,7 +77,7 @@ export const SUB_REMINDER_OPTS = [
   {v:"quarterly",   l:"Quarterly"},
 ];
 
-export const STAFF_ROLES = ["employee","manager","resource_team"];
+export const STAFF_ROLES = ["staff","line_manager"];
 export const ADMIN_ROLE_TYPES = ["super_admin","facility_admin","it_admin"];
 export const USER_ROLES = [...STAFF_ROLES, ...ADMIN_ROLE_TYPES];
 
@@ -100,7 +92,7 @@ export const TICKET_PRIORITY = { critical:{label:"Critical",color:C.red,bg:C.red
 
 export const ASSET_STATUS = { new:{label:"New",color:C.violet,bg:C.violetBg}, in_store:{label:"In Store",color:C.teal,bg:C.tealBg}, available:{label:"Available",color:C.green,bg:C.greenBg}, assigned:{label:"Assigned",color:C.blue,bg:C.blueBg}, in_repair:{label:"In Repair",color:C.amber,bg:C.amberBg}, condemned:{label:"Condemned",color:C.red,bg:C.redBg}, bidded:{label:"Bidded",color:C.orange,bg:C.orangeBg}, retired:{label:"Retired",color:C.muted,bg:C.surface}, lost:{label:"Lost",color:C.red,bg:C.redBg} };
 
-import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell, Building2 } from "lucide-react";
+import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell, Building2, UserCog } from "lucide-react";
 
 export const NAV = [
   {group:"Overview", roles:["super_admin","facility_admin","it_admin"], items:[
@@ -115,6 +107,7 @@ export const NAV = [
     {k:"fleet",      l:"Fleet Management", icon:Car},
     {k:"drivers",    l:"Driver Roster",    icon:IdCard},
     {k:"inventory",  l:"Inventory",        icon:Package},
+    {k:"facility_ops",l:"Facility Ops",    icon:UserCog},
   ]},
   {group:"Change Management", roles:["super_admin","it_admin"], items:[
     {k:"change_requests", l:"Change Requests",  icon:RefreshCw},

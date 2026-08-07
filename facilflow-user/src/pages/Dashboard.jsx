@@ -7,7 +7,7 @@ export default function Dashboard({ctx,setPage}){
   const {me,uid,reqs,crs,users,hasChangeMgmtAccess}=ctx;
   const mine     = reqs.filter(r=>r.submitted_by===uid);
   const myCRs    = crs.filter(c=>c.initiator===uid);
-  const pending  = crs.filter(c=>["pending_line_manager","pending_secondary"].includes(c.status));
+  const pending  = crs.filter(c=>c.status==="pending_line_manager" && me.role==="line_manager" && users[c.initiator]?.dept===me.dept);
   const scheduled= crs.filter(c=>c.status==="pending_implementation");
 
   const StatBox=({v,label,color})=>(
@@ -42,7 +42,7 @@ export default function Dashboard({ctx,setPage}){
           <StatBox v={mine.length}      label="My Requests"/>
           {hasChangeMgmtAccess&&<StatBox v={myCRs.length}     label="My Change Reqs"/>}
           {hasChangeMgmtAccess&&<StatBox v={scheduled.length} label="Scheduled Deploys"/>}
-          {(me.role==="manager")&&<StatBox v={pending.length} label="Awaiting My Approval"/>}
+          {(me.role==="line_manager")&&<StatBox v={pending.length} label="Awaiting My Approval"/>}
         </div>
       </div>
 
@@ -85,11 +85,11 @@ export default function Dashboard({ctx,setPage}){
             <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:12}}>Quick Actions</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {hasChangeMgmtAccess&&<button onClick={()=>setPage("change_requests?new=1")} style={{...btn("primary"),justifyContent:"flex-start",fontSize:12,width:"100%"}}><RefreshCw size={14}/> Raise Change Request</button>}
-              {(me.role==="employee"||me.role==="manager")&&<>
+              {(me.role==="staff"||me.role==="line_manager")&&<>
                 <button onClick={()=>setPage("my_requests?open=car")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Car size={14}/> Pool Car Request</button>
                 <button onClick={()=>setPage("my_requests?open=stat")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Pencil size={14}/> Stationery Request</button>
               </>}
-              {me.role==="manager"&&pending.length>0&&(
+              {me.role==="line_manager"&&pending.length>0&&(
                 <button onClick={()=>setPage("cr_approvals")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",background:C.amberBg,color:C.amber,border:`1px solid ${C.amber}30`,display:"flex",alignItems:"center",gap:6}}>
                   <Hourglass size={14}/> {pending.length} CR approval{pending.length>1?"s":""} pending
                 </button>

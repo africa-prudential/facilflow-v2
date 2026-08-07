@@ -14,6 +14,7 @@ import Departments from "./pages/Departments.jsx";
 import FleetMgmt from "./pages/FleetMgmt.jsx";
 import DriverRoster from "./pages/DriverRoster.jsx";
 import InventoryMgmt from "./pages/InventoryMgmt.jsx";
+import FacilityOps from "./pages/FacilityOps.jsx";
 import CRAdmin from "./pages/CRAdmin.jsx";
 import CRPolicy from "./pages/CRPolicy.jsx";
 import ChangeConfig from "./pages/ChangeConfig.jsx";
@@ -241,6 +242,7 @@ export default function AdminApp({ currentUser }){
             <Route path="/fleet" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <FleetMgmt ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/drivers" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <DriverRoster ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/inventory" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <InventoryMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/facility_ops" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <FacilityOps ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/change_requests" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <CRAdmin ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/cr_policy" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <CRPolicy ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/change_config" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <ChangeConfig ctx={ctx}/> : <AccessDenied/>}/>

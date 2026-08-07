@@ -21,11 +21,13 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
   const isImpl    = myRoles.includes("change_implementer");
   const isRevwr   = myRoles.includes("change_reviewer") && (cr.reviewer_ids||[]).includes(uid);
   const isTech    = cr.initiator===uid;
+  const isDeptLineManager = me.role==="line_manager" && me.dept===users[cr.initiator]?.dept;
 
   // Current pending level, if any — driven by however many approval levels are configured
   const currentLevel   = (cr.level_approvals||[]).find(l => cr.current_stage === `pending_level_${l.level}`);
   const canLevelApprove= !!currentLevel && myRoles.includes(currentLevel.role_key);
 
+  const canLineManagerApprove = isDeptLineManager && cr.status==="pending_line_manager";
   const canMgrApprove  = isMgr  && cr.status==="pending_manager";
   const canStartImpl   = isImpl && cr.status==="pending_implementation";
   const canCompleteImpl= isImpl && cr.status==="in_progress";
@@ -51,7 +53,8 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
   const levels = cr.level_approvals||[];
   const stages = [
     {key:"submitted",       label:"Submitted",       done: true,                                                    at:cr.created_at},
-    {key:"pending_manager", label:"Change Manager",  done: cr.status!=="pending_manager"&&cr.status!=="rejected",  at:cr.history?.find(h=>h.s==="pending_approval")?.at, who:mgr?.name},
+    {key:"pending_line_manager", label:"Line Manager", done: cr.status!=="pending_line_manager"&&cr.status!=="rejected", active: cr.status==="pending_line_manager", at:cr.history?.find(h=>h.s==="pending_manager")?.at},
+    {key:"pending_manager", label:"Change Manager",  done: cr.status!=="pending_manager"&&cr.status!=="pending_line_manager"&&cr.status!=="rejected",  at:cr.history?.find(h=>h.s==="pending_approval")?.at, who:mgr?.name},
     ...(levels.map(l=>({
       key:`level_${l.level}`,
       label: l.name,
@@ -244,9 +247,9 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
       )}
 
       {/* Action note field */}
-      {(canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl)&&tab!=="comments"&&(
+      {(canLineManagerApprove||canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl)&&tab!=="comments"&&(
         <div style={{marginTop:14}}>
-          <label style={LBL}>Note {(canMgrApprove||canLevelApprove)?"— required if rejecting":"(optional)"}{rejectError&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {rejectError}</span>}</label>
+          <label style={LBL}>Note {(canLineManagerApprove||canMgrApprove||canLevelApprove)?"— required if rejecting":"(optional)"}{rejectError&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {rejectError}</span>}</label>
           <textarea value={note} onChange={e=>{setNote(e.target.value);if(rejectError)setRejectError("");}} placeholder="Add a note for your decision…" style={{...inp(!!rejectError),minHeight:52,resize:"vertical"}}/>
         </div>
       )}
@@ -274,6 +277,10 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
       {/* Action buttons */}
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:14,borderTop:`1px solid ${C.border}`}}>
         <button onClick={onClose} style={btn("ghost")}>Close</button>
+        {canLineManagerApprove&&<>
+          <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
+          <button onClick={()=>doAction("approve_line_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>
+        </>}
         {canMgrApprove&&<>
           <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
           <button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>

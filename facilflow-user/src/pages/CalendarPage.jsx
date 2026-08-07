@@ -10,7 +10,7 @@ export default function CalendarPage({ctx}){
   });
 
   const scheduled = (crs||[]).filter(c=>
-    c.deploy_date && ["scheduled","in_progress","pending_implementation"].includes(c.status)
+    c.deploy_date && ["in_progress","pending_implementation"].includes(c.status)
   );
 
   // Build calendar grid

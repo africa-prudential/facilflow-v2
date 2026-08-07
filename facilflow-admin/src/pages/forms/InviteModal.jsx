@@ -18,7 +18,7 @@ export default function InviteModal({onClose,onInvite,departments}){
   const [lastName,   setLastName]  = useState("");
   const [email,      setEmail]     = useState("");
   const [roleType,   setRoleType]  = useState("staff"); // "staff" | "admin"
-  const [staffRole,  setStaffRole] = useState("employee");
+  const [staffRole,  setStaffRole] = useState("staff");
   const [adminRoles, setAdminRoles]= useState(["facility_admin"]);
   const [dept,       setDept]      = useState(() => (departments||[])[0]?.name || "");
   const [password,   setPass]      = useState(() => generatePassword());

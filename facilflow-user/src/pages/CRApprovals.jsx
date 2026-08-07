@@ -5,10 +5,12 @@ import { EnvTag, RiskTag, PageTitle, TH, Empty } from "../components/ui.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function CRApprovals({ctx}){
-  const {crs,advanceCR,users,myChangeRoles,approvalLevels}=ctx;
+  const {crs,advanceCR,users,myChangeRoles,approvalLevels,me}=ctx;
   const myRoles = myChangeRoles||[];
   const [detail,setDetail]=useState(null);
 
+  const isLineMgr = me.role==="line_manager";
+  const lineMgrQueue = crs.filter(c=>c.status==="pending_line_manager" && users[c.initiator]?.dept===me.dept);
   const isMgr = myRoles.includes("change_manager");
   const mgrQueue = crs.filter(c=>c.status==="pending_manager");
   const emrg = crs.filter(c=>c.is_emergency&&c.status==="pending_manager");
@@ -21,6 +23,7 @@ export default function CRApprovals({ctx}){
   ).values()].sort((a,b)=>a.level_order-b.level_order);
 
   const queues = [
+    ...(isLineMgr ? [{title:"Line Manager Queue", queue:lineMgrQueue, onApprove:id=>advanceCR(id,"approve_line_manager")}] : []),
     ...(isMgr ? [{title:"Change Manager Queue", queue:mgrQueue, onApprove:id=>advanceCR(id,"approve_manager")}] : []),
     ...myLevels.map(l=>({
       title: `${l.name||`Level ${l.level_order}`} Queue`,

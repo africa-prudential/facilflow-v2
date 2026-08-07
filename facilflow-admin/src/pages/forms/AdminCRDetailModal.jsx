@@ -32,19 +32,22 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
   const currentLevel = levels.find(l=>cr.current_stage===`pending_level_${l.level}`);
   const canLevelApprove = !!currentLevel && myChangRoles.includes(currentLevel.role_key);
 
+  const isDeptLineManager = adminUser?.role==="line_manager" && adminUser?.dept===raiser?.dept;
+
   // What can THIS admin actually do right now, based on real role assignment
+  const canLineManagerApprove = isDeptLineManager && cr.status==="pending_line_manager";
   const canMgrApprove   = isMgr  && cr.status==="pending_manager";
   const canStartImpl    = isImpl && cr.status==="pending_implementation";
   const canCompleteImpl = isImpl && cr.status==="in_progress";
   const canClose        = (isMgr||isImpl) && cr.status==="completed";
-  const hasNormalAction = canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl||canClose;
+  const hasNormalAction = canLineManagerApprove||canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl||canClose;
 
   // Super-admin override: only offered when the stage genuinely needs action
   // and this admin does NOT hold the role for it — a distinct, audited path,
   // not a silent bypass of the normal approval chain. It only becomes usable
   // once the stage's own SLA has been breached AND lingered an extra hour —
   // an override is for a genuinely stuck process, not a shortcut.
-  const stagePendingAction = ["pending_manager","pending_approval","pending_implementation","in_progress","completed"].includes(cr.status);
+  const stagePendingAction = ["pending_line_manager","pending_manager","pending_approval","pending_implementation","in_progress","completed"].includes(cr.status);
   const stageSlaHours =
     cr.status==="pending_manager" ? tenantConfig?.manager_sla_hours :
     currentLevel ? (approvalLevels||[]).find(l=>l.level_order===currentLevel.level)?.sla_hours :
@@ -56,6 +59,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
   const overrideRemainingHours = Math.max(0, overrideUnlocksAtHours - stageAgeHours);
   const canOverride = isSuperAdmin(adminUser) && stagePendingAction && !hasNormalAction;
   const overrideAction =
+    cr.status==="pending_line_manager"   ? {action:"approve_line_manager",     label:"Approve & Forward →"} :
     cr.status==="pending_manager"        ? {action:"approve_manager",         label:"Approve & Forward →"} :
     currentLevel                          ? {action:"approve_level",           label:`Approve ${currentLevel.name||"Level"} →`} :
     cr.status==="pending_implementation" ? {action:"start_implementation",    label:"Start Implementation"} :
@@ -87,6 +91,10 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       if(action==="reject"){
         nextStatus="rejected"; nextStage="rejected";
         newHistory.push({s:"rejected",at:iso,by:uid,label:"Rejected by Admin",note});
+      }
+      else if(action==="approve_line_manager"){
+        nextStatus="pending_manager"; nextStage="pending_manager";
+        newHistory.push({s:"pending_manager",at:iso,by:uid,label:"Approved by Line Manager",note});
       }
       else if(action==="approve_manager"){
         if(levels.length>0){
@@ -144,7 +152,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
   // Stage tracker
   const stages = [
     {label:"Submitted",  done:true,                                      at:cr.created_at},
-    {label:"Mgr Review", done:cr.status!=="pending_manager"&&cr.status!=="rejected", active:cr.status==="pending_manager"},
+    {label:"Line Manager", done:cr.status!=="pending_line_manager"&&cr.status!=="rejected", active:cr.status==="pending_line_manager"},
+    {label:"Mgr Review", done:cr.status!=="pending_manager"&&cr.status!=="pending_line_manager"&&cr.status!=="rejected", active:cr.status==="pending_manager"},
     ...(levels.map(l=>({label:l.name, done:l.status==="approved", active:cr.current_stage===`pending_level_${l.level}`, at:l.approved_at}))),
     {label:"Implementation", done:["completed","closed"].includes(cr.status), active:cr.status==="pending_implementation"||cr.status==="in_progress"},
     {label:"Closed",     done:cr.status==="closed"},
@@ -293,7 +302,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
             </div>
           )}
           <div>
-            <label style={LBL}>Note {(canMgrApprove||canLevelApprove||canOverride)?"— required if rejecting":"(optional)"}{rejectError&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {rejectError}</span>}</label>
+            <label style={LBL}>Note {(canLineManagerApprove||canMgrApprove||canLevelApprove||canOverride)?"— required if rejecting":"(optional)"}{rejectError&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {rejectError}</span>}</label>
             <textarea value={note} onChange={e=>{setNote(e.target.value);if(rejectError)setRejectError("");}} placeholder="Add a note for your decision…" style={{...inp(!!rejectError),minHeight:48,resize:"vertical"}}/>
           </div>
           {canOverride&&(
@@ -309,9 +318,10 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       {/* Buttons */}
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:16,paddingTop:14,borderTop:`1px solid ${C.border}`}}>
         <button onClick={onClose} style={btn("ghost")}>Close</button>
-        {(canMgrApprove||canLevelApprove||canOverride)&&(
+        {(canLineManagerApprove||canMgrApprove||canLevelApprove||canOverride)&&(
           <button onClick={()=>canOverride?setConfirmOverride({action:"reject",label:"Reject"}):doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
         )}
+        {canLineManagerApprove&&<button onClick={()=>doAction("approve_line_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>}
         {canMgrApprove&&<button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>}
         {canLevelApprove&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve {currentLevel?.name||"Level"} →</button>}
         {canOverride&&overrideAction&&(

@@ -88,7 +88,11 @@ export default function Login({ onLogin }) {
       const { data, error } = await signIn(email, password)
       if (error) throw error
       const profile = await getProfile(data.user.id).catch(() => null)
-      if (!profile?.must_change_password) toast.success('Welcome back!')
+      const ADMIN_ROLES = ['admin', 'super_admin', 'facility_admin', 'it_admin']
+      const extraRoles = Array.isArray(profile?.admin_roles) ? profile.admin_roles : []
+      const isAdmin = ADMIN_ROLES.includes(profile?.role) || extraRoles.some(r => ADMIN_ROLES.includes(r))
+      const isAllowed = isAdmin && profile?.status !== 'suspended'
+      if (isAllowed && !profile?.must_change_password) toast.success('Welcome back!')
       onLogin(data.user)
     } catch (err) {
       setError(err.message || 'Invalid email or password')

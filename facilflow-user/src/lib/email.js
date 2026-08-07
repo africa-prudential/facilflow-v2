@@ -35,26 +35,6 @@ export const emailCRSubmitted = (toEmails, cr, raisedBy) =>
     app_url: crUrl(cr),
   })
 
-export const emailCRApproved = (toEmails, cr, approver, stage, comment, nextStep) =>
-  sendEmail('cr_approved', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    approver,
-    stage,
-    comment,
-    next_step: nextStep,
-    app_url: crUrl(cr),
-  })
-
-export const emailCRRejected = (toEmails, cr, approver, reason) =>
-  sendEmail('cr_rejected', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    approver,
-    reason,
-    app_url: crUrl(cr),
-  })
-
 export const emailCRScheduled = (toEmails, cr) =>
   sendEmail('cr_scheduled', toEmails, {
     cr_id: cr.id,
@@ -82,6 +62,16 @@ export const emailCRReviewerAdded = (toEmails, cr, raisedBy) =>
     stage: 'Added as Reviewer',
     subject: `You've been added as a reviewer on ${cr.id} — ${cr.title}`,
     action: `Hi, ${raisedBy} has added you as a reviewer on this change request. Your review is advisory — feel free to leave a comment or concur, but it will not block the approval process.`,
+    app_url: crUrl(cr),
+  })
+
+export const emailCRLineManagerReview = (toEmails, cr, raisedBy) =>
+  sendEmail('cr_stage_notification', toEmails, {
+    cr_id: cr.id,
+    title: cr.title,
+    stage: 'Line Manager Review',
+    subject: `Action required: ${cr.id} needs your review — ${cr.title}`,
+    action: `${raisedBy} submitted a change request from your department and it requires your review before it proceeds to the Change Manager.`,
     app_url: crUrl(cr),
   })
 

@@ -111,7 +111,7 @@ serve(async (req) => {
 
     const { data: levels } = await db.from("change_approval_levels").select("*")
     const { data: tenantConfigs } = await db.from("change_tenant_config").select("*")
-    const { data: allUsers } = await db.from("users").select("id,email,name,tenant_id")
+    const { data: allUsers } = await db.from("users").select("id,email,name,tenant_id,dept,role")
     const { data: allUserRoles } = await db.from("user_change_roles").select("user_id,role_key,tenant_id")
 
     const tenantConfigById: Record<string, any> = {}
@@ -140,7 +140,16 @@ serve(async (req) => {
 
       const tc = tenantConfigById[cr.tenant_id]
 
-      if (cr.current_stage === "pending_manager") {
+      if (cr.current_stage === "pending_line_manager") {
+        slaHours = tc?.line_manager_sla_hours ?? null
+        reminderBeforeMinutes = tc?.line_manager_reminder_before_minutes ?? null
+        stageLabel = "Line Manager Review"
+        const initiator = cr.initiator ? usersById[cr.initiator] : null
+        recipientEmails = (allUsers || [])
+          .filter(u => u.tenant_id === cr.tenant_id && u.dept === initiator?.dept && u.role === "line_manager")
+          .map(u => u.email)
+          .filter(Boolean)
+      } else if (cr.current_stage === "pending_manager") {
         slaHours = tc?.manager_sla_hours ?? null
         reminderBeforeMinutes = tc?.manager_reminder_before_minutes ?? null
         stageLabel = "Change Manager Review"
