@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User } from "lucide-react";
+import { User, Pencil, Ban, UserCheck, Trash2 } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../constants.js";
 import { getAdminRoles, fmtSafe, exportCSV } from "../utils.js";
@@ -61,7 +61,10 @@ export default function UserMgmt({ctx}){
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: { email, name, role, dept, tenant_id:tid, temp_password:tempPassword, redirect_to:redirectTo }
       });
-      if(error) throw error;
+      if(error){
+        const detail = error.context ? await error.context.json().catch(()=>null) : null;
+        throw new Error(detail?.error || error.message);
+      }
       if(data.error) throw new Error(data.error);
 
       // Persist split names + any extra admin roles
@@ -154,11 +157,11 @@ export default function UserMgmt({ctx}){
                   <td style={{padding:"11px 14px",fontSize:11,color:C.muted,whiteSpace:"nowrap"}}>{fmtSafe(u.created_at)}</td>
                   <td style={{padding:"11px 14px"}}>
                     <div style={{display:"flex",gap:5}}>
-                      <button onClick={()=>setModal({edit:u})} style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>Edit</button>
+                      <button onClick={()=>setModal({edit:u})} title="Edit user" style={{...btn("ghost"),padding:"5px 7px"}}><Pencil size={13}/></button>
                       {u.status==="active"
-                        ?<button onClick={()=>setConfirm({type:"suspend",user:u})} style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.amber,borderColor:C.amber+"30"}}>Suspend</button>
-                        :<button onClick={()=>reinstate(u.id)} style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.green,borderColor:C.green+"30"}}>Reinstate</button>}
-                      <button onClick={()=>setConfirm({type:"delete",user:u})} style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.red,borderColor:C.red+"30"}}>Delete</button>
+                        ?<button onClick={()=>setConfirm({type:"suspend",user:u})} title="Suspend user" style={{...btn("ghost"),padding:"5px 7px",color:C.amber,borderColor:C.amber+"30"}}><Ban size={13}/></button>
+                        :<button onClick={()=>reinstate(u.id)} title="Reinstate user" style={{...btn("ghost"),padding:"5px 7px",color:C.green,borderColor:C.green+"30"}}><UserCheck size={13}/></button>}
+                      <button onClick={()=>setConfirm({type:"delete",user:u})} title="Delete user" style={{...btn("ghost"),padding:"5px 7px",color:C.red,borderColor:C.red+"30"}}><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>
@@ -192,8 +195,8 @@ export default function UserMgmt({ctx}){
       </div>
 
       {/* Invite / Add modal */}
-      {modal==="add"&&<InviteModal onClose={()=>setModal(null)} onInvite={(email,name,role,dept,pw,adminRoles,fn,ln)=>invite(email,name,role,dept,pw,adminRoles,fn,ln)}/>}
-      {modal?.edit&&<EditUserModal user={modal.edit} onClose={()=>setModal(null)} onSave={updateUserLocal}/>}
+      {modal==="add"&&<InviteModal departments={ctx.departments} onClose={()=>setModal(null)} onInvite={(email,name,role,dept,pw,adminRoles,fn,ln)=>invite(email,name,role,dept,pw,adminRoles,fn,ln)}/>}
+      {modal?.edit&&<EditUserModal departments={ctx.departments} user={modal.edit} onClose={()=>setModal(null)} onSave={updateUserLocal}/>}
 
       {/* Confirm modal */}
       {confirm&&(

@@ -186,7 +186,7 @@ serve(async (req) => {
                 tblRow("Current Stage", stageLabel) +
                 tblRow("SLA", `${slaHours} hour(s)`)
               )}
-              ${cta(APP_URL, "Review Change Request →", RED)}
+              ${cta(`${APP_URL}/change_requests?cr=${cr.id}`, "Review Change Request →", RED)}
             `)
           )
           const sent = await sendEmail(to, `ESCALATION: ${cr.id} — ${stageLabel} overdue`, html, cc)
@@ -217,7 +217,7 @@ serve(async (req) => {
                 tblRow("Title", cr.title) +
                 tblRow("Current Stage", stageLabel)
               )}
-              ${cta(APP_URL, "Review & Approve Now →", AMB)}
+              ${cta(`${APP_URL}/change_requests?cr=${cr.id}`, "Review & Approve Now →", AMB)}
             `)
           )
           const sent = await sendEmail(recipientEmails, `Reminder: ${cr.id} is awaiting your approval — FaciliFlow`, html)

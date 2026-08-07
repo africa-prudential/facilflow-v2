@@ -1,38 +1,79 @@
 import { useState } from "react";
-import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock } from "lucide-react";
+import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock, Paperclip, ExternalLink, ShieldAlert } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
-import { fmtDT, fmtD, now } from "../../utils.js";
+import { fmtDT, fmtD, now, isSuperAdmin } from "../../utils.js";
 import { CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
 import { updateCR } from "../../lib/supabase.js";
 
+const DOC_LABELS = {
+  uat_signoff:      "UAT Sign-off Form",
+  test_scripts:     "Test Scripts",
+  user_concurrence: "User Concurrence",
+  other:            "Other Supporting Documents",
+};
+
 export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stageLabel}){
-  const {uid, crs, setCrs, flash, userCRoles, approvalLevels} = ctx;
+  const {uid, crs, setCrs, flash, userCRoles, approvalLevels, adminUser, addAudit, tenantConfig} = ctx;
   const [tab,       setTab]     = useState("details");
   const [note,      setNote]    = useState("");
   const [implNotes, setImplNotes]= useState(cr.implementation_notes||"");
   const [outcome,   setOutcome] = useState(cr.implementation_outcome||"successful");
   const [saving,    setSaving]  = useState(false);
-
-  // Check what roles the logged-in admin has in change management
-  const myChangRoles = (userCRoles||[]).filter(r=>r.user_id===uid).map(r=>r.role_key);
-  const isMgr     = myChangRoles.includes("change_manager")     || cr.status==="pending_manager";   // admin can always act as manager
-  const isApprL1  = myChangRoles.includes("change_approver_l1") || cr.current_stage==="pending_level_1";
-  const isApprL2  = myChangRoles.includes("change_approver_l2") || cr.current_stage==="pending_level_2";
-  const isImpl    = myChangRoles.includes("change_implementer")  || cr.status==="pending_implementation"||cr.status==="in_progress";
-
-  // What can this admin actually do right now?
-  const canMgrApprove   = cr.status==="pending_manager";
-  const canL1Approve    = cr.current_stage==="pending_level_1";
-  const canL2Approve    = cr.current_stage==="pending_level_2";
-  const canStartImpl    = cr.status==="pending_implementation";
-  const canCompleteImpl = cr.status==="in_progress";
-  const canClose        = cr.status==="completed";
-  const hasAction = canMgrApprove||canL1Approve||canL2Approve||canStartImpl||canCompleteImpl||canClose;
+  const [rejectError, setRejectError] = useState("");
+  const [confirmOverride, setConfirmOverride] = useState(null);
 
   const raiser = uniqueUsers.find(u=>u.id===cr.initiator);
   const levels = cr.level_approvals||[];
 
-  const doAction = async (action) => {
+  // Check what roles the logged-in admin actually holds in change management
+  const myChangRoles = (userCRoles||[]).filter(r=>r.user_id===uid).map(r=>r.role_key);
+  const isMgr     = myChangRoles.includes("change_manager");
+  const isImpl    = myChangRoles.includes("change_implementer");
+  const currentLevel = levels.find(l=>cr.current_stage===`pending_level_${l.level}`);
+  const canLevelApprove = !!currentLevel && myChangRoles.includes(currentLevel.role_key);
+
+  // What can THIS admin actually do right now, based on real role assignment
+  const canMgrApprove   = isMgr  && cr.status==="pending_manager";
+  const canStartImpl    = isImpl && cr.status==="pending_implementation";
+  const canCompleteImpl = isImpl && cr.status==="in_progress";
+  const canClose        = (isMgr||isImpl) && cr.status==="completed";
+  const hasNormalAction = canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl||canClose;
+
+  // Super-admin override: only offered when the stage genuinely needs action
+  // and this admin does NOT hold the role for it — a distinct, audited path,
+  // not a silent bypass of the normal approval chain. It only becomes usable
+  // once the stage's own SLA has been breached AND lingered an extra hour —
+  // an override is for a genuinely stuck process, not a shortcut.
+  const stagePendingAction = ["pending_manager","pending_approval","pending_implementation","in_progress","completed"].includes(cr.status);
+  const stageSlaHours =
+    cr.status==="pending_manager" ? tenantConfig?.manager_sla_hours :
+    currentLevel ? (approvalLevels||[]).find(l=>l.level_order===currentLevel.level)?.sla_hours :
+    (cr.status==="pending_implementation"||cr.status==="in_progress") ? tenantConfig?.implementation_sla_hours :
+    null;
+  const stageAgeHours = (Date.now() - new Date(cr.stage_entered_at||cr.created_at).getTime()) / 3600000;
+  const overrideUnlocksAtHours = (stageSlaHours ?? 0) + 1;
+  const overrideReady = stageAgeHours >= overrideUnlocksAtHours;
+  const overrideRemainingHours = Math.max(0, overrideUnlocksAtHours - stageAgeHours);
+  const canOverride = isSuperAdmin(adminUser) && stagePendingAction && !hasNormalAction;
+  const overrideAction =
+    cr.status==="pending_manager"        ? {action:"approve_manager",         label:"Approve & Forward →"} :
+    currentLevel                          ? {action:"approve_level",           label:`Approve ${currentLevel.name||"Level"} →`} :
+    cr.status==="pending_implementation" ? {action:"start_implementation",    label:"Start Implementation"} :
+    cr.status==="in_progress"            ? {action:"complete_implementation", label: outcome==="failed"?"Mark Failed":"Mark Complete"} :
+    cr.status==="completed"              ? {action:"close",                  label:"Close CR"} : null;
+
+  const hasAction = hasNormalAction || canOverride;
+
+  const doAction = async (action, isOverride=false) => {
+    if(isOverride && !overrideReady){
+      flash(`Override not available yet — unlocks in ${Math.ceil(overrideRemainingHours*60)} minute(s) after SLA breach.`, "error");
+      return;
+    }
+    if(action === "reject" && !note.trim()){
+      setRejectError("A reason is required to reject this change request.");
+      return;
+    }
+    setRejectError("");
     setSaving(true);
     try {
       const iso = new Date().toISOString();
@@ -82,6 +123,11 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
         newHistory.push({s:"closed",at:iso,by:uid,label:"Closed by Admin"});
       }
 
+      if(isOverride && newHistory.length){
+        const last = newHistory.length-1;
+        newHistory[last] = {...newHistory[last], label:`[Admin Override] ${newHistory[last].label}`};
+      }
+
       const saved = await updateCR(cr.id,{
         ...extra, status:nextStatus, current_stage:nextStage,
         current_level:nextLevel, history:newHistory,
@@ -89,6 +135,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       });
       setCrs(p=>p.map(c=>c.id===cr.id?saved:c));
       flash(`CR ${nextStatus.replace(/_/g," ")}`);
+      if(isOverride) addAudit?.("CR_ADMIN_OVERRIDE", cr.id, `Admin override: ${action} on ${cr.id} (${cr.status} → ${nextStatus})`);
       onClose();
     } catch(e){ flash(e.message,"error"); }
     finally { setSaving(false); }
@@ -104,6 +151,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
   ];
 
   return (
+    <>
     <Modal title={`${cr.id}${cr.version>1?` v${cr.version}`:""}`} sub={cr.title} onClose={onClose} w={820}>
 
       {/* Header badges */}
@@ -161,6 +209,19 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
           {cr.description&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Description</div><div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{cr.description}</div></div>}
           {cr.rollback&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Rollback Plan</div><div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{cr.rollback}</div></div>}
           {cr.test_evidence&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Testing Evidence</div><div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{cr.test_evidence}</div></div>}
+          {cr.attachments?.length>0&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Supporting Documents</div>
+            {Object.entries(cr.attachments.reduce((g,f)=>{(g[f.docType||"other"]=g[f.docType||"other"]||[]).push(f);return g;},{})).map(([docType,files])=>(
+              <div key={docType} style={{marginBottom:6}}>
+                <div style={{fontSize:11,fontWeight:600,color:C.ink2,marginBottom:3}}>{DOC_LABELS[docType]||docType}</div>
+                {files.map((f,i)=>(
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.blue,padding:"2px 0",textDecoration:"none"}}>
+                    <Paperclip size={12}/>{f.name}<ExternalLink size={11}/>
+                  </a>
+                ))}
+              </div>
+            ))}
+          </div>}
         </div>
       )}
 
@@ -213,7 +274,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
           <div style={{fontSize:12,fontWeight:700,color:C.brand,marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
             <Zap size={13}/> Action Required — {stageLabel(cr).label}
           </div>
-          {canCompleteImpl&&(
+          {(canCompleteImpl||(canOverride&&overrideAction?.action==="complete_implementation"))&&(
             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
               <div>
                 <label style={LBL}>Implementation Notes</label>
@@ -232,26 +293,52 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
             </div>
           )}
           <div>
-            <label style={LBL}>Note (optional)</label>
-            <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Add a note for your decision…" style={{...inp(),minHeight:48,resize:"vertical"}}/>
+            <label style={LBL}>Note {(canMgrApprove||canLevelApprove||canOverride)?"— required if rejecting":"(optional)"}{rejectError&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {rejectError}</span>}</label>
+            <textarea value={note} onChange={e=>{setNote(e.target.value);if(rejectError)setRejectError("");}} placeholder="Add a note for your decision…" style={{...inp(!!rejectError),minHeight:48,resize:"vertical"}}/>
           </div>
+          {canOverride&&(
+            <div style={{marginTop:10,padding:"9px 12px",borderRadius:7,background:C.amberBg,border:`1px solid ${C.amber}40`,fontSize:11,color:C.amber,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+              <ShieldAlert size={13}/> {overrideReady
+                ? "You don't hold the role for this stage. This stage's SLA has been breached for over an hour — Admin Override is now available and will be recorded in the audit log."
+                : `You don't hold the role for this stage. Admin Override unlocks ${Math.ceil(overrideRemainingHours*60)} minute(s) from now, once the SLA has been breached for an hour.`}
+            </div>
+          )}
         </div>
       )}
 
       {/* Buttons */}
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:16,paddingTop:14,borderTop:`1px solid ${C.border}`}}>
         <button onClick={onClose} style={btn("ghost")}>Close</button>
-        {(canMgrApprove||canL1Approve||canL2Approve)&&(
-          <button onClick={()=>doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
+        {(canMgrApprove||canLevelApprove||canOverride)&&(
+          <button onClick={()=>canOverride?setConfirmOverride({action:"reject",label:"Reject"}):doAction("reject")} disabled={saving} style={btn("danger")}>Reject</button>
         )}
         {canMgrApprove&&<button onClick={()=>doAction("approve_manager")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve & Forward →</button>}
-        {canL1Approve&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve Level 1 →</button>}
-        {canL2Approve&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve Level 2 →</button>}
+        {canLevelApprove&&<button onClick={()=>doAction("approve_level")} disabled={saving} style={btn("primary")}><Check size={14}/> Approve {currentLevel?.name||"Level"} →</button>}
+        {canOverride&&overrideAction&&(
+          <button onClick={()=>setConfirmOverride(overrideAction)} disabled={saving||!overrideReady}
+            title={overrideReady?undefined:`Unlocks in ${Math.ceil(overrideRemainingHours*60)} minute(s)`}
+            style={{...btn("primary"),background:overrideReady?C.amber:C.border,color:overrideReady?"#fff":C.muted,cursor:overrideReady?"pointer":"not-allowed"}}>
+            <ShieldAlert size={14}/> {overrideAction.label} (Override)
+          </button>
+        )}
         {canStartImpl&&<button onClick={()=>doAction("start_implementation")} disabled={saving} style={{...btn("primary"),background:C.blue}}><Wrench size={14}/> Start Implementation</button>}
         {canCompleteImpl&&<button onClick={()=>doAction("complete_implementation")} disabled={saving} style={{...btn("primary"),background:outcome==="failed"?C.red:C.green}}>{outcome==="failed"?<><XCircle size={14}/> Mark Failed</>:<><CheckCircle2 size={14}/> Mark Complete</>}</button>}
         {canClose&&<button onClick={()=>doAction("close")} disabled={saving} style={{...btn("primary"),background:C.muted}}><Lock size={14}/> Close CR</button>}
       </div>
     </Modal>
+
+    {confirmOverride&&(
+      <Modal title="Confirm Admin Override" onClose={()=>setConfirmOverride(null)} w={440}>
+        <div style={{marginBottom:20,fontSize:13,color:C.ink2,lineHeight:1.6}}>
+          You're about to <strong style={{color:C.amber}}>{confirmOverride.label.replace(" →","").replace(" (Override)","")}</strong> on <strong>{cr.id}</strong> without holding the role assigned to this stage. This will be recorded in the audit log as an Admin Override, distinct from a normal approval. Are you sure?
+        </div>
+        <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
+          <button onClick={()=>setConfirmOverride(null)} style={btn("ghost")}>Cancel</button>
+          <button onClick={()=>{doAction(confirmOverride.action,true);setConfirmOverride(null);}} style={{...btn("primary"),background:C.amber}}><ShieldAlert size={14}/> Confirm Override</button>
+        </div>
+      </Modal>
+    )}
+    </>
   );
 }
 

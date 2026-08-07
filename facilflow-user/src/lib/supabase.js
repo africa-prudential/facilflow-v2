@@ -300,6 +300,34 @@ export const uploadTicketAttachment = async (ticketId, file) => {
   return { name: file.name, size: file.size, url: publicUrl, path, type: file.type }
 }
 
+export const uploadCRAttachment = async (draftId, docType, file) => {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const path = `${draftId}/${docType}/${Date.now()}-${safeName}`
+  const { error } = await supabase.storage.from('cr-attachments').upload(path, file)
+  if (error) throw error
+  const { data: { publicUrl } } = supabase.storage.from('cr-attachments').getPublicUrl(path)
+  return { docType, name: file.name, size: file.size, url: publicUrl, path, type: file.type }
+}
+
+export const fetchDepartments = async (tenantId) => {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('name')
+  if (error) throw error
+  return data
+}
+
+export const fetchDepartmentModules = async (tenantId) => {
+  const { data, error } = await supabase
+    .from('department_modules')
+    .select('*')
+    .eq('tenant_id', tenantId)
+  if (error) throw error
+  return data
+}
+
 export const addAuditEntry = async (entry) => {
   const { error } = await supabase.from('audit_log').insert([entry])
   if (error) throw error

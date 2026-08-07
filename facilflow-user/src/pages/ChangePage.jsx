@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import { X, Search, Zap } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { X, Search, Zap, Eye } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { Av, EnvTag, RiskTag, PageTitle, TH, Filters } from "../components/ui.jsx";
@@ -7,9 +8,26 @@ import CRForm from "./forms/CRForm.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function ChangePage({ctx}){
-  const {crs,submitCR,advanceCR,users,myChangeRoles,uid}=ctx;
+  const {crs,submitCR,advanceCR,users,myChangeRoles,uid,hasChangeMgmtAccess}=ctx;
+  const [searchParams, setSearchParams] = useSearchParams();
   const [form,    setForm]    = useState(false);
   const [detail,  setDetail]  = useState(null);
+
+  useEffect(() => {
+    if(searchParams.get("new")==="1"){
+      setForm(true);
+      setSearchParams(p=>{ p.delete("new"); return p; }, {replace:true});
+    }
+  }, []);
+
+  useEffect(() => {
+    const crId = searchParams.get("cr");
+    if(crId && crs.length>0){
+      const match = crs.find(c=>c.id===crId);
+      if(match) setDetail(match);
+      setSearchParams(p=>{ p.delete("cr"); return p; }, {replace:true});
+    }
+  }, [searchParams, crs]);
   const [search,  setSearch]  = useState("");
   const [fStatus, setFStatus] = useState("");
   const [fType,   setFType]   = useState("");
@@ -23,11 +41,21 @@ export default function ChangePage({ctx}){
   const [activeCard, setActiveCard] = useState("");
   const PAGE_SIZE = 15;
 
-  const isTech   = (myChangeRoles||[]).includes("change_technician");
   const isMgr    = (myChangeRoles||[]).includes("change_manager");
   const isApprover = (myChangeRoles||[]).some(r=>/^change_approver_l\d+$/.test(r));
   const isImpl   = (myChangeRoles||[]).includes("change_implementer");
   const isRevwr  = (myChangeRoles||[]).includes("change_reviewer");
+
+  // Can the CURRENT user actually act on this specific CR right now?
+  const canActOnCR = c => {
+    if(c.status==="pending_manager") return isMgr;
+    if(c.status==="pending_approval"){
+      const lvl = (c.level_approvals||[]).find(l=>c.current_stage===`pending_level_${l.level}`);
+      return !!lvl && (myChangeRoles||[]).includes(lvl.role_key);
+    }
+    if(c.status==="pending_implementation"||c.status==="in_progress") return isImpl;
+    return false;
+  };
 
   // Scope: technicians see only their own + involved; others see all
   const scopedCRs = useMemo(()=>{
@@ -143,7 +171,7 @@ export default function ChangePage({ctx}){
   return (
     <div style={{display:"flex",flexDirection:"column",gap:18}}>
       <PageTitle title="Change Requests" sub="Enterprise change management and governance"
-        action={isTech&&<button onClick={()=>setForm(true)} style={btn("primary")}>+ Raise Change Request</button>}/>
+        action={hasChangeMgmtAccess&&<button onClick={()=>setForm(true)} style={btn("primary")}>+ Raise Change Request</button>}/>
 
       {/* ── 5 METRIC CARDS ── */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12}}>
@@ -190,7 +218,7 @@ export default function ChangePage({ctx}){
             <label style={LBL}>Change Type</label>
             <select value={fType} onChange={e=>resetPage(setFType)(e.target.value)} style={inp()}>
               <option value="">All Types</option>
-              {["Standard","Normal","Major","Emergency"].map(t=><option key={t} value={t}>{t}</option>)}
+              {["Standard","Normal","Emergency"].map(t=><option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div>
@@ -248,11 +276,11 @@ export default function ChangePage({ctx}){
       {/* ── TABLE ── */}
       <div style={card(0)}>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
-          <TH cols={["CR ID","Title","Type","Environment","Risk","Raised By","Date Raised","Last Updated","Stage","Approval Level","Action"]}/>
+          <TH cols={["CR ID","Title","Type","Environment","Risk","Raised By","Date Raised","Last Updated","Stage","Action"]}/>
           <tbody>
             {paged.length===0&&(
-              <tr><td colSpan={11} style={{padding:"48px",textAlign:"center",color:C.muted,fontSize:13}}>
-                {hasFilters?"No change requests match your filters.":isTech?"No change requests yet — click '+ Raise Change Request' to create one.":"Nothing to show."}
+              <tr><td colSpan={10} style={{padding:"48px",textAlign:"center",color:C.muted,fontSize:13}}>
+                {hasFilters?"No change requests match your filters.":hasChangeMgmtAccess?"No change requests yet — click '+ Raise Change Request' to create one.":"Nothing to show."}
               </td></tr>
             )}
             {paged.map((c,i)=>{
@@ -260,10 +288,6 @@ export default function ChangePage({ctx}){
               const sl     = stageLabel(c);
               const ct     = c.change_type||c.changeType||"—";
               const rl     = c.risk_level||c.riskLevel||"—";
-              const levelLabel = c.status==="pending_approval"
-                ? `L${c.current_level||1}`
-                : c.status==="pending_manager"?"Manager"
-                : c.status==="pending_implementation"||c.status==="in_progress"?"Impl":"—";
               return (
                 <tr key={c.id} onClick={()=>setDetail(c)}
                   style={{borderBottom:i<paged.length-1?`1px solid #F1F5F9`:"none",cursor:"pointer"}}>
@@ -290,13 +314,10 @@ export default function ChangePage({ctx}){
                   <td style={{padding:"11px 14px",whiteSpace:"nowrap"}}>
                     <span style={{fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:20,background:sl.color+"18",color:sl.color}}>{sl.label}</span>
                   </td>
-                  <td style={{padding:"11px 14px",fontSize:11,color:C.muted,textAlign:"center"}}>
-                    <span style={{fontWeight:600,color:levelLabel==="—"?C.muted:C.violet}}>{levelLabel}</span>
-                  </td>
                   <td style={{padding:"11px 14px"}}>
                     <button onClick={e=>{e.stopPropagation();setDetail(c);}}
-                      style={{...btn(["pending_manager","pending_approval","pending_implementation"].includes(c.status)?"primary":"ghost"),fontSize:11,padding:"4px 12px"}}>
-                      {["pending_manager","pending_approval","pending_implementation"].includes(c.status)?"Action →":"View →"}
+                      style={{...btn(canActOnCR(c)?"primary":"ghost"),fontSize:11,padding:"4px 12px",display:"inline-flex",alignItems:"center",gap:5}}>
+                      {canActOnCR(c)?<>Action →</>:<><Eye size={12}/> View</>}
                     </button>
                   </td>
                 </tr>

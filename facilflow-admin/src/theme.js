@@ -42,6 +42,6 @@ export const card = (p=16) => ({
 });
 
 
-export const LBL = { fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase",
+export const LBL = { fontSize:12, fontWeight:500, color:C.muted, textTransform:"none",
   letterSpacing:".07em", display:"block", marginBottom:5 };
 

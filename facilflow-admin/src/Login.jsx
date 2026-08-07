@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { signIn, sendPasswordReset } from './lib/supabase.js'
+import { signIn, sendPasswordReset, getProfile } from './lib/supabase.js'
 
 const C = {
   brand: '#C8102E', brandDk: '#A00D24', brandLt: '#FEF2F4',
@@ -87,7 +87,8 @@ export default function Login({ onLogin }) {
     try {
       const { data, error } = await signIn(email, password)
       if (error) throw error
-      toast.success('Welcome back!')
+      const profile = await getProfile(data.user.id).catch(() => null)
+      if (!profile?.must_change_password) toast.success('Welcome back!')
       onLogin(data.user)
     } catch (err) {
       setError(err.message || 'Invalid email or password')
@@ -102,7 +103,10 @@ export default function Login({ onLogin }) {
     setResetError('')
     try {
       const { error } = await sendPasswordReset(resetEmail)
-      if (error) throw error
+      if (error) {
+        const detail = error.context ? await error.context.json().catch(() => null) : null
+        throw new Error(detail?.error || error.message)
+      }
       setStep('sent')
     } catch (err) {
       setResetError(err.message || 'Failed to send reset email. Try again.')

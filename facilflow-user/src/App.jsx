@@ -15,9 +15,10 @@ import {
   updateCRStage,
   fetchMyTickets, createTicket, updateTicket, fetchTicketComments, addTicketComment, fetchTicketCategories, uploadTicketAttachment,
   addAuditEntry,
+  fetchDepartments, fetchDepartmentModules,
   APP_URL,
 } from "./lib/supabase.js";
-import { emailCRSubmitted, emailCRApproved, emailCRRejected, emailCRScheduled, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
+import { emailCRSubmitted, emailCRApproved, emailCRRejected, emailCRScheduled, emailCRReviewerAdded, emailCRNoManagerConfigured, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
 import { CR_STATUS, NAV_GROUPS } from "./constants.js";
 import { fmtDT, normCR, normReq } from "./utils.js";
@@ -47,6 +48,8 @@ export default function UserApp({ currentUser }){
   const [vehicles,    setVehicles]    = useState([]);
   const [drivers,     setDrivers]     = useState([]);
   const [myChangeRoles, setMyChangeRoles] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [departmentModules, setDepartmentModules] = useState([]);
   const [approvalLevels,setApprovalLevels]= useState([]);
   const [tenantConfig,  setTenantConfig]  = useState(null);
   const [crUsers,       setCRUsers]       = useState({});
@@ -116,6 +119,16 @@ export default function UserApp({ currentUser }){
           setTickets(tix||[]);
           setTicketCats(cats||[]);
         } catch(te){ console.warn("Helpdesk fetch skipped:", te.message); }
+
+        // Load departments & module entitlements — non-fatal
+        try {
+          const [deps, depMods] = await Promise.all([
+            fetchDepartments(tenantId),
+            fetchDepartmentModules(tenantId),
+          ]);
+          setDepartments(deps||[]);
+          setDepartmentModules(depMods||[]);
+        } catch(de){ console.warn("Department config fetch skipped:", de.message); }
       } catch(e){ console.error("Load error:", e); }
       finally { setLoading(false); }
     };
@@ -208,7 +221,6 @@ export default function UserApp({ currentUser }){
         deploy_start:     data.deployStart||null,
         deploy_end:       data.deployEnd||null,
         rollback:         data.rollback,
-        test_evidence:    data.testEvidence,
         is_emergency:     data.changeType==="Emergency",
         version:          1,
         level_approvals:  levelStages,
@@ -217,7 +229,7 @@ export default function UserApp({ currentUser }){
           {s:"draft",            at:iso, by:uid, label:"Draft created"},
           {s:"pending_manager",  at:iso, by:uid, label:"Submitted to Change Manager"},
         ],
-        attachments:[...(data.attachments||[]).map(f=>({name:f.name,size:f.size}))],
+        attachments:      data.attachments||[],
         comments:[],
         stage_entered_at: iso,
         created_at:iso, updated_at:iso,
@@ -227,8 +239,26 @@ export default function UserApp({ currentUser }){
       setCrs(p=>[normCR(saved),...p]);
       addAuditEntry({tenant_id:tenantId, performed_by:uid, action:"CR_SUBMITTED", target:id, detail:`${data.title} submitted (${data.changeType||"—"})`}).catch(console.warn);
 
+      // Notify any selected reviewers — advisory only, independent of manager config
+      if((data.reviewerIds||[]).length>0){
+        try {
+          const raiserName = users[uid]?.name || "A team member";
+          const {data:reviewerRows} = await supabase.from("users").select("email").in("id", data.reviewerIds);
+          const reviewerEmails = (reviewerRows||[]).map(r=>r.email).filter(Boolean);
+          if(reviewerEmails.length){
+            const reviewerEmailResult = await emailCRReviewerAdded(reviewerEmails, rec, raiserName);
+            if(reviewerEmailResult?.error) flash(`Reviewer notification failed: ${reviewerEmailResult.error.message}`, "error");
+          }
+        } catch(re){ console.warn("Reviewer notification skipped:", re.message); }
+      }
+
       if(!managerId){
-        flash(`${id} submitted — ⚠ No Change Manager configured. Go to Admin → CR Policy to set one.`, "error");
+        flash(`${id} submitted successfully.`);
+        try {
+          const raiserName = users[uid]?.name || "A team member";
+          const adminEmails = Object.values(users||{}).filter(u=>u.role==="super_admin").map(u=>u.email).filter(Boolean);
+          if(adminEmails.length) await emailCRNoManagerConfigured(adminEmails, rec, raiserName);
+        } catch(ae){ console.warn("Admin misconfiguration alert skipped:", ae.message); }
         return;
       }
       flash(`${id} submitted — notifying Change Manager...`);
@@ -238,21 +268,10 @@ export default function UserApp({ currentUser }){
         try {
           const {data:mgrRow} = await supabase.from("users").select("email,name").eq("id",managerId).single();
           const mgrEmail = mgrRow?.email;
-          const mgrName  = mgrRow?.name||"Change Manager";
+          const raiserName = users[uid]?.name || "A team member";
           if(mgrEmail){
-            const emailResult = await supabase.functions.invoke("send-email",{body:{
-              template:"cr_stage_notification",
-              to: mgrEmail,
-              data:{
-                cr_id:   id,
-                title:   data.title,
-                stage:   "Change Manager Review",
-                subject: `${id} - ${data.title} - Change Manager Review`,
-                action:  `Hi ${mgrName}, a new change request has been submitted and requires your review and approval.`,
-                app_url: APP_URL,
-              }
-            }});
-            if(emailResult.error) flash(`CR submitted but email failed: ${emailResult.error.message}`, "error");
+            const emailResult = await emailCRSubmitted(mgrEmail, rec, raiserName);
+            if(emailResult?.error) flash(`CR submitted but email failed: ${emailResult.error.message}`, "error");
           } else {
             flash("CR submitted — no email sent (change manager has no email address)", "error");
           }
@@ -361,7 +380,7 @@ export default function UserApp({ currentUser }){
       // Send stage notification emails — level-based, backward notification
       try {
         const emailRecipients = [];
-        const appUrl = APP_URL;
+        const appUrl = `${APP_URL}/change_requests?cr=${id}`;
 
         // Helper: fetch user email from DB directly
         const getEmail = async (userId) => {
@@ -481,6 +500,9 @@ export default function UserApp({ currentUser }){
     toast.success("Signed out");
   };
 
+  const myDept = (departments||[]).find(d=>d.name===me?.dept);
+  const hasChangeMgmtAccess = !!myDept && (departmentModules||[]).some(m=>m.department_id===myDept.id && m.module_key==="change_management");
+
   const ctx = {
     me, uid, tenantId,
     reqs, setReqs,
@@ -491,6 +513,7 @@ export default function UserApp({ currentUser }){
     vehicles,
     drivers,
     myChangeRoles,
+    hasChangeMgmtAccess,
     approvalLevels,
     tenantConfig,
     crUsers,
@@ -523,11 +546,10 @@ export default function UserApp({ currentUser }){
     addCommentFn: (comment) => addTicketComment({ ...comment, author_id: uid }),
   };
 
-  const hasChangeRole = (myChangeRoles||[]).length > 0;
   const visNav = NAV_GROUPS
     .map(g=>({...g,items:g.items.filter(i=>{
       if(!i.roles.includes(me?.role)) return false;
-      if(i.key==='change_requests' && !hasChangeRole) return false;
+      if(i.key==='change_requests' && !hasChangeMgmtAccess) return false;
       return true;
     })}))
     .filter(g=>g.items.length);

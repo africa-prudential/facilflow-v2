@@ -10,7 +10,9 @@ export default function CRPolicy({ctx}){ return <CRPolicyFull ctx={ctx}/>; }
 // CR POLICY — Rebuilt with real approval levels
 // ══════════════════════════════════════════════════════════════
 function CRPolicyFull({ctx}){
-  const {approvalLevels,setApprovalLevels,tenantConfig,setTenantConfig,users,flash,tid,changeRoles,setChangeRoles}=ctx;
+  const {approvalLevels,setApprovalLevels,tenantConfig,setTenantConfig,users,flash,tid,changeRoles,setChangeRoles,userCRoles}=ctx;
+  const changeManagerIds = new Set((userCRoles||[]).filter(r=>r.role_key==="change_manager").map(r=>r.user_id));
+  const changeManagerUsers = users.filter(u=>changeManagerIds.has(u.id));
   const [editing,setEditing]=useState(null);
   const [saving,setSaving]=useState(false);
   const [escForm,setEscForm]=useState(()=>({
@@ -22,6 +24,7 @@ function CRPolicyFull({ctx}){
     implementation_reminder_before_minutes: tenantConfig?.implementation_reminder_before_minutes??"",
   }));
   const [savingEsc,setSavingEsc]=useState(false);
+  const [sameAsManager,setSameAsManager]=useState(()=>!tenantConfig?.escalation_authority_id);
 
   useEffect(()=>{
     setEscForm({
@@ -32,9 +35,10 @@ function CRPolicyFull({ctx}){
       implementation_sla_hours:             tenantConfig?.implementation_sla_hours??"",
       implementation_reminder_before_minutes: tenantConfig?.implementation_reminder_before_minutes??"",
     });
+    setSameAsManager(!tenantConfig?.escalation_authority_id);
   },[tenantConfig]);
 
-  const CHANGE_TYPES = ["Standard","Normal","Major","Emergency"];
+  const CHANGE_TYPES = ["Standard","Normal","Emergency"];
 
   const addLevel = () => {
     const next = (approvalLevels||[]).length + 1;
@@ -42,7 +46,7 @@ function CRPolicyFull({ctx}){
       id: crypto.randomUUID(), tenant_id: tid,
       level_order: next, name:`Level ${next} Approval`,
       description:"", role_key:"change_approver_l1",
-      change_types:["Normal","Major"],
+      change_types:["Normal"],
     });
   };
 
@@ -77,7 +81,8 @@ function CRPolicyFull({ctx}){
   };
 
   const saveEscalation = async () => {
-    if (!escForm.escalation_authority_id) { flash("Escalation Authority is required","error"); return; }
+    const escalationId = sameAsManager ? (tenantConfig?.change_manager_id||"") : escForm.escalation_authority_id;
+    if (!escalationId) { flash(sameAsManager?"Configure a Change Manager first":"Escalation Authority is required","error"); return; }
     if (escForm.manager_sla_hours==="")               { flash("Change Manager SLA is required","error"); return; }
     if (escForm.manager_reminder_before_minutes==="")  { flash("Change Manager SLA Reminder is required","error"); return; }
     if (escForm.implementation_sla_hours==="")         { flash("Implementation SLA is required","error"); return; }
@@ -85,7 +90,7 @@ function CRPolicyFull({ctx}){
     setSavingEsc(true);
     try {
       const saved = await saveTenantConfig(tid, {
-        escalation_authority_id: escForm.escalation_authority_id||null,
+        escalation_authority_id: sameAsManager ? null : (escalationId||null),
         escalation_cc_email:     escForm.escalation_cc_email||null,
         manager_sla_hours:             escForm.manager_sla_hours===""?null:+escForm.manager_sla_hours,
         manager_reminder_before_minutes: escForm.manager_reminder_before_minutes===""?null:+escForm.manager_reminder_before_minutes,
@@ -118,10 +123,14 @@ function CRPolicyFull({ctx}){
               onChange={e=>saveManager(e.target.value)}
               style={inp()}>
               <option value="">— Not configured —</option>
-              {users.filter(u=>u.status==="active").map(u=>(
+              {cmUser&&!changeManagerIds.has(cmUser.id)&&(
+                <option value={cmUser.id}>{cmUser.name} ({cmUser.email}) — role no longer assigned</option>
+              )}
+              {changeManagerUsers.filter(u=>u.status==="active").map(u=>(
                 <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
               ))}
             </select>
+            {changeManagerUsers.length===0&&<div style={{fontSize:11,color:C.amber,marginTop:6}}>No users have the Change Manager role assigned yet — assign it in Change Roles first.</div>}
           </div>
           {cmUser&&(
             <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:C.greenBg,borderRadius:8,border:`1px solid ${C.green}30`}}>
@@ -139,29 +148,26 @@ function CRPolicyFull({ctx}){
       <div style={card(20)}>
         <div style={{fontSize:14,fontWeight:700,color:C.ink,marginBottom:4}}>Escalation & Default SLAs</div>
         <div style={{fontSize:12,color:C.muted,marginBottom:14}}>Overdue approvals escalate to the Change Manager unless overridden. SLA (hours) and reminder (minutes before) apply to the fixed Change Manager and Implementation stages.</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:12,alignItems:"end",marginBottom:14}}>
-          <div>
-            <label style={LBL}>Escalation Authority</label>
-            <select
-              value={escForm.escalation_authority_id}
-              onChange={e=>setEscForm(p=>({...p,escalation_authority_id:e.target.value}))}
-              style={inp()}>
-              <option value="">— Not configured —</option>
-              {users.filter(u=>u.status==="active").map(u=>(
-                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-              ))}
-            </select>
+        <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,cursor:"pointer",fontSize:13,color:C.ink,fontWeight:500}}>
+          <input type="checkbox" checked={sameAsManager} onChange={e=>setSameAsManager(e.target.checked)}/>
+          Use Change Manager as Escalation Authority
+        </label>
+        {!sameAsManager&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:12,alignItems:"end",marginBottom:14}}>
+            <div>
+              <label style={LBL}>Escalation Authority</label>
+              <select
+                value={escForm.escalation_authority_id}
+                onChange={e=>setEscForm(p=>({...p,escalation_authority_id:e.target.value}))}
+                style={inp()}>
+                <option value="">— Not configured —</option>
+                {users.filter(u=>u.status==="active").map(u=>(
+                  <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                ))}
+              </select>
+            </div>
           </div>
-          {/*{escUser&&(*/}
-          {/*  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:C.redBg,borderRadius:8,border:`1px solid ${C.red}30`}}>*/}
-          {/*    <Av i={escUser.initials||"?"} s={28} bg={C.red}/>*/}
-          {/*    <div>*/}
-          {/*      <div style={{fontSize:12,fontWeight:700,color:C.ink}}>{escUser.name}</div>*/}
-          {/*      <div style={{fontSize:10,color:C.red,fontWeight:600}}>Escalation Authority</div>*/}
-          {/*    </div>*/}
-          {/*  </div>*/}
-          {/*)}*/}
-        </div>
+        )}
         <div style={{marginBottom:14}}>
           <label style={LBL}>Escalation CC Email (optional)</label>
           <input value={escForm.escalation_cc_email} onChange={e=>setEscForm(p=>({...p,escalation_cc_email:e.target.value}))}

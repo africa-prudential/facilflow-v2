@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Car, Pencil, Search, X, Inbox } from "lucide-react";
 import { C, btn, inp, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
@@ -11,7 +12,16 @@ export default function MyRequests({ctx}){
   const {uid,reqs,submitReq,transReq,users,invItems}=ctx;
   const vehicles = Array.isArray(ctx.vehicles) ? ctx.vehicles : (ctx.vehicles?.data || []);
   const drivers  = Array.isArray(ctx.drivers)  ? ctx.drivers  : (ctx.drivers?.data  || []);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [modal,    setModal]   = useState(null);
+
+  useEffect(() => {
+    const open = searchParams.get("open");
+    if(open==="car" || open==="stat"){
+      setModal(open);
+      setSearchParams(p=>{ p.delete("open"); return p; }, {replace:true});
+    }
+  }, []);
   const [detail,   setDetail]  = useState(null);
   const [search,   setSearch]  = useState("");
   const [fStatus,  setFStatus] = useState("");

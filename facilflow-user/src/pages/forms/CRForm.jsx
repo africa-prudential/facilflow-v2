@@ -1,58 +1,88 @@
 import { useState } from "react";
-import { Check, Zap, Paperclip, FileText, X, ClipboardList } from "lucide-react";
+import { Check, Zap, Paperclip, FileText, X, ClipboardList, ExternalLink } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { Av, Modal } from "../../components/ui.jsx";
+import { CR_CATEGORIES, CR_MODULES, DOC_LABELS } from "../../constants.js";
+import { uploadCRAttachment } from "../../lib/supabase.js";
+
+const DOC_RULES = {
+  "New Feature": { mandatory: ["uat_signoff","test_scripts"], oneOf: [] },
+  "Enhancement": { mandatory: [], oneOf: ["uat_signoff","user_concurrence"] },
+  "Fix":         { mandatory: [], oneOf: [] },
+};
+const DOC_TYPES = ["uat_signoff","test_scripts","user_concurrence","other"];
 
 export default function CRForm({onClose,onSubmit,ctx}){
   const {crUsers,myChangeRoles} = ctx||{};
   const reviewers = (crUsers||{})["change_reviewer"]||[];
 
+  const [draftId]     = useState(()=>`draft-${crypto.randomUUID?.() || Date.now()}`);
   const [step,        setStep]       = useState(1);
   const [title,       setTitle]      = useState("");
   const [desc,        setDesc]       = useState("");
-  const [system,      setSystem]     = useState("");
+  const [module,      setModule]     = useState("Greenpole");
+  const [systemOther, setSystemOther]= useState("");
   const [environment, setEnv]        = useState("Staging");
   const [deployDate,  setDeployDate] = useState("");
   const [deployStart, setDStart]     = useState("22:00");
   const [deployEnd,   setDEnd]       = useState("02:00");
   const [changeType,  setCType]      = useState("Normal");
   const [riskLevel,   setRisk]       = useState("Medium");
-  const [category,    setCat]        = useState("Infrastructure");
+  const [category,    setCat]        = useState("New Feature");
   const [rollback,    setRollback]   = useState("");
-  const [testEvidence,setTest]       = useState("");
-  const [attachments, setAttach]     = useState([]);
+  const [docs,        setDocs]       = useState({uat_signoff:[],test_scripts:[],user_concurrence:[],other:[]});
+  const [uploading,   setUploading]  = useState({});
   const [reviewerIds, setReviewers]  = useState([]);
   const [errs,        setErrs]       = useState({});
+
+  const rules = DOC_RULES[category] || {mandatory:[],oneOf:[]};
 
   const validate1 = () => {
     const er = {};
     if(!title)      er.title      = "Required";
     if(!desc)       er.desc       = "Required";
-    if(!system)     er.system     = "Required";
+    if(module==="Other" && !systemOther) er.systemOther = "Required";
     if(!deployDate) er.deployDate = "Required";
     setErrs(er); return Object.keys(er).length===0;
   };
   const validate2 = () => {
     const er = {};
-    if(!rollback)     er.rollback     = "Required";
-    if(!testEvidence) er.testEvidence = "Required";
+    if(!rollback) er.rollback = "Required";
+    rules.mandatory.forEach(dt=>{ if((docs[dt]||[]).length===0) er[dt]="Required"; });
+    if(rules.oneOf.length>0 && !rules.oneOf.some(dt=>(docs[dt]||[]).length>0)){
+      er.oneOf = `At least one of ${rules.oneOf.map(dt=>DOC_LABELS[dt]).join(" or ")} is required`;
+    }
     setErrs(er); return Object.keys(er).length===0;
   };
 
   const toggleReviewer = (id) => setReviewers(p=>p.includes(id)?p.filter(x=>x!==id):[...p,id]);
 
-  const handleFiles = (e) => {
+  const handleDocFiles = async (docType, e) => {
     const files = Array.from(e.target.files||[]);
-    setAttach(p=>[...p,...files.map(f=>({name:f.name,size:f.size,type:f.type}))]);
+    if(!files.length) return;
+    setUploading(p=>({...p,[docType]:true}));
+    try {
+      const uploaded = await Promise.all(files.map(f=>uploadCRAttachment(draftId,docType,f)));
+      setDocs(p=>({...p,[docType]:[...p[docType],...uploaded]}));
+      setErrs(p=>{ const n={...p}; delete n[docType]; delete n.oneOf; return n; });
+    } catch(err){
+      setErrs(p=>({...p,[docType]:`Upload failed: ${err.message}`}));
+    } finally {
+      setUploading(p=>({...p,[docType]:false}));
+      e.target.value = "";
+    }
   };
+  const removeDoc = (docType, path) => setDocs(p=>({...p,[docType]:p[docType].filter(f=>f.path!==path)}));
 
   const handleSubmit = () => {
-    onSubmit({title,desc,system,environment,deployDate,deployStart,deployEnd,
-      changeType,riskLevel,category,rollback,testEvidence,attachments,reviewerIds});
+    const systemName = module==="Other" ? systemOther : module;
+    const attachments = Object.values(docs).flat();
+    onSubmit({title,desc,system:systemName,environment,deployDate,deployStart,deployEnd,
+      changeType,riskLevel,category,rollback,attachments,reviewerIds});
     onClose();
   };
 
-  const STEPS = ["Request Details","Risk & Rollback","Review & Submit"];
+  const STEPS = ["Request Details","Risk & Documents","Review & Submit"];
   const approvalRoute = changeType==="Emergency"
     ? "Emergency → Change Manager → Level 1 → Implementer"
     : "Draft → Change Manager → Level 1 → Level 2 → Implementer";
@@ -83,9 +113,9 @@ export default function CRForm({onClose,onSubmit,ctx}){
           <div style={{gridColumn:"1/-1"}}>
             <label style={LBL}>Change Type</label>
             <div style={{display:"flex",gap:10}}>
-              {[{v:"Standard",icon:"⬡",desc:"Pre-approved, low risk"},{v:"Normal",icon:"◈",desc:"Full approval workflow"},{v:"Major",icon:"◉",desc:"Full chain + L2 approval"},{v:"Emergency",icon:<Zap size={16}/>,desc:"Bypass L2 — senior only"}].map(t=>{
+              {[{v:"Standard",icon:"⬡",desc:"Pre-approved, low risk"},{v:"Normal",icon:"◈",desc:"Full approval workflow"},{v:"Emergency",icon:<Zap size={16}/>,desc:"Bypass L2 — senior only"}].map(t=>{
                 const active=changeType===t.v;
-                const tc={Standard:C.blue,Normal:C.violet,Major:C.orange,Emergency:C.red}[t.v];
+                const tc={Standard:C.blue,Normal:C.violet,Emergency:C.red}[t.v];
                 return <button key={t.v} onClick={()=>setCType(t.v)} style={{flex:1,padding:"10px 8px",border:`1.5px solid ${active?tc:C.border}`,borderRadius:8,background:active?tc+"0D":"#fff",cursor:"pointer",fontFamily:"inherit"}}>
                   <div style={{fontSize:16,marginBottom:2}}>{t.icon}</div>
                   <div style={{fontSize:11,fontWeight:700,color:active?tc:C.ink2}}>{t.v}</div>
@@ -109,13 +139,21 @@ export default function CRForm({onClose,onSubmit,ctx}){
           <div>
             <label style={LBL}>Category</label>
             <select value={category} onChange={e=>setCat(e.target.value)} style={inp()}>
-              {["Infrastructure","Application","Security","Database","Network","Compliance"].map(o=><option key={o} value={o}>{o}</option>)}
+              {CR_CATEGORIES.map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           <div>
-            <label style={LBL}>System / Service{errs.system&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.system}</span>}</label>
-            <input value={system} onChange={e=>setSystem(e.target.value)} placeholder="e.g. Azure API Gateway" style={inp(!!errs.system)}/>
+            <label style={LBL}>Module / System</label>
+            <select value={module} onChange={e=>setModule(e.target.value)} style={inp()}>
+              {CR_MODULES.map(o=><option key={o} value={o}>{o}</option>)}
+            </select>
           </div>
+          {module==="Other"&&(
+            <div style={{gridColumn:"1/-1"}}>
+              <label style={LBL}>Specify Module/System{errs.systemOther&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.systemOther}</span>}</label>
+              <input value={systemOther} onChange={e=>setSystemOther(e.target.value)} placeholder="e.g. Azure API Gateway" style={inp(!!errs.systemOther)}/>
+            </div>
+          )}
           <div style={{gridColumn:"1/-1"}}>
             <label style={LBL}>Description{errs.desc&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.desc}</span>}</label>
             <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="What will be changed and why…" style={{...inp(!!errs.desc),minHeight:80,resize:"vertical"}}/>
@@ -167,26 +205,38 @@ export default function CRForm({onClose,onSubmit,ctx}){
             <label style={LBL}>Rollback Plan{errs.rollback&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.rollback}</span>}</label>
             <textarea value={rollback} onChange={e=>setRollback(e.target.value)} placeholder="Step-by-step instructions to revert if something goes wrong…" style={{...inp(!!errs.rollback),minHeight:90,resize:"vertical"}}/>
           </div>
-          <div>
-            <label style={LBL}>Testing Evidence{errs.testEvidence&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.testEvidence}</span>}</label>
-            <textarea value={testEvidence} onChange={e=>setTest(e.target.value)} placeholder="UAT results, staging tests, performance benchmarks…" style={{...inp(!!errs.testEvidence),minHeight:90,resize:"vertical"}}/>
-          </div>
-          <div>
-            <label style={LBL}>Attachments (optional)</label>
-            <label style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",border:`2px dashed ${C.border}`,borderRadius:8,cursor:"pointer",background:"#FAFAFA",color:C.muted,fontSize:12}}>
-              <Paperclip size={20}/>
-              <div><div style={{fontWeight:600,color:C.ink}}>Click to attach files</div><div style={{fontSize:11,marginTop:2}}>Plans, diagrams, test evidence, screenshots</div></div>
-              <input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt" onChange={handleFiles} style={{display:"none"}}/>
-            </label>
-            {attachments.length>0&&<div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>
-              {attachments.map((f,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 12px",background:"#F8FAFC",borderRadius:6,border:`1px solid ${C.border}`}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}><FileText size={16}/><div><div style={{fontSize:12,fontWeight:600,color:C.ink}}>{f.name}</div><div style={{fontSize:10,color:C.muted}}>{(f.size/1024).toFixed(1)} KB</div></div></div>
-                  <button onClick={()=>setAttach(p=>p.filter((_,j)=>j!==i))} style={{...btn("ghost"),padding:"3px 7px",fontSize:11,color:C.red}}><X size={12}/></button>
-                </div>
-              ))}
-            </div>}
-          </div>
+
+          {errs.oneOf&&<div style={{padding:"9px 13px",borderRadius:7,background:C.redBg,border:`1px solid ${C.red}30`,fontSize:12,color:C.red,fontWeight:500}}>{errs.oneOf}</div>}
+
+          {DOC_TYPES.map(dt=>{
+            const isMandatory = rules.mandatory.includes(dt);
+            const isOneOf     = rules.oneOf.includes(dt);
+            const badge = isMandatory ? {label:"Required",color:C.red,bg:C.redBg}
+              : isOneOf ? {label:"Required (one of)",color:C.amber,bg:C.amberBg}
+              : {label:"Optional",color:C.muted,bg:"#F1F5F9"};
+            return (
+              <div key={dt}>
+                <label style={LBL}>
+                  {DOC_LABELS[dt]}
+                  <span style={{marginLeft:8,fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:10,color:badge.color,background:badge.bg,textTransform:"uppercase",letterSpacing:".04em"}}>{badge.label}</span>
+                  {errs[dt]&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs[dt]}</span>}
+                </label>
+                <label style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",border:`2px dashed ${C.border}`,borderRadius:8,cursor:"pointer",background:"#FAFAFA",color:C.muted,fontSize:12}}>
+                  <Paperclip size={18}/>
+                  <div><div style={{fontWeight:600,color:C.ink}}>{uploading[dt]?"Uploading…":"Click to attach files"}</div><div style={{fontSize:11,marginTop:2}}>PDF, Word, Excel, images</div></div>
+                  <input type="file" multiple disabled={!!uploading[dt]} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt" onChange={e=>handleDocFiles(dt,e)} style={{display:"none"}}/>
+                </label>
+                {docs[dt].length>0&&<div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>
+                  {docs[dt].map((f,i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 12px",background:"#F8FAFC",borderRadius:6,border:`1px solid ${C.border}`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}><FileText size={16}/><div><div style={{fontSize:12,fontWeight:600,color:C.ink}}>{f.name}</div><div style={{fontSize:10,color:C.muted}}>{(f.size/1024).toFixed(1)} KB</div></div></div>
+                      <button onClick={()=>removeDoc(dt,f.path)} style={{...btn("ghost"),padding:"3px 7px",fontSize:11,color:C.red}}><X size={12}/></button>
+                    </div>
+                  ))}
+                </div>}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -195,7 +245,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
           <div style={{background:C.pageBg,borderRadius:8,padding:16}}>
             <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:12}}>Review Summary</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              {[["Title",title],["System",system],["Environment",environment],["Type",changeType],["Risk",riskLevel],["Category",category],["Deploy Date",deployDate],["Time Window",`${deployStart} – ${deployEnd}`]].map(([k,v])=>(
+              {[["Title",title],["Module",module==="Other"?`Other: ${systemOther}`:module],["Environment",environment],["Type",changeType],["Risk",riskLevel],["Category",category],["Deploy Date",deployDate],["Time Window",`${deployStart} – ${deployEnd}`]].map(([k,v])=>(
                 <div key={k} style={{background:"#fff",padding:"8px 11px",borderRadius:6,border:`1px solid ${C.border}`,gridColumn:k==="Title"?"1/-1":"auto"}}>
                   <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{k}</div>
                   <div style={{fontSize:12,fontWeight:600,color:C.ink,marginTop:2}}>{v||"—"}</div>
@@ -211,13 +261,18 @@ export default function CRForm({onClose,onSubmit,ctx}){
             <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Rollback Plan</div>
             <div style={{fontSize:13,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{rollback||"—"}</div>
           </div>
-          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
-            <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Testing Evidence</div>
-            <div style={{fontSize:13,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{testEvidence||"—"}</div>
-          </div>
-          {attachments.length>0&&<div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
-            <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Attachments ({attachments.length})</div>
-            {attachments.map((f,i)=><div key={i} style={{fontSize:12,color:C.ink,padding:"2px 0"}}>{f.name} <span style={{color:C.muted}}>({(f.size/1024).toFixed(1)} KB)</span></div>)}
+          {DOC_TYPES.some(dt=>docs[dt].length>0)&&<div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
+            <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Supporting Documents</div>
+            {DOC_TYPES.filter(dt=>docs[dt].length>0).map(dt=>(
+              <div key={dt} style={{marginBottom:8}}>
+                <div style={{fontSize:11,fontWeight:700,color:C.ink2,marginBottom:3}}>{DOC_LABELS[dt]}</div>
+                {docs[dt].map((f,i)=>(
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.blue,padding:"2px 0",textDecoration:"none"}}>
+                    <Paperclip size={12}/>{f.name}<span style={{color:C.muted}}>({(f.size/1024).toFixed(1)} KB)</span><ExternalLink size={11}/>
+                  </a>
+                ))}
+              </div>
+            ))}
           </div>}
           {reviewerIds.length>0&&<div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
             <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Reviewers Selected</div>
@@ -239,5 +294,3 @@ export default function CRForm({onClose,onSubmit,ctx}){
     </Modal>
   );
 }
-
-// ── CR Detail Modal — with Stage Tracker ──────────────────────

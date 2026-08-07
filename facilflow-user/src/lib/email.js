@@ -15,13 +15,14 @@ export const sendEmail = async (template, to, data) => {
     return result
   } catch (err) {
     console.error('Email error:', err)
-    // Don't throw — email failure should never block the UI action
+    return { error: err }
   }
 }
 
 // ── SHORTHAND HELPERS ──────────────────────────────────────
 
 const APP_URL = window.location.origin
+const crUrl = cr => `${APP_URL}/change_requests?cr=${cr.id}`
 
 export const emailCRSubmitted = (toEmails, cr, raisedBy) =>
   sendEmail('cr_submitted', toEmails, {
@@ -31,7 +32,7 @@ export const emailCRSubmitted = (toEmails, cr, raisedBy) =>
     risk_level: cr.riskLevel || cr.risk_level,
     raised_by: raisedBy,
     deploy_date: cr.deployDate || cr.deploy_date,
-    app_url: APP_URL,
+    app_url: crUrl(cr),
   })
 
 export const emailCRApproved = (toEmails, cr, approver, stage, comment, nextStep) =>
@@ -42,7 +43,7 @@ export const emailCRApproved = (toEmails, cr, approver, stage, comment, nextStep
     stage,
     comment,
     next_step: nextStep,
-    app_url: APP_URL,
+    app_url: crUrl(cr),
   })
 
 export const emailCRRejected = (toEmails, cr, approver, reason) =>
@@ -51,7 +52,7 @@ export const emailCRRejected = (toEmails, cr, approver, reason) =>
     title: cr.title,
     approver,
     reason,
-    app_url: APP_URL,
+    app_url: crUrl(cr),
   })
 
 export const emailCRScheduled = (toEmails, cr) =>
@@ -62,7 +63,7 @@ export const emailCRScheduled = (toEmails, cr) =>
     deploy_start: cr.deployStart || cr.deploy_start,
     deploy_end: cr.deployEnd || cr.deploy_end,
     environment: cr.environment,
-    app_url: APP_URL,
+    app_url: crUrl(cr),
   })
 
 export const emailCRReminder = (toEmails, cr, raisedBy, submittedDate) =>
@@ -71,7 +72,27 @@ export const emailCRReminder = (toEmails, cr, raisedBy, submittedDate) =>
     title: cr.title,
     raised_by: raisedBy,
     submitted_date: submittedDate,
-    app_url: APP_URL,
+    app_url: crUrl(cr),
+  })
+
+export const emailCRReviewerAdded = (toEmails, cr, raisedBy) =>
+  sendEmail('cr_stage_notification', toEmails, {
+    cr_id: cr.id,
+    title: cr.title,
+    stage: 'Added as Reviewer',
+    subject: `You've been added as a reviewer on ${cr.id} — ${cr.title}`,
+    action: `Hi, ${raisedBy} has added you as a reviewer on this change request. Your review is advisory — feel free to leave a comment or concur, but it will not block the approval process.`,
+    app_url: crUrl(cr),
+  })
+
+export const emailCRNoManagerConfigured = (toEmails, cr, raisedBy) =>
+  sendEmail('cr_stage_notification', toEmails, {
+    cr_id: cr.id,
+    title: cr.title,
+    stage: 'Action Required — No Change Manager Configured',
+    subject: `Action required: ${cr.id} has no Change Manager to route to`,
+    action: `${raisedBy} submitted change request ${cr.id} ("${cr.title}"), but no Change Manager is configured for this tenant, so it cannot move forward. Go to Admin → CR Policy to assign one.`,
+    app_url: 'https://admin-facilflow.africaprudential.com',
   })
 
 export const emailUserInvitation = (toEmail, role, inviteUrl) =>
