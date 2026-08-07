@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Zap, Monitor, XCircle, Check, CheckCircle2, Wrench } from "lucide-react";
+import { Zap, Monitor, XCircle, Check, CheckCircle2, Wrench, Paperclip, ExternalLink, Lock } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
-import { CR_STATUS } from "../../constants.js";
+import { CR_STATUS, DOC_LABELS } from "../../constants.js";
 import { fmtDT, fmtD } from "../../utils.js";
 import { Av, CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
 
@@ -13,6 +13,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
   const [outcome,   setOutcome] = useState(cr.implementation_outcome||"successful");
   const [comment,   setComment] = useState("");
   const [saving,    setSaving]  = useState(false);
+  const [rejectError, setRejectError] = useState("");
 
   const myRoles   = ctx.myChangeRoles||[];
   // Change manager can approve any pending_manager CR — not just ones they were assigned to at creation
@@ -28,14 +29,20 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
   const canMgrApprove  = isMgr  && cr.status==="pending_manager";
   const canStartImpl   = isImpl && cr.status==="pending_implementation";
   const canCompleteImpl= isImpl && cr.status==="in_progress";
+  const canClose       = (isMgr||isImpl) && cr.status==="completed";
   const canReview      = isRevwr && !["rejected","completed","closed","failed"].includes(cr.status);
 
   const mgr   = users[cr.change_manager_id];
   const tech  = users[cr.initiator];
 
   const doAction = async (action, extra={}) => {
-    setSaving(true);
     const actionNote = action === "reviewer_comment" ? comment : note;
+    if(action === "reject" && !actionNote.trim()){
+      setRejectError("A reason is required to reject this change request.");
+      return;
+    }
+    setRejectError("");
+    setSaving(true);
     try { await onAction(cr.id, action, actionNote, extra); onClose(); }
     catch(e){ setSaving(false); }
   };
@@ -128,6 +135,19 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
           {cr.description&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Description</div><div style={{fontSize:13,color:C.ink,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{cr.description}</div></div>}
           {cr.rollback&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Rollback Plan</div><div style={{fontSize:13,color:C.ink,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{cr.rollback}</div></div>}
           {cr.test_evidence&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Testing Evidence</div><div style={{fontSize:13,color:C.ink,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{cr.test_evidence}</div></div>}
+          {cr.attachments?.length>0&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Supporting Documents</div>
+            {Object.entries(cr.attachments.reduce((g,f)=>{(g[f.docType||"other"]=g[f.docType||"other"]||[]).push(f);return g;},{})).map(([docType,files])=>(
+              <div key={docType} style={{marginBottom:6}}>
+                <div style={{fontSize:11,fontWeight:600,color:C.ink2,marginBottom:3}}>{DOC_LABELS[docType]||docType}</div>
+                {files.map((f,i)=>(
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.blue,padding:"2px 0",textDecoration:"none"}}>
+                    <Paperclip size={12}/>{f.name}<ExternalLink size={11}/>
+                  </a>
+                ))}
+              </div>
+            ))}
+          </div>}
           {/* Implementation feedback if completed */}
           {cr.implementation_notes&&<div style={{background:C.greenBg,border:`1px solid ${C.green}30`,borderRadius:7,padding:"12px 14px"}}>
             <div style={{fontSize:10,fontWeight:700,color:C.green,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Implementation Notes</div>
@@ -226,8 +246,8 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
       {/* Action note field */}
       {(canMgrApprove||canLevelApprove||canStartImpl||canCompleteImpl)&&tab!=="comments"&&(
         <div style={{marginTop:14}}>
-          <label style={LBL}>Note (optional)</label>
-          <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Add a note for your decision…" style={{...inp(),minHeight:52,resize:"vertical"}}/>
+          <label style={LBL}>Note {(canMgrApprove||canLevelApprove)?"— required if rejecting":"(optional)"}{rejectError&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {rejectError}</span>}</label>
+          <textarea value={note} onChange={e=>{setNote(e.target.value);if(rejectError)setRejectError("");}} placeholder="Add a note for your decision…" style={{...inp(!!rejectError),minHeight:52,resize:"vertical"}}/>
         </div>
       )}
 
@@ -266,6 +286,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
         {canCompleteImpl&&<button onClick={()=>doAction("complete_implementation",{implementationNotes:implNotes,outcome})} disabled={saving} style={{...btn("primary"),background:outcome==="failed"?C.red:C.green}}>
           {outcome==="failed"?<><XCircle size={14}/> Mark Failed</>:<><CheckCircle2 size={14}/> Mark Complete</>}
         </button>}
+        {canClose&&<button onClick={()=>doAction("close")} disabled={saving} style={{...btn("primary"),background:C.muted}}><Lock size={14}/> Close CR</button>}
       </div>
     </Modal>
   );

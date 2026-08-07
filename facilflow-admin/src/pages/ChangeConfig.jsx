@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Search, Check } from "lucide-react";
+import { Trash2, Search, Check } from "lucide-react";
 import { C, btn, inp, card } from "../theme.js";
 import { Av, Chip, Modal, PageTitle } from "../components/ui.jsx";
 import AddRoleControl from "../components/AddRoleControl.jsx";
@@ -69,7 +69,7 @@ export default function ChangeConfig({ctx}){
             {canDeleteRoles&&(
               <button type="button" onClick={()=>setConfirmDelete(r)} title="Delete role"
                 style={{...btn("ghost"),padding:"3px 7px",fontSize:11,color:C.red}}>
-                <X size={11}/>
+                <Trash2 size={11}/>
               </button>
             )}
           </div>

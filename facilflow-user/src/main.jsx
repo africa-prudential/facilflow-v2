@@ -365,9 +365,9 @@ function Root() {
   const loadProfile = async (userId) => {
     try {
       const p = await getProfile(userId)
-      if (p?.role === 'admin') {
+      if (['admin','super_admin','facility_admin','it_admin'].includes(p?.role)) {
         await supabase.auth.signOut()
-        alert('Admin users must use the Admin Console.')
+        toast.error('Admin users must use the Admin Console.')
         setLoading(false)
         return
       }
@@ -407,6 +407,7 @@ function Root() {
     <ForcePasswordChange onDone={async () => {
       const updated = await updateProfile(profile.id, { must_change_password: false })
       setProfile({ ...profile, ...updated })
+      toast.success('Password updated! Welcome to FaciliFlow.')
     }} />
   )
 

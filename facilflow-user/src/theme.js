@@ -38,5 +38,5 @@ export const card = (p=16) => ({
   borderRadius:10, padding:p, boxShadow:"0 1px 3px rgba(0,0,0,.05)",
 });
 
-export const LBL = { fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase",
+export const LBL = { fontSize:12, fontWeight:500, color:C.muted, textTransform:"none",
               letterSpacing:".07em", display:"block", marginBottom:5 };

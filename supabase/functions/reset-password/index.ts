@@ -59,7 +59,7 @@ serve(async (req) => {
     const emailResult = await emailRes.json()
     if (!emailRes.ok) {
       console.error("Resend error:", emailResult)
-      throw new Error("Failed to send reset email")
+      throw new Error(`Failed to send reset email: ${emailResult?.message || JSON.stringify(emailResult)}`)
     }
 
     return new Response(JSON.stringify({ success: true }), {

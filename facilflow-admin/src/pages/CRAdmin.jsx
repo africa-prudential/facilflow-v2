@@ -153,7 +153,7 @@ export default function CRAdmin({ctx}){
           <div><label style={LBL}>Change Type</label>
             <select value={fType} onChange={e=>resetPage(setFType)(e.target.value)} style={inp()}>
               <option value="">All Types</option>
-              {["Standard","Normal","Major","Emergency"].map(t=><option key={t} value={t}>{t}</option>)}
+              {["Standard","Normal","Emergency"].map(t=><option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div><label style={LBL}>Environment</label>
@@ -205,10 +205,10 @@ export default function CRAdmin({ctx}){
       {/* ── TABLE ── */}
       <div style={card(0)}>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
-          <TH cols={["CR ID","Title","Type","Environment","Risk","Raised By","Date Raised","Last Updated","Stage","Approval Level",""]}/>
+          <TH cols={["CR ID","Title","Type","Environment","Risk","Raised By","Date Raised","Last Updated","Stage",""]}/>
           <tbody>
             {paged.length===0&&(
-              <tr><td colSpan={11} style={{padding:"48px",textAlign:"center",color:C.muted,fontSize:13}}>
+              <tr><td colSpan={10} style={{padding:"48px",textAlign:"center",color:C.muted,fontSize:13}}>
                 {hasFilters?"No change requests match your filters.":"No change requests in the system yet."}
               </td></tr>
             )}
@@ -217,7 +217,6 @@ export default function CRAdmin({ctx}){
               const sl     = stageLabel(c);
               const ct     = c.change_type||c.changeType||"—";
               const rl     = c.risk_level||c.riskLevel||"—";
-              const levelLabel = c.status==="pending_approval"?`L${c.current_level||1}`:c.status==="pending_manager"?"Manager":c.status==="pending_implementation"||c.status==="in_progress"?"Impl":"—";
               return (
                 <tr key={c.id} onClick={()=>setDetail(c)}
                   style={{borderBottom:i<paged.length-1?`1px solid #F1F5F9`:"none",cursor:"pointer"}}>
@@ -243,7 +242,6 @@ export default function CRAdmin({ctx}){
                   <td style={{padding:"10px 14px",whiteSpace:"nowrap"}}>
                     <span style={{fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:20,background:sl.color+"18",color:sl.color}}>{sl.label}</span>
                   </td>
-                  <td style={{padding:"10px 14px",fontSize:11,fontWeight:600,color:levelLabel==="—"?C.muted:C.violet,textAlign:"center"}}>{levelLabel}</td>
                   <td style={{padding:"10px 14px",color:C.muted,fontSize:16}}>›</td>
                 </tr>
               );

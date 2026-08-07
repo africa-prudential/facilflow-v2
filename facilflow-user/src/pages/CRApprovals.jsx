@@ -5,15 +5,33 @@ import { EnvTag, RiskTag, PageTitle, TH, Empty } from "../components/ui.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function CRApprovals({ctx}){
-  const {crs,transCR,users}=ctx;
+  const {crs,advanceCR,users,myChangeRoles,approvalLevels}=ctx;
+  const myRoles = myChangeRoles||[];
   const [detail,setDetail]=useState(null);
-  const l1   = crs.filter(c=>c.status==="pending_line_manager");
-  const l2   = crs.filter(c=>c.status==="pending_secondary");
-  const emrg = crs.filter(c=>c.is_emergency&&c.status==="pending_line_manager");
+
+  const isMgr = myRoles.includes("change_manager");
+  const mgrQueue = crs.filter(c=>c.status==="pending_manager");
+  const emrg = crs.filter(c=>c.is_emergency&&c.status==="pending_manager");
+
+  // Distinct approval levels this user actually holds a role for, in order.
+  const myLevels = [...new Map(
+    (approvalLevels||[])
+      .filter(l=>myRoles.includes(l.role_key))
+      .map(l=>[`${l.level_order}:${l.role_key}`, l])
+  ).values()].sort((a,b)=>a.level_order-b.level_order);
+
+  const queues = [
+    ...(isMgr ? [{title:"Change Manager Queue", queue:mgrQueue, onApprove:id=>advanceCR(id,"approve_manager")}] : []),
+    ...myLevels.map(l=>({
+      title: `${l.name||`Level ${l.level_order}`} Queue`,
+      queue: crs.filter(c=>c.current_stage===`pending_level_${l.level_order}`),
+      onApprove: id=>advanceCR(id,"approve_level"),
+    })),
+  ];
 
   return (
     <div>
-      <PageTitle title="CR Approvals" sub="Line manager and secondary approval queues"/>
+      <PageTitle title="CR Approvals" sub="Change manager and approval-level queues"/>
       {emrg.length>0&&(
         <div style={{...card(0),border:`1.5px solid ${C.red}`,marginBottom:16}}>
           <div style={{padding:"11px 16px",background:C.redBg,borderBottom:`1px solid ${C.red}30`,fontSize:13,fontWeight:700,color:C.red,display:"flex",alignItems:"center",gap:6}}><Zap size={14}/> Emergency Changes — Immediate Action Required</div>
@@ -22,15 +40,13 @@ export default function CRApprovals({ctx}){
               <div><div style={{fontSize:13,fontWeight:700,color:C.ink}}>{c.title}</div><div style={{fontSize:11,color:C.muted}}>{c.id} · {users[c.initiator]?.name}</div></div>
               <div style={{display:"flex",gap:6}}>
                 <button onClick={()=>setDetail(c)} style={{...btn("ghost"),fontSize:11,padding:"4px 9px"}}>Details</button>
-                <button onClick={()=>transCR(c.id,"scheduled","Emergency approved")} style={{...btn("danger"),fontSize:11,padding:"4px 9px"}}><Zap size={14}/> Approve</button>
+                {isMgr&&<button onClick={()=>advanceCR(c.id,"approve_manager","Emergency approved")} style={{...btn("danger"),fontSize:11,padding:"4px 9px"}}><Zap size={14}/> Approve</button>}
               </div>
             </div>
           ))}
         </div>
       )}
-      {[{title:"L1 — Line Manager Queue",queue:l1,onApprove:id=>transCR(id,"pending_secondary","L1 approved"),onReject:id=>transCR(id,"rejected","Rejected at L1")},
-        {title:"L2 — Secondary Manager Queue",queue:l2,onApprove:id=>transCR(id,"change_review","L2 approved"),onReject:id=>transCR(id,"rejected","Rejected at L2")}
-      ].map(({title,queue,onApprove,onReject})=>(
+      {queues.map(({title,queue,onApprove})=>(
         <div key={title} style={{...card(0),marginBottom:16}}>
           <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontSize:13,fontWeight:700,color:C.ink}}>{title} ({queue.length})</div>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
@@ -48,7 +64,7 @@ export default function CRApprovals({ctx}){
                   <td style={{padding:"11px 14px"}}>
                     <div style={{display:"flex",gap:5}}>
                       <button onClick={()=>setDetail(c)}       style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>View</button>
-                      <button onClick={()=>onReject(c.id)}     style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.red,borderColor:C.red+"30"}}>Reject</button>
+                      <button onClick={()=>setDetail(c)}       style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.red,borderColor:C.red+"30"}}>Reject</button>
                       <button onClick={()=>onApprove(c.id)}    style={{...btn("success"),fontSize:11,padding:"4px 8px"}}>Approve</button>
                     </div>
                   </td>
@@ -58,8 +74,7 @@ export default function CRApprovals({ctx}){
           </table>
         </div>
       ))}
-      {detail&&<CRDetail cr={detail} onClose={()=>setDetail(null)} ctx={ctx}/>}
+      {detail&&<CRDetail cr={detail} onClose={()=>setDetail(null)} ctx={ctx} onAction={advanceCR}/>}
     </div>
   );
 }
-

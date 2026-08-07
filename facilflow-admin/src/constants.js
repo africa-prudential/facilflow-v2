@@ -39,36 +39,16 @@ let INVENTORY_SEED = [
   {id:"INV007",tenantId:"T001",name:"Whiteboard Markers",   code:"STA-005",stock:22,unit:"set",  desc:"Dry-erase markers, 4 colours per set",            category:"Writing",  lastUpdated:"2024-01-06T09:00:00"},
 ];
 
-const AUDIT_SEED = [
-  {id:"AL001",at:"2024-01-17T09:30:00",by:"U004",action:"USER_INVITED",   target:"newuser@africaprudential.com",detail:"Invitation sent to new employee"},
-  {id:"AL002",at:"2024-01-16T14:05:00",by:"U004",action:"EMERGENCY_CR",   target:"CR-000003",detail:"Emergency SSL renewal CR raised"},
-  {id:"AL003",at:"2024-01-16T10:00:00",by:"U004",action:"VEHICLE_STATUS", target:"CAR002",   detail:"Vehicle status changed to In Use"},
-  {id:"AL004",at:"2024-01-15T09:00:00",by:"U004",action:"USER_SUSPENDED", target:"U006",     detail:"User Tunde Fashola suspended"},
-  {id:"AL005",at:"2024-01-14T14:30:00",by:"U004",action:"STOCK_ADJUSTED", target:"INV001",   detail:"A4 Paper stock adjusted: 30 → 45"},
-  {id:"AL006",at:"2024-01-13T11:00:00",by:"U004",action:"DRIVER_ADDED",   target:"DRV004",   detail:"Driver Rotimi Adeleke registered"},
-  {id:"AL007",at:"2024-01-12T09:00:00",by:"U004",action:"POLICY_UPDATED", target:"CR_POLICY",detail:"CR approval policy updated for Normal changes"},
-  {id:"AL008",at:"2024-01-10T10:00:00",by:"U004",action:"CREATE_CR",      target:"CR-000001",detail:"Azure API Gateway CR created"},
-];
-
-const CR_SEED = [
-  {id:"CR-000001",title:"Azure API Gateway v2 Deployment",      initiator:"U001",createdAt:"2024-01-10T10:00:00",updatedAt:"2024-01-13T14:00:00",status:"scheduled",   changeType:"Normal",   riskLevel:"High",   environment:"Production",system:"Azure API Gateway"},
-  {id:"CR-000002",title:"Database Index Optimisation",           initiator:"U001",createdAt:"2024-01-08T08:00:00",updatedAt:"2024-01-13T10:00:00",status:"closed",      changeType:"Standard", riskLevel:"Low",    environment:"Production",system:"Core Banking DB"},
-  {id:"CR-000003",title:"EMERGENCY: SSL Certificate Renewal",   initiator:"U001",createdAt:"2024-01-16T14:00:00",updatedAt:"2024-01-16T15:00:00",status:"in_progress", changeType:"Emergency",riskLevel:"High",   environment:"Production",system:"Payment Gateway",isEmergency:true},
-  {id:"CR-000004",title:"MFA Rollout – Staff Portal",            initiator:"U001",createdAt:"2024-01-14T11:00:00",updatedAt:"2024-01-15T09:00:00",status:"change_review",changeType:"Normal",  riskLevel:"Medium", environment:"Production",system:"Staff Portal"},
-  {id:"CR-000005",title:"Network Switch Firmware Upgrade",       initiator:"U005",createdAt:"2024-01-17T09:00:00",updatedAt:"2024-01-17T09:30:00",status:"pending_line_manager",changeType:"Normal",riskLevel:"Medium",environment:"Production",system:"Network Infra"},
-];
-
 // ── STATUS / META ──────────────────────────────────────────────
 
 export const CR_STATUS = {
   draft:{label:"Draft",color:C.muted,bg:"#F8FAFC"},
-  pending_line_manager:{label:"Pending L1",color:C.amber,bg:C.amberBg},
-  pending_secondary:{label:"Pending L2",color:C.orange,bg:C.orangeBg},
-  change_review:{label:"In Review",color:C.violet,bg:C.violetBg},
-  scheduled:{label:"Scheduled",color:C.blue,bg:C.blueBg},
+  pending_manager:{label:"Submitted",color:C.amber,bg:C.amberBg},
+  pending_approval:{label:"Pending Approval",color:C.orange,bg:C.orangeBg},
+  pending_implementation:{label:"Scheduled",color:C.blue,bg:C.blueBg},
   in_progress:{label:"In Progress",color:C.teal,bg:C.tealBg},
   completed:{label:"Completed",color:C.green,bg:C.greenBg},
-  post_review:{label:"Post Review",color:C.violet,bg:C.violetBg},
+  failed:{label:"Failed",color:C.red,bg:C.redBg},
   closed:{label:"Closed",color:C.muted,bg:"#F8FAFC"},
   rejected:{label:"Rejected",color:C.red,bg:C.redBg},
 };
@@ -120,14 +100,15 @@ export const TICKET_PRIORITY = { critical:{label:"Critical",color:C.red,bg:C.red
 
 export const ASSET_STATUS = { new:{label:"New",color:C.violet,bg:C.violetBg}, in_store:{label:"In Store",color:C.teal,bg:C.tealBg}, available:{label:"Available",color:C.green,bg:C.greenBg}, assigned:{label:"Assigned",color:C.blue,bg:C.blueBg}, in_repair:{label:"In Repair",color:C.amber,bg:C.amberBg}, condemned:{label:"Condemned",color:C.red,bg:C.redBg}, bidded:{label:"Bidded",color:C.orange,bg:C.orangeBg}, retired:{label:"Retired",color:C.muted,bg:C.surface}, lost:{label:"Lost",color:C.red,bg:C.redBg} };
 
-import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell } from "lucide-react";
+import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell, Building2 } from "lucide-react";
 
 export const NAV = [
   {group:"Overview", roles:["super_admin","facility_admin","it_admin"], items:[
     {k:"dashboard",  l:"Dashboard",        icon:LayoutDashboard},
   ]},
   {group:"People & Access", roles:["super_admin"], items:[
-    {k:"users",      l:"User Management",  icon:User},
+    {k:"users",       l:"User Management", icon:User},
+    {k:"departments", l:"Departments",     icon:Building2},
   ]},
   {group:"Facilities", roles:["super_admin","facility_admin"], items:[
     {k:"requests",   l:"Facility Requests",icon:ClipboardList},

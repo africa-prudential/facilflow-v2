@@ -4,11 +4,11 @@ import { fmtD } from "../utils.js";
 import { CRChip, EnvTag, TH, Empty } from "../components/ui.jsx";
 
 export default function Dashboard({ctx,setPage}){
-  const {me,uid,reqs,crs,users}=ctx;
+  const {me,uid,reqs,crs,users,hasChangeMgmtAccess}=ctx;
   const mine     = reqs.filter(r=>r.submitted_by===uid);
   const myCRs    = crs.filter(c=>c.initiator===uid);
   const pending  = crs.filter(c=>["pending_line_manager","pending_secondary"].includes(c.status));
-  const scheduled= crs.filter(c=>c.status==="scheduled");
+  const scheduled= crs.filter(c=>c.status==="pending_implementation");
 
   const StatBox=({v,label,color})=>(
     <div style={{background:"rgba(255,255,255,.18)",borderRadius:8,padding:"10px 16px",minWidth:90}}>
@@ -40,15 +40,15 @@ export default function Dashboard({ctx,setPage}){
         </div>
         <div style={{display:"flex",gap:12,marginTop:18,flexWrap:"wrap"}}>
           <StatBox v={mine.length}      label="My Requests"/>
-          <StatBox v={myCRs.length}     label="My Change Reqs"/>
-          <StatBox v={scheduled.length} label="Scheduled Deploys"/>
+          {hasChangeMgmtAccess&&<StatBox v={myCRs.length}     label="My Change Reqs"/>}
+          {hasChangeMgmtAccess&&<StatBox v={scheduled.length} label="Scheduled Deploys"/>}
           {(me.role==="manager")&&<StatBox v={pending.length} label="Awaiting My Approval"/>}
         </div>
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"1.6fr 1fr",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:hasChangeMgmtAccess?"1.6fr 1fr":"1fr",gap:16}}>
         {/* Recent CRs */}
-        <div style={card(0)}>
+        {hasChangeMgmtAccess&&<div style={card(0)}>
           <div style={{padding:"14px 16px",borderBottom:`1px solid ${C.border}`,
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <span style={{fontSize:14,fontWeight:700,color:C.ink}}>Recent Change Requests</span>
@@ -76,7 +76,7 @@ export default function Dashboard({ctx,setPage}){
               </tbody>
             </table>
           )}
-        </div>
+        </div>}
 
         {/* Right panel */}
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -84,10 +84,10 @@ export default function Dashboard({ctx,setPage}){
           <div style={{...card(16)}}>
             <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:12}}>Quick Actions</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              <button onClick={()=>setPage("change_requests")} style={{...btn("primary"),justifyContent:"flex-start",fontSize:12,width:"100%"}}><RefreshCw size={14}/> Raise Change Request</button>
+              {hasChangeMgmtAccess&&<button onClick={()=>setPage("change_requests?new=1")} style={{...btn("primary"),justifyContent:"flex-start",fontSize:12,width:"100%"}}><RefreshCw size={14}/> Raise Change Request</button>}
               {(me.role==="employee"||me.role==="manager")&&<>
-                <button onClick={()=>setPage("my_requests")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Car size={14}/> Pool Car Request</button>
-                <button onClick={()=>setPage("my_requests")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Pencil size={14}/> Stationery Request</button>
+                <button onClick={()=>setPage("my_requests?open=car")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Car size={14}/> Pool Car Request</button>
+                <button onClick={()=>setPage("my_requests?open=stat")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",border:`1px solid ${C.border}`}}><Pencil size={14}/> Stationery Request</button>
               </>}
               {me.role==="manager"&&pending.length>0&&(
                 <button onClick={()=>setPage("cr_approvals")} style={{...btn("flat"),justifyContent:"flex-start",fontSize:12,width:"100%",background:C.amberBg,color:C.amber,border:`1px solid ${C.amber}30`,display:"flex",alignItems:"center",gap:6}}>
@@ -97,7 +97,7 @@ export default function Dashboard({ctx,setPage}){
             </div>
           </div>
           {/* Upcoming */}
-          <div style={{...card(16)}}>
+          {hasChangeMgmtAccess&&<div style={{...card(16)}}>
             <div style={{fontSize:13,fontWeight:700,color:C.ink,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Calendar size={14}/> Upcoming Deployments</div>
             {scheduled.slice(0,3).map((c,i)=>(
               <div key={c.id} style={{padding:"8px 0",borderBottom:i<2?`1px solid ${C.border}`:"none"}}>
@@ -106,7 +106,7 @@ export default function Dashboard({ctx,setPage}){
               </div>
             ))}
             {scheduled.length===0&&<div style={{fontSize:12,color:C.muted}}>No deployments scheduled</div>}
-          </div>
+          </div>}
         </div>
       </div>
     </div>

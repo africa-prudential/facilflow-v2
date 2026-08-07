@@ -1,22 +1,21 @@
 import { useState } from "react";
-import { Calendar, Check, CheckCircle2 } from "lucide-react";
+import { Wrench, Check, CheckCircle2, Lock } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { EnvTag, RiskTag, PageTitle, TH, Empty } from "../components/ui.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function CRReview({ctx}){
-  const {crs,transCR,users}=ctx;
+  const {crs,advanceCR,users,myChangeRoles}=ctx;
+  const isImpl = (myChangeRoles||[]).includes("change_implementer");
   const [detail,setDetail]=useState(null);
   const sections=[
-    {title:"Change Review Queue",s:"change_review",
-      action:c=><><button onClick={()=>transCR(c.id,"pending_line_manager","Sent back")} style={{...btn("ghost"),fontSize:11,padding:"4px 8px"}}>↩ Back</button><button onClick={()=>transCR(c.id,"scheduled","Approved for scheduling")} style={{...btn("violet"),fontSize:11,padding:"4px 8px"}}><Calendar size={14}/> Schedule</button></>},
-    {title:"Scheduled",s:"scheduled",
-      action:c=><button onClick={()=>transCR(c.id,"in_progress","Deployment started")} style={{...btn("primary"),fontSize:11,padding:"4px 8px"}}>▶ Start</button>},
-    {title:"In Progress",s:"in_progress",
-      action:c=><button onClick={()=>transCR(c.id,"completed","Implementation completed")} style={{...btn("success"),fontSize:11,padding:"4px 8px"}}><Check size={14}/> Complete</button>},
-    {title:"Post Review Due",s:"post_review",
-      action:c=><button onClick={()=>setDetail(c)} style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.violet,borderColor:C.violet+"40"}}>Review →</button>},
+    {title:"Pending Implementation", s:"pending_implementation",
+      action:c=>isImpl?<button onClick={()=>advanceCR(c.id,"start_implementation","Implementation started")} style={{...btn("primary"),fontSize:11,padding:"4px 8px"}}><Wrench size={14}/> Start</button>:null},
+    {title:"In Progress", s:"in_progress",
+      action:c=>isImpl?<button onClick={()=>setDetail(c)} style={{...btn("success"),fontSize:11,padding:"4px 8px"}}><Check size={14}/> Complete</button>:null},
+    {title:"Completed — Ready to Close", s:"completed",
+      action:c=>isImpl?<button onClick={()=>advanceCR(c.id,"close","Change closed")} style={{...btn("ghost"),fontSize:11,padding:"4px 8px",color:C.muted}}><Lock size={14}/> Close</button>:null},
   ];
   return (
     <div>
@@ -50,7 +49,7 @@ export default function CRReview({ctx}){
           </div>
         );
       })}
-      {detail&&<CRDetail cr={detail} onClose={()=>setDetail(null)} ctx={ctx}/>}
+      {detail&&<CRDetail cr={detail} onClose={()=>setDetail(null)} ctx={ctx} onAction={advanceCR}/>}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { supabase } from "./lib/supabase.js";
-import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories } from "./lib/supabase.js";
+import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories, fetchDepartments, fetchDepartmentModules } from "./lib/supabase.js";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { C, btn } from "./theme.js";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import AdminDash from "./pages/AdminDash.jsx";
 import RequestsMgmt from "./pages/RequestsMgmt.jsx";
 import UserMgmt from "./pages/UserMgmt.jsx";
+import Departments from "./pages/Departments.jsx";
 import FleetMgmt from "./pages/FleetMgmt.jsx";
 import DriverRoster from "./pages/DriverRoster.jsx";
 import InventoryMgmt from "./pages/InventoryMgmt.jsx";
@@ -37,6 +38,8 @@ export default function AdminApp({ currentUser }){
   const [changeRoles,   setChangeRoles]   = useState([]);
   const [userCRoles,    setUserCRoles]    = useState([]);
   const [approvalLevels,setApprovalLevels]= useState([]);
+  const [departments,   setDepartments]   = useState([]);
+  const [departmentModules, setDepartmentModules] = useState([]);
   const [tenantConfig,  setTenantConfig]  = useState(null);
   const [vehicleDocs, setVehicleDocs] = useState([]);
   const [subscriptions, setSubs]      = useState([]);
@@ -97,6 +100,15 @@ export default function AdminApp({ currentUser }){
       setApprovalLevels(al2||[]);
       setTenantConfig(tc);
     }).catch(e=>console.warn("Change config load:", e.message));
+
+    // Load departments & module entitlements (non-fatal)
+    Promise.all([
+      fetchDepartments(tid),
+      fetchDepartmentModules(tid),
+    ]).then(([dep,depMods])=>{
+      setDepartments(dep||[]);
+      setDepartmentModules(depMods||[]);
+    }).catch(e=>console.warn("Department config load:", e.message));
   },[tid]);
 
   const flash = useCallback((msg,type="success")=>{
@@ -145,6 +157,8 @@ export default function AdminApp({ currentUser }){
     changeRoles, setChangeRoles,
     userCRoles, setUserCRoles,
     approvalLevels, setApprovalLevels,
+    departments, setDepartments,
+    departmentModules, setDepartmentModules,
     tenantConfig, setTenantConfig,
     vehicleDocs, setVehicleDocs,
     subscriptions, setSubs,
@@ -222,6 +236,7 @@ export default function AdminApp({ currentUser }){
             <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
             <Route path="/dashboard" element={<AdminDash ctx={ctx} setPage={setPage}/>}/>
             <Route path="/users" element={hasAdminAccess(me,["super_admin"]) ? <UserMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/departments" element={hasAdminAccess(me,["super_admin"]) ? <Departments ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/requests" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <RequestsMgmt ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/fleet" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <FleetMgmt ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/drivers" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <DriverRoster ctx={ctx}/> : <AccessDenied/>}/>

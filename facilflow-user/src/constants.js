@@ -1,16 +1,24 @@
 import { C } from "./theme.js";
 
 export const CR_STATUS = {
-  draft:                {label:"Draft",              color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
-  pending_line_manager: {label:"Pending L1",         color:C.amber,  bg:C.amberBg,   dot:C.amber},
-  pending_secondary:    {label:"Pending L2",         color:C.orange, bg:C.orangeBg,  dot:C.orange},
-  change_review:        {label:"In Review",          color:C.violet, bg:C.violetBg,  dot:C.violet},
-  scheduled:            {label:"Scheduled",          color:C.blue,   bg:C.blueBg,    dot:C.blue},
-  in_progress:          {label:"In Progress",        color:C.teal,   bg:C.tealBg,    dot:C.teal},
-  completed:            {label:"Completed",          color:C.green,  bg:C.greenBg,   dot:C.green},
-  post_review:          {label:"Post Review",        color:C.violet, bg:C.violetBg,  dot:C.violet},
-  closed:               {label:"Closed",             color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
-  rejected:             {label:"Rejected",           color:C.red,    bg:C.redBg,     dot:C.red},
+  draft:                   {label:"Draft",              color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
+  pending_manager:         {label:"Submitted",          color:C.amber,  bg:C.amberBg,   dot:C.amber},
+  pending_approval:        {label:"Pending Approval",   color:C.orange, bg:C.orangeBg,  dot:C.orange},
+  pending_implementation:  {label:"Scheduled",          color:C.blue,   bg:C.blueBg,    dot:C.blue},
+  in_progress:             {label:"In Progress",        color:C.teal,   bg:C.tealBg,    dot:C.teal},
+  completed:               {label:"Completed",          color:C.green,  bg:C.greenBg,   dot:C.green},
+  failed:                  {label:"Failed",             color:C.red,    bg:C.redBg,     dot:C.red},
+  closed:                  {label:"Closed",             color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
+  rejected:                {label:"Rejected",           color:C.red,    bg:C.redBg,     dot:C.red},
+};
+
+export const CR_CATEGORIES = ["New Feature","Enhancement","Fix"];
+export const CR_MODULES = ["Greenpole","Sabivest","Other"];
+export const DOC_LABELS = {
+  uat_signoff:      "UAT Sign-off Form",
+  test_scripts:     "Test Scripts",
+  user_concurrence: "User Concurrence",
+  other:            "Other Supporting Documents",
 };
 
 export const REQ_STATUS = {

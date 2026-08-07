@@ -197,6 +197,79 @@ export const removeChangeRole = async (userId, roleKey) => {
   if (error) throw error
 }
 
+// ── DEPARTMENTS & MODULE ENTITLEMENTS ───────────────────────
+
+export const fetchDepartments = async (tenantId) => {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('name')
+  if (error) throw error
+  return data
+}
+
+export const createDepartment = async (name, tenantId, description) => {
+  const { data, error } = await supabase
+    .from('departments')
+    .insert([{ name, tenant_id: tenantId, description: description || null }])
+    .select().single()
+  if (error) throw error
+  return data
+}
+
+// Renames a department and cascades the new name to every user whose `dept`
+// still matches the old name — dept is stored as plain text on users, not a
+// foreign key, so a rename that skips this step silently breaks entitlement
+// lookups (hasChangeMgmtAccess matches by name) for every user in it.
+export const renameDepartment = async (id, oldName, newName, description, tenantId) => {
+  const { data, error } = await supabase
+    .from('departments')
+    .update({ name: newName, description: description || null })
+    .eq('id', id)
+    .select().single()
+  if (error) throw error
+  if (newName !== oldName) {
+    const { error: userErr } = await supabase
+      .from('users')
+      .update({ dept: newName })
+      .eq('dept', oldName)
+      .eq('tenant_id', tenantId)
+    if (userErr) throw userErr
+  }
+  return data
+}
+
+export const deleteDepartment = async (id) => {
+  const { error } = await supabase.from('departments').delete().eq('id', id)
+  if (error) throw error
+}
+
+export const fetchDepartmentModules = async (tenantId) => {
+  const { data, error } = await supabase
+    .from('department_modules')
+    .select('*')
+    .eq('tenant_id', tenantId)
+  if (error) throw error
+  return data
+}
+
+export const setDepartmentModule = async (departmentId, moduleKey, enabled, tenantId) => {
+  if (enabled) {
+    const { error } = await supabase
+      .from('department_modules')
+      .insert([{ department_id: departmentId, module_key: moduleKey, tenant_id: tenantId }])
+    if (error) throw error
+  } else {
+    const { error } = await supabase
+      .from('department_modules')
+      .delete()
+      .eq('department_id', departmentId)
+      .eq('module_key', moduleKey)
+    if (error) throw error
+  }
+}
+
 export const fetchApprovalLevels = async (tenantId) => {
   const { data, error } = await supabase
     .from('change_approval_levels')

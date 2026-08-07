@@ -4,7 +4,7 @@ import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../../constants.
 import { getAdminRoles } from "../../utils.js";
 import { Chip, Modal } from "../../components/ui.jsx";
 
-export default function EditUserModal({user,onClose,onSave}){
+export default function EditUserModal({user,onClose,onSave,departments}){
   const isAdminUser = ADMIN_ROLE_TYPES.includes(user.role) || user.role==="admin";
   const initialAdminRoles = isAdminUser ? getAdminRoles(user) : [];
 
@@ -105,7 +105,8 @@ export default function EditUserModal({user,onClose,onSave}){
         <div>
           <label style={LBL}>Department</label>
           <select value={dept} onChange={e=>setDept(e.target.value)} style={inp()}>
-            {["Finance","HR","IT","Operations","Legal","Facilities","Compliance"].map(dep=><option key={dep} value={dep}>{dep}</option>)}
+            {!(departments||[]).some(d=>d.name===dept) && dept && <option value={dept}>{dept}</option>}
+            {(departments||[]).map(d=><option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
         </div>
       </div>

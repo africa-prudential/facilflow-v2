@@ -13,14 +13,14 @@ function generatePassword(length = 12) {
   return Array.from(bytes, n => PASSWORD_CHARS[n % PASSWORD_CHARS.length]).join("");
 }
 
-export default function InviteModal({onClose,onInvite}){
+export default function InviteModal({onClose,onInvite,departments}){
   const [firstName,  setFirstName] = useState("");
   const [lastName,   setLastName]  = useState("");
   const [email,      setEmail]     = useState("");
   const [roleType,   setRoleType]  = useState("staff"); // "staff" | "admin"
   const [staffRole,  setStaffRole] = useState("employee");
   const [adminRoles, setAdminRoles]= useState(["facility_admin"]);
-  const [dept,       setDept]      = useState("Finance");
+  const [dept,       setDept]      = useState(() => (departments||[])[0]?.name || "");
   const [password,   setPass]      = useState(() => generatePassword());
   const [showPass,   setShowPass]  = useState(false);
   const [err,        setErr]       = useState("");
@@ -111,7 +111,7 @@ export default function InviteModal({onClose,onInvite}){
           <div>
             <label style={LBL}>Department</label>
             <select value={dept} onChange={e=>setDept(e.target.value)} style={inp()}>
-              {["Finance","HR","IT","Operations","Legal","Facilities","Compliance"].map(d=><option key={d} value={d}>{d}</option>)}
+              {(departments||[]).map(d=><option key={d.id} value={d.name}>{d.name}</option>)}
             </select>
           </div>
           <div/>
