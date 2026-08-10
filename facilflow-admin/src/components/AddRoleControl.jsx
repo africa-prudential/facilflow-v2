@@ -3,6 +3,9 @@ import { C, btn, inp, LBL } from "../theme.js";
 import { Modal } from "./ui.jsx";
 import { createChangeRole, updateChangeRole } from "../lib/supabase.js";
 
+const slugify = (label) =>
+  label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+
 export default function AddRoleControl({
   changeRoles,
   setChangeRoles,
@@ -36,10 +39,10 @@ export default function AddRoleControl({
         flash("Role updated");
         onSaved?.(saved);
       } else {
-        const n =
-          (changeRoles || []).filter(r => /^change_approver_l\d+$/.test(r.key))
-            .length + 1;
-        const key = `change_approver_l${n}`;
+        const base = slugify(trimmed) || "role";
+        const existingKeys = new Set((changeRoles || []).map(r => r.key));
+        let key = base, i = 2;
+        while (existingKeys.has(key)) key = `${base}_${i++}`;
         const saved = await createChangeRole(key, trimmed);
         setChangeRoles(p => [...(p || []), saved]);
         flash("Role created");

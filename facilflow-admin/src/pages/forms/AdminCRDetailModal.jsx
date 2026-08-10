@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock, Paperclip, ExternalLink, ShieldAlert } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
-import { fmtDT, fmtD, now, isSuperAdmin } from "../../utils.js";
+import { fmtDT, fmtD, now, isSuperAdmin, humanize } from "../../utils.js";
 import { CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
 import { updateCR } from "../../lib/supabase.js";
 
@@ -98,7 +98,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       }
       else if(action==="approve_manager"){
         if(levels.length>0){
-          nextStatus="pending_approval"; nextStage="pending_level_1"; nextLevel=1;
+          nextStatus="pending_approval"; nextStage=`pending_level_${levels[0].level}`; nextLevel=levels[0].level;
           newHistory.push({s:"pending_approval",at:iso,by:uid,label:"Approved by Change Manager",note});
         } else {
           nextStatus="pending_implementation"; nextStage="pending_implementation";
@@ -106,10 +106,10 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
         }
       }
       else if(action==="approve_level"){
-        const curIdx = (cr.current_level||1)-1;
+        const curIdx = levels.findIndex(l=>l.level===cr.current_level);
         updatedLevels = levels.map((l,i)=>i===curIdx?{...l,status:"approved",approver_id:uid,approved_at:iso,note}:l);
         newHistory.push({s:`level_${cr.current_level}_approved`,at:iso,by:uid,label:`Level ${cr.current_level} Approved`,note});
-        const nextLvl = levels[curIdx+1];
+        const nextLvl = curIdx>=0 ? levels[curIdx+1] : undefined;
         if(nextLvl){ nextStatus="pending_approval"; nextStage=`pending_level_${nextLvl.level}`; nextLevel=nextLvl.level; }
         else { nextStatus="pending_implementation"; nextStage="pending_implementation"; }
         extra.level_approvals=updatedLevels;
@@ -269,7 +269,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
           {(cr.history||[]).map((h,i)=>(
             <div key={i} style={{position:"relative",marginBottom:12}}>
               <div style={{position:"absolute",left:-16,width:10,height:10,borderRadius:"50%",background:C.brand,border:"2px solid #fff",top:2}}/>
-              <div style={{fontSize:11,fontWeight:600,color:C.ink,textTransform:"capitalize"}}>{(h.label||h.s).replace(/_/g," ")}</div>
+              <div style={{fontSize:11,fontWeight:600,color:C.ink}}>{humanize(h.label||h.s)}</div>
               <div style={{fontSize:10,color:C.muted}}>{fmtDT(h.at)} · {uniqueUsers.find(u=>u.id===h.by)?.name||"System"}</div>
               {h.note&&<div style={{fontSize:11,color:C.muted,fontStyle:"italic",marginTop:1}}>"{h.note}"</div>}
             </div>

@@ -39,6 +39,11 @@ export const hasAdminAccess = (user, roles) => {
 
 export const isSuperAdmin = (user) => getAdminRoles(user).includes("super_admin");
 
+// Turns a raw snake_case/SCREAMING_SNAKE identifier (status, role, audit
+// action, etc.) into a consistent "Title Case" label, regardless of the
+// source string's own casing convention.
+export const humanize = s => !s ? "" : String(s).toLowerCase().replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+
 export const fmtDT = d => new Date(d).toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
 export const fmtD  = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 export const genId = p => `${p}${Date.now()}${Math.random().toString(36).slice(2,5)}`;

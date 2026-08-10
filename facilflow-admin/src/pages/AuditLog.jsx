@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { ClipboardList } from "lucide-react";
 import { C, btn, card } from "../theme.js";
-import { fmtDT } from "../utils.js";
+import { fmtDT, humanize } from "../utils.js";
 import { PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
 
 export default function AuditLog({ctx}){
-  const {audit}=ctx;
+  const {audit,users}=ctx;
   const [f,setF]=useState({});
   const [page,setPage]    = useState(1);
   const [pageSize,setPageSize] = useState(20);
@@ -30,11 +30,11 @@ export default function AuditLog({ctx}){
               <tr key={a.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                 <td style={{padding:"10px 14px",fontSize:11,color:C.muted,whiteSpace:"nowrap"}}>{fmtDT(a.at)}</td>
                 <td style={{padding:"10px 14px"}}>
-                  <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:4,background:actColor(a.action)+"14",color:actColor(a.action),letterSpacing:".02em"}}>{a.action}</span>
+                  <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:4,background:actColor(a.action)+"14",color:actColor(a.action),letterSpacing:".02em"}}>{humanize(a.action)}</span>
                 </td>
                 <td style={{padding:"10px 14px",fontSize:12,color:C.ink,fontWeight:600}}>{a.target}</td>
                 <td style={{padding:"10px 14px",fontSize:12,color:C.muted}}>{a.detail}</td>
-                <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>Oluwaseun Balogun</td>
+                <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{users.find(u=>u.id===a.by)?.name||"System"}</td>
               </tr>
             ))}
           </tbody>

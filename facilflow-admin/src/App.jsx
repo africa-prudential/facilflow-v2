@@ -1,5 +1,5 @@
 import { supabase } from "./lib/supabase.js";
-import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories, fetchDepartments, fetchDepartmentModules } from "./lib/supabase.js";
+import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories, fetchDepartments, fetchDepartmentModules, fetchTenants } from "./lib/supabase.js";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { C, btn } from "./theme.js";
@@ -39,6 +39,7 @@ export default function AdminApp({ currentUser }){
   const [changeRoles,   setChangeRoles]   = useState([]);
   const [userCRoles,    setUserCRoles]    = useState([]);
   const [approvalLevels,setApprovalLevels]= useState([]);
+  const [tenants,    setTenants]  = useState([]);
   const [departments,   setDepartments]   = useState([]);
   const [departmentModules, setDepartmentModules] = useState([]);
   const [tenantConfig,  setTenantConfig]  = useState(null);
@@ -64,7 +65,8 @@ export default function AdminApp({ currentUser }){
       fetchRequests(tid),
       fetchCRs(tid),
       fetchAuditLog(tid),
-    ]).then(([u,v,d,inv,reqs,cr,al])=>{
+      fetchTenants(tid),
+    ]).then(([u,v,d,inv,reqs,cr,al,tn])=>{
       setUsers(u||[]);
       setVehicles((v||[]).map(normVeh));
       setDrivers((d||[]).map(normDrv));
@@ -72,6 +74,7 @@ export default function AdminApp({ currentUser }){
       setRequests(reqs||[]);
       setCrs((cr||[]).map(normCR));
       setAudit((al||[]).map(normAudit));
+      setTenants(tn||[]);
     }).catch(console.error)
     .finally(()=>setLoading(false));
 
@@ -158,6 +161,7 @@ export default function AdminApp({ currentUser }){
     changeRoles, setChangeRoles,
     userCRoles, setUserCRoles,
     approvalLevels, setApprovalLevels,
+    tenants, setTenants,
     departments, setDepartments,
     departmentModules, setDepartmentModules,
     tenantConfig, setTenantConfig,

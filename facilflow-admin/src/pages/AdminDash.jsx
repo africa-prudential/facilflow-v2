@@ -1,11 +1,11 @@
 import { Users, Car, ClipboardList, Zap, AlertTriangle, Info, RefreshCw } from "lucide-react";
 import { C, btn, card } from "../theme.js";
-import { TENANTS, VEHICLE_STATUSES, ADMIN_ROLE_META } from "../constants.js";
+import { VEHICLE_STATUSES, ADMIN_ROLE_META } from "../constants.js";
 import { hasAdminAccess, isSuperAdmin } from "../utils.js";
 import { Chip, CRChip, EnvTag, PageTitle, TH, StatCard } from "../components/ui.jsx";
 
 export default function AdminDash({ctx,setPage}){
-  const {me,users,vehicles,drivers,inventory,crs,requests,adminRoles}=ctx;
+  const {me,users,vehicles,drivers,inventory,crs,requests,adminRoles,tenants}=ctx;
   const activeUsers   = users.filter(u=>u.status==="active").length;
   const availVeh      = vehicles.filter(v=>v.status==="available").length;
   const lowStock      = inventory.filter(i=>i.stock<5).length;
@@ -99,12 +99,12 @@ export default function AdminDash({ctx,setPage}){
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <TH cols={["Tenant","Domain","Plan","Users","Status"]}/>
             <tbody>
-              {TENANTS.map((t,i)=>(
-                <tr key={t.id} style={{borderBottom:i<TENANTS.length-1?`1px solid #FAFAFA`:"none"}}>
+              {(tenants||[]).map((t,i)=>(
+                <tr key={t.id} style={{borderBottom:i<tenants.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"11px 14px",fontSize:13,fontWeight:700,color:C.ink}}>{t.name}</td>
                   <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{t.domain}</td>
                   <td style={{padding:"11px 14px"}}><Chip label={t.plan} color={C.blue} bg={C.blueBg}/></td>
-                  <td style={{padding:"11px 14px",fontSize:13,color:C.ink}}>{t.users}</td>
+                  <td style={{padding:"11px 14px",fontSize:13,color:C.ink}}>{users.filter(u=>u.tenant_id===t.id).length}</td>
                   <td style={{padding:"11px 14px"}}><Chip label={t.status==="active"?"Active":"Inactive"} color={t.status==="active"?C.green:C.muted} bg={t.status==="active"?C.greenBg:"#F8FAFC"}/></td>
                 </tr>
               ))}
