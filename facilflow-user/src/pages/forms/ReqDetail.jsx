@@ -12,9 +12,9 @@ export default function ReqDetail({req,onClose,ctx}){
   const drvList = Array.isArray(ctx.drivers)  ? ctx.drivers  : (ctx.drivers?.data  || []);
   const [note,setNote]=useState("");
   const [tab,setTab]=useState("details");
-  const canApprove  = me.role==="manager"       && req.status==="pending_approval";
-  const canProcess  = me.role==="resource_team" && req.status==="approved";
-  const canComplete = me.role==="resource_team" && req.status==="in_progress";
+  const canApprove  = me.role==="line_manager" && req.status==="pending_approval";
+  const canProcess  = me.is_facility_ops      && req.status==="approved";
+  const canComplete = me.is_facility_ops      && req.status==="in_progress";
 
   const assignedVeh = req.assigned_vehicle ? vehList.find(v=>v.id===req.assigned_vehicle) : null;
   const assignedDrv = req.assigned_driver  ? drvList.find(d=>d.id===req.assigned_driver)  : null;

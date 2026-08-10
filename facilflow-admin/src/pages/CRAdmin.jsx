@@ -77,6 +77,7 @@ export default function CRAdmin({ctx}){
   const clearAll=()=>{ setSearch("");setFStatus("");setFType("");setFEnv("");setFRisk("");setFUser("");setFOutcome("");setFFrom("");setFTo("");setActiveCard("");setPage(1); };
 
   const stageLabel=c=>{
+    if(c.status==="pending_line_manager")   return {label:"Awaiting Line Manager", color:C.orange};
     if(c.status==="pending_manager")        return {label:"Awaiting Manager",   color:C.amber};
     if(c.status==="pending_approval")       return {label:`Level ${c.current_level||1} Approval`,color:C.violet};
     if(c.status==="pending_implementation") return {label:"Ready to Implement", color:C.blue};
@@ -143,6 +144,7 @@ export default function CRAdmin({ctx}){
           <div><label style={LBL}>Status / Stage</label>
             <select value={fStatus} onChange={e=>resetPage(setFStatus)(e.target.value)} style={inp()}>
               <option value="">All Statuses</option>
+              <option value="pending_line_manager">Pending Line Manager</option>
               <option value="pending_manager">Pending Manager</option>
               <option value="pending_approval">Pending Approval</option>
               <option value="implementation">In Implementation</option>

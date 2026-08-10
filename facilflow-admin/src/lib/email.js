@@ -34,26 +34,6 @@ export const emailCRSubmitted = (toEmails, cr, raisedBy) =>
     app_url: APP_URL,
   })
 
-export const emailCRApproved = (toEmails, cr, approver, stage, comment, nextStep) =>
-  sendEmail('cr_approved', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    approver,
-    stage,
-    comment,
-    next_step: nextStep,
-    app_url: APP_URL,
-  })
-
-export const emailCRRejected = (toEmails, cr, approver, reason) =>
-  sendEmail('cr_rejected', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    approver,
-    reason,
-    app_url: APP_URL,
-  })
-
 export const emailCRScheduled = (toEmails, cr) =>
   sendEmail('cr_scheduled', toEmails, {
     cr_id: cr.id,

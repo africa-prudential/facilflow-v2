@@ -18,7 +18,7 @@ import {
   fetchDepartments, fetchDepartmentModules,
   APP_URL,
 } from "./lib/supabase.js";
-import { emailCRSubmitted, emailCRApproved, emailCRRejected, emailCRScheduled, emailCRReviewerAdded, emailCRNoManagerConfigured, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
+import { emailCRSubmitted, emailCRScheduled, emailCRReviewerAdded, emailCRLineManagerReview, emailCRNoManagerConfigured, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
 import { CR_STATUS, NAV_GROUPS } from "./constants.js";
 import { fmtDT, normCR, normReq } from "./utils.js";
@@ -201,13 +201,19 @@ export default function UserApp({ currentUser }){
         note:"",
       }));
 
+      // Departments with a line manager get an extra first-line review stage
+      const raiserDept = users[uid]?.dept;
+      const deptLineManagers = Object.values(users||{}).filter(u=>u.dept===raiserDept && u.role==="line_manager");
+      const startsWithLineManager = deptLineManagers.length > 0;
+      const initialStatus = startsWithLineManager ? "pending_line_manager" : "pending_manager";
+
       const rec = {
         id,
         tenant_id:        tenantId,
         title:            data.title,
         initiator:        uid,
-        status:           "pending_manager",
-        current_stage:    "pending_manager",
+        status:           initialStatus,
+        current_stage:    initialStatus,
         current_level:    0,
         change_manager_id: managerId,
         reviewer_ids:     data.reviewerIds||[],
@@ -226,8 +232,10 @@ export default function UserApp({ currentUser }){
         level_approvals:  levelStages,
         reviewer_comments:[],
         history:[
-          {s:"draft",            at:iso, by:uid, label:"Draft created"},
-          {s:"pending_manager",  at:iso, by:uid, label:"Submitted to Change Manager"},
+          {s:"draft", at:iso, by:uid, label:"Draft created"},
+          startsWithLineManager
+            ? {s:"pending_line_manager", at:iso, by:uid, label:"Submitted to Line Manager"}
+            : {s:"pending_manager",      at:iso, by:uid, label:"Submitted to Change Manager"},
         ],
         attachments:      data.attachments||[],
         comments:[],
@@ -250,6 +258,21 @@ export default function UserApp({ currentUser }){
             if(reviewerEmailResult?.error) flash(`Reviewer notification failed: ${reviewerEmailResult.error.message}`, "error");
           }
         } catch(re){ console.warn("Reviewer notification skipped:", re.message); }
+      }
+
+      // Notify department line managers — independent of Change Manager config,
+      // this stage happens before the CR ever reaches the Change Manager.
+      if(startsWithLineManager){
+        try {
+          const raiserName = users[uid]?.name || "A team member";
+          const lineManagerEmails = deptLineManagers.map(u=>u.email).filter(Boolean);
+          if(lineManagerEmails.length){
+            const lmEmailResult = await emailCRLineManagerReview(lineManagerEmails, rec, raiserName);
+            if(lmEmailResult?.error) flash(`Line manager notification failed: ${lmEmailResult.error.message}`, "error");
+          }
+        } catch(le){ console.warn("Line manager notification skipped:", le.message); }
+        flash(`${id} submitted — notifying your Line Manager...`);
+        return;
       }
 
       if(!managerId){
@@ -300,6 +323,11 @@ export default function UserApp({ currentUser }){
         nextStatus = "rejected";
         nextStage  = "rejected";
         newHistory.push({s:"rejected", at:iso, by:uid, label:"Rejected", note});
+      }
+      else if(action === "approve_line_manager"){
+        nextStatus = "pending_manager";
+        nextStage  = "pending_manager";
+        newHistory.push({s:"pending_manager", at:iso, by:uid, label:"Approved by Line Manager", note});
       }
       else if(action === "approve_manager"){
         // Manager approved — move to first approval level or implementation if no levels
@@ -404,9 +432,20 @@ export default function UserApp({ currentUser }){
         const techEmail = await getEmail(saved.initiator);
         if(techEmail) emailRecipients.push(techEmail);
 
+        // Reaching implementation = deployment is now scheduled — send the raiser
+        // the dedicated scheduled-deployment email with the deploy window.
+        if(techEmail && saved.status==="pending_implementation"){
+          emailCRScheduled([techEmail], saved).catch(console.warn);
+        }
+
         let stageLabel = "";
 
-        if(action==="approve_manager"){
+        if(action==="approve_line_manager"){
+          stageLabel = "Change Manager Review";
+          const mgrEmail = await getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+        else if(action==="approve_manager"){
           // Manager approved → send to L1 approvers (or implementers if no levels)
           const levels = saved.level_approvals||[];
           if(levels.length>0){
@@ -550,6 +589,9 @@ export default function UserApp({ currentUser }){
     .map(g=>({...g,items:g.items.filter(i=>{
       if(!i.roles.includes(me?.role)) return false;
       if(i.key==='change_requests' && !hasChangeMgmtAccess) return false;
+      if(i.key==='change_calendar' && !hasChangeMgmtAccess) return false;
+      if(i.key==='queue' && !me?.is_facility_ops) return false;
+      if(i.key==='cr_review' && !(myChangeRoles||[]).includes('change_implementer')) return false;
       return true;
     })}))
     .filter(g=>g.items.length);

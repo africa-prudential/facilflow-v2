@@ -13,7 +13,7 @@ export default function EditUserModal({user,onClose,onSave,departments}){
   const [firstName,  setFirstName] = useState(nameParts[0]||"");
   const [lastName,   setLastName]  = useState(nameParts.slice(1).join(" ")||"");
   const [dept,       setDept]      = useState(user.dept);
-  const [staffRole,  setStaffRole] = useState(isAdminUser ? "employee" : user.role);
+  const [staffRole,  setStaffRole] = useState(isAdminUser ? "staff" : user.role);
   const [adminRoles, setAdminRoles]= useState(initialAdminRoles.length ? initialAdminRoles : ["facility_admin"]);
   const [isAdmin,    setIsAdmin]   = useState(isAdminUser);
   const [saving,     setSaving]    = useState(false);

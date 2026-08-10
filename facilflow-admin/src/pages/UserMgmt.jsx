@@ -96,13 +96,14 @@ export default function UserMgmt({ctx}){
       {key:"name",       label:"Name"},
       {key:"email",      label:"Email"},
       {key:"roles",      label:"Roles"},
+      {key:"facilityOps",label:"Facility Ops"},
       {key:"dept",       label:"Department"},
       {key:"status",     label:"Status"},
       {key:"created_at", label:"Date Created"},
     ], shown.map(u=>{
       const isAdmin = ADMIN_ROLE_TYPES.includes(u.role) || u.role==="admin";
       const displayRoles = isAdmin ? getAdminRoles(u) : [u.role];
-      return {...u, roles: displayRoles.map(r=>ADMIN_ROLE_META[r]?.label||r.replace(/_/g," ")).join("; ")};
+      return {...u, roles: displayRoles.map(r=>ADMIN_ROLE_META[r]?.label||r.replace(/_/g," ")).join("; "), facilityOps: u.is_facility_ops ? "Yes" : "No"};
     }));
     flash(`Exported ${shown.length} user(s)`);
   };

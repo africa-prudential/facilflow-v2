@@ -20,6 +20,8 @@ function CRPolicyFull({ctx}){
     escalation_cc_email:     tenantConfig?.escalation_cc_email||"",
     manager_sla_hours:              tenantConfig?.manager_sla_hours??"",
     manager_reminder_before_minutes:  tenantConfig?.manager_reminder_before_minutes??"",
+    line_manager_sla_hours:              tenantConfig?.line_manager_sla_hours??"",
+    line_manager_reminder_before_minutes: tenantConfig?.line_manager_reminder_before_minutes??"",
     implementation_sla_hours:             tenantConfig?.implementation_sla_hours??"",
     implementation_reminder_before_minutes: tenantConfig?.implementation_reminder_before_minutes??"",
   }));
@@ -32,6 +34,8 @@ function CRPolicyFull({ctx}){
       escalation_cc_email:     tenantConfig?.escalation_cc_email||"",
       manager_sla_hours:              tenantConfig?.manager_sla_hours??"",
       manager_reminder_before_minutes:  tenantConfig?.manager_reminder_before_minutes??"",
+      line_manager_sla_hours:              tenantConfig?.line_manager_sla_hours??"",
+      line_manager_reminder_before_minutes: tenantConfig?.line_manager_reminder_before_minutes??"",
       implementation_sla_hours:             tenantConfig?.implementation_sla_hours??"",
       implementation_reminder_before_minutes: tenantConfig?.implementation_reminder_before_minutes??"",
     });
@@ -94,6 +98,8 @@ function CRPolicyFull({ctx}){
         escalation_cc_email:     escForm.escalation_cc_email||null,
         manager_sla_hours:             escForm.manager_sla_hours===""?null:+escForm.manager_sla_hours,
         manager_reminder_before_minutes: escForm.manager_reminder_before_minutes===""?null:+escForm.manager_reminder_before_minutes,
+        line_manager_sla_hours:             escForm.line_manager_sla_hours===""?null:+escForm.line_manager_sla_hours,
+        line_manager_reminder_before_minutes: escForm.line_manager_reminder_before_minutes===""?null:+escForm.line_manager_reminder_before_minutes,
         implementation_sla_hours:             escForm.implementation_sla_hours===""?null:+escForm.implementation_sla_hours,
         implementation_reminder_before_minutes: escForm.implementation_reminder_before_minutes===""?null:+escForm.implementation_reminder_before_minutes,
       });
@@ -147,7 +153,7 @@ function CRPolicyFull({ctx}){
       {/* Escalation & Default SLAs */}
       <div style={card(20)}>
         <div style={{fontSize:14,fontWeight:700,color:C.ink,marginBottom:4}}>Escalation & Default SLAs</div>
-        <div style={{fontSize:12,color:C.muted,marginBottom:14}}>Overdue approvals escalate to the Change Manager unless overridden. SLA (hours) and reminder (minutes before) apply to the fixed Change Manager and Implementation stages.</div>
+        <div style={{fontSize:12,color:C.muted,marginBottom:14}}>Overdue approvals escalate to the Change Manager unless overridden. SLA (hours) and reminder (minutes before) apply to the Line Manager, Change Manager, and Implementation stages.</div>
         <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,cursor:"pointer",fontSize:13,color:C.ink,fontWeight:500}}>
           <input type="checkbox" checked={sameAsManager} onChange={e=>setSameAsManager(e.target.checked)}/>
           Use Change Manager as Escalation Authority
@@ -174,6 +180,16 @@ function CRPolicyFull({ctx}){
             style={inp()} placeholder="e.g. it-leadership@africaprudential.com" type="email"/>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+          <div>
+            <label style={LBL}>Line Manager SLA (optional)</label>
+            <input type="number" min={0} value={escForm.line_manager_sla_hours}
+              onChange={e=>setEscForm(p=>({...p,line_manager_sla_hours:e.target.value}))} style={inp()} placeholder="e.g. 4 hrs"/>
+          </div>
+          <div>
+            <label style={LBL}>Line Manager SLA Reminder (optional)</label>
+            <input type="number" min={0} value={escForm.line_manager_reminder_before_minutes}
+              onChange={e=>setEscForm(p=>({...p,line_manager_reminder_before_minutes:e.target.value}))} style={inp()} placeholder="e.g. 30 mins"/>
+          </div>
           <div>
             <label style={LBL}>Change Manager SLA</label>
             <input type="number" min={0} value={escForm.manager_sla_hours}

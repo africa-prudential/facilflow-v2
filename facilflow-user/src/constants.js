@@ -2,6 +2,7 @@ import { C } from "./theme.js";
 
 export const CR_STATUS = {
   draft:                   {label:"Draft",              color:C.muted,  bg:"#F8FAFC",   dot:"#CBD5E1"},
+  pending_line_manager:    {label:"Pending Line Manager",color:C.orange, bg:C.orangeBg,  dot:C.orange},
   pending_manager:         {label:"Submitted",          color:C.amber,  bg:C.amberBg,   dot:C.amber},
   pending_approval:        {label:"Pending Approval",   color:C.orange, bg:C.orangeBg,  dot:C.orange},
   pending_implementation:  {label:"Scheduled",          color:C.blue,   bg:C.blueBg,    dot:C.blue},
@@ -34,19 +35,19 @@ import { LayoutDashboard, List, Check, RotateCcw, RefreshCw, Grid2x2, SearchChec
 
 export const NAV_GROUPS = [
   {group:"Main",items:[
-    {key:"dashboard",    label:"Dashboard",       icon:LayoutDashboard,  roles:["employee","manager","resource_team"]},
-    {key:"my_requests",  label:"My Requests",      icon:List,  roles:["employee","manager","resource_team"]},
-    {key:"approvals",    label:"Approvals",        icon:Check,  roles:["manager"]},
-    {key:"queue",        label:"Processing Queue", icon:RotateCcw,  roles:["resource_team"]},
+    {key:"dashboard",    label:"Dashboard",       icon:LayoutDashboard,  roles:["staff","line_manager"]},
+    {key:"my_requests",  label:"My Requests",      icon:List,  roles:["staff","line_manager"]},
+    {key:"approvals",    label:"Approvals",        icon:Check,  roles:["line_manager"]},
+    {key:"queue",        label:"Processing Queue", icon:RotateCcw,  roles:["staff","line_manager"]},
   ]},
   {group:"Change Management",items:[
-    {key:"change_requests",label:"Change Requests",icon:RefreshCw,  roles:["employee","manager","resource_team"]},
-    {key:"change_calendar",label:"Change Calendar",icon:Grid2x2,  roles:["employee","manager","resource_team"]},
-    {key:"cr_approvals",   label:"CR Approvals",   icon:Check,  roles:["manager"]},
-    {key:"cr_review",      label:"Review Queue",   icon:SearchCheck,  roles:["resource_team"]},
+    {key:"change_requests",label:"Change Requests",icon:RefreshCw,  roles:["staff","line_manager"]},
+    {key:"change_calendar",label:"Change Calendar",icon:Grid2x2,  roles:["staff","line_manager"]},
+    {key:"cr_approvals",   label:"CR Approvals",   icon:Check,  roles:["line_manager"]},
+    {key:"cr_review",      label:"Review Queue",   icon:SearchCheck,  roles:["staff","line_manager"]},
   ]},
   {group:"Support",items:[
-    {key:"helpdesk", label:"My Tickets", icon:Ticket, roles:["employee","manager","resource_team"]},
+    {key:"helpdesk", label:"My Tickets", icon:Ticket, roles:["staff","line_manager"]},
   ]},
 ];
 

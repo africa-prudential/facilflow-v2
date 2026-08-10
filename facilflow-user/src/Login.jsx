@@ -85,7 +85,8 @@ export default function Login({ onLogin, appName = 'Staff Portal' }) {
       const { data, error } = await signIn(email, password)
       if (error) throw error
       const profile = await getProfile(data.user.id).catch(() => null)
-      if (!profile?.must_change_password) toast.success('Welcome back!')
+      const isDisallowedRole = ['admin', 'super_admin', 'facility_admin', 'it_admin'].includes(profile?.role)
+      if (!isDisallowedRole && !profile?.must_change_password) toast.success('Welcome back!')
       onLogin(data.user)
     } catch (err) {
       setError(err.message || 'Invalid email or password')

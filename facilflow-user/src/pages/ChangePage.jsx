@@ -8,7 +8,7 @@ import CRForm from "./forms/CRForm.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function ChangePage({ctx}){
-  const {crs,submitCR,advanceCR,users,myChangeRoles,uid,hasChangeMgmtAccess}=ctx;
+  const {crs,submitCR,advanceCR,users,myChangeRoles,uid,me,hasChangeMgmtAccess}=ctx;
   const [searchParams, setSearchParams] = useSearchParams();
   const [form,    setForm]    = useState(false);
   const [detail,  setDetail]  = useState(null);
@@ -46,8 +46,11 @@ export default function ChangePage({ctx}){
   const isImpl   = (myChangeRoles||[]).includes("change_implementer");
   const isRevwr  = (myChangeRoles||[]).includes("change_reviewer");
 
+  const isLineMgr = me.role==="line_manager";
+
   // Can the CURRENT user actually act on this specific CR right now?
   const canActOnCR = c => {
+    if(c.status==="pending_line_manager") return isLineMgr && me.dept===users[c.initiator]?.dept;
     if(c.status==="pending_manager") return isMgr;
     if(c.status==="pending_approval"){
       const lvl = (c.level_approvals||[]).find(l=>c.current_stage===`pending_level_${l.level}`);
@@ -59,17 +62,17 @@ export default function ChangePage({ctx}){
 
   // Scope: technicians see only their own + involved; others see all
   const scopedCRs = useMemo(()=>{
-    if(isMgr||isApprover||isImpl) return crs||[];
+    if(isMgr||isApprover||isImpl||isLineMgr) return crs||[];
     return (crs||[]).filter(c=>
       c.initiator===uid ||
       (c.reviewer_ids||[]).includes(uid) ||
       c.change_manager_id===uid
     );
-  },[crs,uid,isMgr,isApprover,isImpl]);
+  },[crs,uid,isMgr,isApprover,isImpl,isLineMgr]);
 
   // ── METRICS (on scoped, unfiltered dataset) ─────────────
   const total       = scopedCRs.length;
-  const pending     = scopedCRs.filter(c=>["pending_manager","pending_approval"].includes(c.status)).length;
+  const pending     = scopedCRs.filter(c=>["pending_line_manager","pending_manager","pending_approval"].includes(c.status)).length;
   const inImpl      = scopedCRs.filter(c=>["pending_implementation","in_progress"].includes(c.status)).length;
   const completed   = scopedCRs.filter(c=>["completed","closed"].includes(c.status)).length;
 
@@ -105,7 +108,7 @@ export default function ChangePage({ctx}){
         const group = statusGroups[fStatus]||[fStatus];
         if(!group.includes(st)) return false;
       }
-      if(activeCard==="pending"  && !["pending_manager","pending_approval"].includes(st)) return false;
+      if(activeCard==="pending"  && !["pending_line_manager","pending_manager","pending_approval"].includes(st)) return false;
       if(activeCard==="impl"     && !["pending_implementation","in_progress"].includes(st)) return false;
       if(activeCard==="done"     && !["completed","closed"].includes(st)) return false;
       if(activeCard==="rejected" && st!=="rejected") return false;
@@ -207,6 +210,7 @@ export default function ChangePage({ctx}){
             <label style={LBL}>Status / Stage</label>
             <select value={fStatus} onChange={e=>resetPage(setFStatus)(e.target.value)} style={inp()}>
               <option value="">All Statuses</option>
+              <option value="pending_line_manager">Pending Line Manager</option>
               <option value="pending_manager">Pending Manager</option>
               <option value="pending_approval">Pending Approval</option>
               <option value="implementation">Implementation</option>

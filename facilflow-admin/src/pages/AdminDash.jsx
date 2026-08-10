@@ -9,7 +9,7 @@ export default function AdminDash({ctx,setPage}){
   const activeUsers   = users.filter(u=>u.status==="active").length;
   const availVeh      = vehicles.filter(v=>v.status==="available").length;
   const lowStock      = inventory.filter(i=>i.stock<5).length;
-  const pendingCRs    = crs.filter(c=>["pending_line_manager","pending_secondary","change_review"].includes(c.status)).length;
+  const pendingCRs    = crs.filter(c=>["pending_line_manager","pending_manager","pending_approval"].includes(c.status)).length;
   const pendingReqs   = (requests||[]).filter(r=>r.status==="pending_approval").length;
 
   const showFacility = hasAdminAccess(me,["facility_admin","super_admin"]);
