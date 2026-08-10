@@ -21,7 +21,7 @@ import {
 import { emailCRSubmitted, emailCRScheduled, emailCRReviewerAdded, emailCRLineManagerReview, emailCRNoManagerConfigured, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
 import { CR_STATUS, NAV_GROUPS } from "./constants.js";
-import { fmtDT, normCR, normReq } from "./utils.js";
+import { fmtDT, normCR, normReq, humanize } from "./utils.js";
 import { Av } from "./components/ui.jsx";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
@@ -101,7 +101,10 @@ export default function UserApp({ currentUser }){
           setApprovalLevels(levels||[]);
           setTenantConfig(config);
           // Load users with change roles for CR workflows
-          const roleKeys = ['change_manager','change_reviewer','change_approver_l1','change_approver_l2','change_implementer'];
+          const roleKeys = [...new Set([
+            'change_manager','change_reviewer','change_implementer',
+            ...(levels||[]).map(l=>l.role_key).filter(Boolean),
+          ])];
           const roleUsers = {};
           await Promise.all(roleKeys.map(async rk => {
             const us = await fetchUsersWithChangeRole(rk, tenantId);
@@ -344,14 +347,14 @@ export default function UserApp({ currentUser }){
       }
       else if(action === "approve_level"){
         // Approve current level — move to next or implementation
-        const currentLevelIdx = (cr.current_level||1) - 1;
+        const currentLevelIdx = levels.findIndex(l=>l.level===cr.current_level);
         const updatedLevels = levels.map((l,i)=>
           i===currentLevelIdx ? {...l, status:"approved", approver_id:uid, approved_at:iso, note} : l
         );
         updates.level_approvals = updatedLevels;
         newHistory.push({s:`level_${cr.current_level}_approved`, at:iso, by:uid, label:`Level ${cr.current_level} Approved`, note});
 
-        const nextLevelObj = levels[currentLevelIdx+1];
+        const nextLevelObj = currentLevelIdx>=0 ? levels[currentLevelIdx+1] : undefined;
         if(nextLevelObj){
           nextStatus = "pending_approval";
           nextStage  = `pending_level_${nextLevelObj.level}`;
@@ -670,7 +673,7 @@ export default function UserApp({ currentUser }){
           <Av i={me?.initials||(me?.name?.slice(0,2).toUpperCase())||"??"} s={28}/>
           <div>
             <div style={{fontSize:12,fontWeight:700,color:C.ink,lineHeight:1.2}}>{me?.name?.split(" ")[0]}</div>
-            <div style={{fontSize:10,color:C.muted,textTransform:"capitalize"}}>{me?.role?.replace("_"," ")}</div>
+            <div style={{fontSize:10,color:C.muted}}>{humanize(me?.role)}</div>
           </div>
           <button onClick={handleSignOut} style={{...btn("ghost"),fontSize:11,padding:"4px 9px"}}>Sign out</button>
         </div>
@@ -726,7 +729,7 @@ export default function UserApp({ currentUser }){
             <Route path="/queue" element={<Queue ctx={ctx}/>}/>
             <Route path="/change_requests" element={<ChangePage ctx={ctx}/>}/>
             <Route path="/change_calendar" element={<CalendarPage ctx={ctx}/>}/>
-            <Route path="/crapprovals" element={<CRApprovals ctx={ctx}/>}/>
+            <Route path="/cr_approvals" element={<CRApprovals ctx={ctx}/>}/>
             <Route path="/cr_review" element={<CRReview ctx={ctx}/>}/>
             <Route path="/helpdesk" element={<HelpdeskUser ctx={ctx}/>}/>
             <Route path="*" element={<Navigate to="/dashboard" replace/>}/>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CheckCircle2, Car, Check, Package, RefreshCw } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
-import { now } from "../../utils.js";
+import { now, humanize } from "../../utils.js";
 import { Av, Modal } from "../../components/ui.jsx";
 
 export default function RequestDetailModal({req,usersMap,vehicles,drivers,inventory,onClose,onAction,onAssign,onDeliver}){
@@ -69,7 +69,7 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
                   <span style={{fontSize:12,fontWeight:700,color:C.ink}}>{it.qty} {it.unit}s</span>
                 </div>
               ))}
-              {req.details?.urgency&&<div style={{marginTop:10,fontSize:12,color:C.muted}}>Urgency: <strong style={{textTransform:"capitalize"}}>{req.details.urgency}</strong></div>}
+              {req.details?.urgency&&<div style={{marginTop:10,fontSize:12,color:C.muted}}>Urgency: <strong>{humanize(req.details.urgency)}</strong></div>}
               {req.details?.notes&&<div style={{marginTop:6,fontSize:12,color:C.muted,fontStyle:"italic"}}>"{req.details.notes}"</div>}
             </div>
           )}
@@ -125,7 +125,7 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
             <div key={i} style={{display:"flex",gap:10,padding:"10px 12px",background:"#F8FAFC",borderRadius:7}}>
               <div style={{width:8,height:8,borderRadius:"50%",background:C.brand,marginTop:4,flexShrink:0}}/>
               <div>
-                <div style={{fontSize:12,fontWeight:700,color:C.ink,textTransform:"capitalize"}}>{h.s.replace(/_/g," ")}</div>
+                <div style={{fontSize:12,fontWeight:700,color:C.ink}}>{humanize(h.s)}</div>
                 {h.note&&<div style={{fontSize:11,color:C.muted,marginTop:2}}>{h.note}</div>}
                 <div style={{fontSize:10,color:C.muted,marginTop:2}}>{usersMap[h.by]?.name||"System"} · {new Date(h.at).toLocaleString("en-GB")}</div>
               </div>

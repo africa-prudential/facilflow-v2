@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Zap, Monitor, XCircle, Check, CheckCircle2, Wrench, Paperclip, ExternalLink, Lock } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { CR_STATUS, DOC_LABELS } from "../../constants.js";
-import { fmtDT, fmtD } from "../../utils.js";
+import { fmtDT, fmtD, humanize } from "../../utils.js";
 import { Av, CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
 
 export default function CRDetail({cr,onClose,ctx,onAction}){
@@ -207,7 +207,7 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
             return (
               <div key={i} style={{position:"relative",marginBottom:14}}>
                 <div style={{position:"absolute",left:-17,width:10,height:10,borderRadius:"50%",background:m.color||C.brand,border:"2px solid #fff",top:2}}/>
-                <div style={{fontSize:11,fontWeight:600,color:m.color||C.ink,textTransform:"capitalize"}}>{(h.label||h.s).replace(/_/g," ")}</div>
+                <div style={{fontSize:11,fontWeight:600,color:m.color||C.ink}}>{humanize(h.label||h.s)}</div>
                 <div style={{fontSize:10,color:C.muted}}>{fmtDT(h.at)} · {users[h.by]?.name||"System"}</div>
                 {h.note&&<div style={{fontSize:11,color:C.ink2,marginTop:2,fontStyle:"italic"}}>"{h.note}"</div>}
               </div>

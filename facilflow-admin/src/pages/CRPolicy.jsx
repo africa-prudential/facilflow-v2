@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { C, btn, inp, card, LBL } from "../theme.js";
+import { FIXED_CR_ROLE_KEYS } from "../constants.js";
 import { Av, Modal, PageTitle } from "../components/ui.jsx";
 import AddRoleControl from "../components/AddRoleControl.jsx";
 import { saveApprovalLevel, deleteApprovalLevel, saveTenantConfig } from "../lib/supabase.js";
@@ -10,7 +11,7 @@ export default function CRPolicy({ctx}){ return <CRPolicyFull ctx={ctx}/>; }
 // CR POLICY — Rebuilt with real approval levels
 // ══════════════════════════════════════════════════════════════
 function CRPolicyFull({ctx}){
-  const {approvalLevels,setApprovalLevels,tenantConfig,setTenantConfig,users,flash,tid,changeRoles,setChangeRoles,userCRoles}=ctx;
+  const {approvalLevels,setApprovalLevels,tenantConfig,setTenantConfig,users,flash,tid,changeRoles,setChangeRoles,userCRoles,crs}=ctx;
   const changeManagerIds = new Set((userCRoles||[]).filter(r=>r.role_key==="change_manager").map(r=>r.user_id));
   const changeManagerUsers = users.filter(u=>changeManagerIds.has(u.id));
   const [editing,setEditing]=useState(null);
@@ -68,10 +69,15 @@ function CRPolicyFull({ctx}){
     finally { setSaving(false); }
   };
 
-  const removeLevel = async (id) => {
+  const removeLevel = async (level) => {
+    const inFlight = (crs||[]).filter(c=>c.current_stage===`pending_level_${level.level_order}`).length;
+    if(inFlight>0){
+      flash(`Can't remove — ${inFlight} change request${inFlight>1?"s are":" is"} currently awaiting approval at this level`,"error");
+      return;
+    }
     try {
-      await deleteApprovalLevel(id);
-      setApprovalLevels(p=>p.filter(l=>l.id!==id));
+      await deleteApprovalLevel(level.id);
+      setApprovalLevels(p=>p.filter(l=>l.id!==level.id));
       flash("Level removed");
     } catch(e){ flash(e.message,"error"); }
   };
@@ -236,7 +242,7 @@ function CRPolicyFull({ctx}){
               </div>
               <div style={{display:"flex",gap:6}}>
                 <button onClick={()=>setEditing(level)} style={{...btn("ghost"),fontSize:11,padding:"4px 10px"}}>Edit</button>
-                <button onClick={()=>removeLevel(level.id)} style={{...btn("ghost"),fontSize:11,padding:"4px 10px",color:C.red}}>Remove</button>
+                <button onClick={()=>removeLevel(level)} style={{...btn("ghost"),fontSize:11,padding:"4px 10px",color:C.red}}>Remove</button>
               </div>
             </div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -295,7 +301,7 @@ function CRPolicyFull({ctx}){
               <label style={LBL}>Required Role</label>
               <div style={{display:"flex",gap:8}}>
                 <select value={editing.role_key||""} onChange={e=>setEditing(p=>({...p,role_key:e.target.value}))} style={inp()}>
-                  {(changeRoles||[]).filter(r=>r.key.includes("approver")).map(r=>(
+                  {(changeRoles||[]).filter(r=>!FIXED_CR_ROLE_KEYS.includes(r.key)).map(r=>(
                     <option key={r.key} value={r.key}>{r.label}</option>
                   ))}
                 </select>

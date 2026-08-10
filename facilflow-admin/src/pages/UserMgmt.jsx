@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { User, Pencil, Ban, UserCheck, Trash2 } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../constants.js";
-import { getAdminRoles, fmtSafe, exportCSV } from "../utils.js";
+import { getAdminRoles, fmtSafe, exportCSV, humanize } from "../utils.js";
 import { Av, Chip, UChip, Modal, PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
 import { supabase, updateUser, deleteUser, APP_URL, USER_APP_URL } from "../lib/supabase.js";
 import InviteModal from "./forms/InviteModal.jsx";
@@ -149,7 +149,7 @@ export default function UserMgmt({ctx}){
                         const m = ADMIN_ROLE_META[r];
                         return m
                           ? <Chip key={r} label={m.label} color={m.color} bg={m.bg}/>
-                          : <span key={r} style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,background:C.surface,color:C.ink2,textTransform:"capitalize"}}>{r.replace(/_/g," ")}</span>;
+                          : <span key={r} style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,background:C.surface,color:C.ink2}}>{humanize(r)}</span>;
                       })}
                     </div>
                   </td>

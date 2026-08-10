@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CheckCircle2, Check } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
 import { REQ_STATUS } from "../../constants.js";
-import { fmtDT, fmtD } from "../../utils.js";
+import { fmtDT, fmtD, humanize } from "../../utils.js";
 import { RQChip, Modal } from "../../components/ui.jsx";
 
 export default function ReqDetail({req,onClose,ctx}){
@@ -47,7 +47,7 @@ export default function ReqDetail({req,onClose,ctx}){
     const itemsList = (d.items||[]).map(it=>{ const inv=invItems.find(x=>x.id===it.id); return {name:inv?.name||it.id,qty:it.qty,unit:inv?.unit||"unit"}; });
     return (
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {d.urgency&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:3}}>Urgency</div><div style={{fontSize:13,color:C.ink,fontWeight:500,textTransform:"capitalize"}}>{d.urgency}</div></div>}
+        {d.urgency&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:3}}>Urgency</div><div style={{fontSize:13,color:C.ink,fontWeight:500}}>{humanize(d.urgency)}</div></div>}
         <div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}>
           <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Items Requested</div>
           {itemsList.map((it,i)=>(
@@ -89,7 +89,7 @@ export default function ReqDetail({req,onClose,ctx}){
             return (
               <div key={i} style={{position:"relative",marginBottom:14}}>
                 <div style={{position:"absolute",left:-17,width:10,height:10,borderRadius:"50%",background:m.color,border:"2px solid #fff",top:2}}/>
-                <div style={{fontSize:11,fontWeight:600,color:m.color,textTransform:"capitalize"}}>{h.s.replace(/_/g," ")}</div>
+                <div style={{fontSize:11,fontWeight:600,color:m.color}}>{humanize(h.s)}</div>
                 <div style={{fontSize:10,color:C.muted}}>{fmtDT(h.at)} · {users[h.by]?.name||"System"}</div>
                 {h.note&&<div style={{fontSize:11,color:C.ink2,marginTop:2,fontStyle:"italic"}}>"{h.note}"</div>}
               </div>

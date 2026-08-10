@@ -8,7 +8,7 @@ import CRForm from "./forms/CRForm.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function ChangePage({ctx}){
-  const {crs,submitCR,advanceCR,users,myChangeRoles,uid,me,hasChangeMgmtAccess}=ctx;
+  const {crs,submitCR,advanceCR,users,myChangeRoles,uid,me,hasChangeMgmtAccess,approvalLevels}=ctx;
   const [searchParams, setSearchParams] = useSearchParams();
   const [form,    setForm]    = useState(false);
   const [detail,  setDetail]  = useState(null);
@@ -42,7 +42,7 @@ export default function ChangePage({ctx}){
   const PAGE_SIZE = 15;
 
   const isMgr    = (myChangeRoles||[]).includes("change_manager");
-  const isApprover = (myChangeRoles||[]).some(r=>/^change_approver_l\d+$/.test(r));
+  const isApprover = (approvalLevels||[]).some(l=>(myChangeRoles||[]).includes(l.role_key));
   const isImpl   = (myChangeRoles||[]).includes("change_implementer");
   const isRevwr  = (myChangeRoles||[]).includes("change_reviewer");
 

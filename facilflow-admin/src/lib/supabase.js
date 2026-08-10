@@ -197,6 +197,15 @@ export const removeChangeRole = async (userId, roleKey) => {
   if (error) throw error
 }
 
+export const fetchTenants = async (tenantId) => {
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('id', tenantId)
+  if (error) return []
+  return data
+}
+
 // ── DEPARTMENTS & MODULE ENTITLEMENTS ───────────────────────
 
 export const fetchDepartments = async (tenantId) => {

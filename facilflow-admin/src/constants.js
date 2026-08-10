@@ -1,34 +1,5 @@
 import { C } from "./theme.js";
 
-export const TENANTS = [
-  {id:"T001", name:"Africa Prudential Plc",  domain:"africaprudential.com",  plan:"Enterprise", users:28, status:"active"},
-  {id:"T002", name:"Lagos State Pension",    domain:"lspc.gov.ng",           plan:"Business",   users:12, status:"active"},
-];
-
-let VEHICLES_SEED = [
-  {id:"CAR001",tenantId:"T001",plate:"AAA-001BE",model:"Toyota Camry",    year:2022,color:"Silver", status:"available",       driverId:"DRV001",lastUpdated:"2024-01-15T09:00:00"},
-  {id:"CAR002",tenantId:"T001",plate:"BBB-234FG",model:"Toyota Corolla",  year:2021,color:"White",  status:"in_use",          driverId:"DRV002",lastUpdated:"2024-01-16T08:30:00"},
-  {id:"CAR003",tenantId:"T001",plate:"CCC-567HJ",model:"Toyota Hilux",   year:2020,color:"Blue",   status:"under_maintenance",driverId:null,    lastUpdated:"2024-01-10T14:00:00"},
-  {id:"CAR004",tenantId:"T001",plate:"DDD-890KL",model:"Hyundai Elantra", year:2023,color:"Black",  status:"available",       driverId:"DRV003",lastUpdated:"2024-01-15T11:00:00"},
-  {id:"CAR005",tenantId:"T001",plate:"EEE-123MN",model:"Toyota Prado",   year:2022,color:"White",  status:"reserved",        driverId:null,    lastUpdated:"2024-01-17T09:00:00"},
-];
-
-let DRIVERS_SEED = [
-  {id:"DRV001",tenantId:"T001",name:"Babatunde Olatunji",license:"LGA-2019-4567",phone:"+234 803 123 4567",status:"available",   vehicleId:"CAR001",lastUpdated:"2024-01-15T09:00:00"},
-  {id:"DRV002",tenantId:"T001",name:"Emeka Chukwu",       license:"LGA-2018-8901",phone:"+234 806 987 6543",status:"unavailable", vehicleId:"CAR002",lastUpdated:"2024-01-16T08:00:00"},
-  {id:"DRV003",tenantId:"T001",name:"Sunday Adeyinka",    license:"LGA-2020-2345",phone:"+234 815 456 7890",status:"available",   vehicleId:"CAR004",lastUpdated:"2024-01-14T16:00:00"},
-  {id:"DRV004",tenantId:"T001",name:"Rotimi Adeleke",     license:"LGA-2021-6789",phone:"+234 802 345 6789",status:"suspended",   vehicleId:null,    lastUpdated:"2023-12-01T09:00:00"},
-];
-
-let INVENTORY_SEED = [
-  {id:"INV001",tenantId:"T001",name:"A4 Paper (Ream)",      code:"STA-001",stock:45,unit:"ream", desc:"80gsm A4 paper reams for office printing",       category:"Paper",    lastUpdated:"2024-01-10T08:00:00"},
-  {id:"INV002",tenantId:"T001",name:"Ballpoint Pens (Box)", code:"STA-002",stock:8, unit:"box",  desc:"Blue and black ballpoint pens, 50 per box",       category:"Writing",  lastUpdated:"2024-01-09T10:00:00"},
-  {id:"INV003",tenantId:"T001",name:"Stapler",              code:"EQP-001",stock:12,unit:"unit", desc:"Heavy duty desktop staplers",                     category:"Equipment",lastUpdated:"2024-01-08T09:00:00"},
-  {id:"INV004",tenantId:"T001",name:"Sticky Notes (Pack)",  code:"STA-003",stock:3, unit:"pack", desc:"76x76mm sticky note pads, assorted colours",      category:"Paper",    lastUpdated:"2024-01-11T14:00:00"},
-  {id:"INV005",tenantId:"T001",name:"Highlighters (Set)",   code:"STA-004",stock:15,unit:"set",  desc:"5-colour highlighter sets",                       category:"Writing",  lastUpdated:"2024-01-07T11:00:00"},
-  {id:"INV006",tenantId:"T001",name:"Printer Cartridge",    code:"EQP-002",stock:4, unit:"unit", desc:"HP LaserJet compatible black toner cartridges",   category:"Equipment",lastUpdated:"2024-01-12T10:00:00"},
-  {id:"INV007",tenantId:"T001",name:"Whiteboard Markers",   code:"STA-005",stock:22,unit:"set",  desc:"Dry-erase markers, 4 colours per set",            category:"Writing",  lastUpdated:"2024-01-06T09:00:00"},
-];
 
 // ── STATUS / META ──────────────────────────────────────────────
 
@@ -139,4 +110,8 @@ export const DEFAULT_TRIGGERS=[
 
 
 export const ASSET_CATS = ["Laptop","Desktop","Monitor","Phone","Tablet","Printer","Networking","Furniture","Software","Other"];
+
+// Fixed change_roles keys seeded outside the approval-level system — never
+// selectable as an approval level's Required Role.
+export const FIXED_CR_ROLE_KEYS = ["change_manager","change_implementer","change_reviewer"];
 
