@@ -186,7 +186,7 @@ function ResetPassword() {
           </div>
           <h2 style={{ fontSize:22, fontWeight:800, color:'#0F172A', marginBottom:6 }}>Set new password</h2>
           <p style={{ fontSize:13.5, color:'#64748B', lineHeight:1.6, marginBottom:28 }}>
-            Choose a strong password for your FaciliFlow account.
+            Choose a strong password for your Facilflow account.
           </p>
           <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div>
@@ -397,7 +397,7 @@ function Root() {
   if (loading) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
       fontFamily:'system-ui', color:'#64748B', fontSize:14, background:'#F7F8FA' }}>
-      Loading FaciliFlow…
+      Loading Facilflow…
     </div>
   )
 
@@ -407,7 +407,7 @@ function Root() {
     <ForcePasswordChange onDone={async () => {
       const updated = await updateProfile(profile.id, { must_change_password: false })
       setProfile({ ...profile, ...updated })
-      toast.success('Password updated! Welcome to FaciliFlow.')
+      toast.success('Password updated! Welcome to Facilflow.')
     }} />
   )
 

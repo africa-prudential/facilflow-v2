@@ -602,7 +602,7 @@ export default function UserApp({ currentUser }){
   if(loading) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
       fontFamily:"system-ui",color:C.muted,fontSize:14,background:C.pageBg}}>
-      Loading FaciliFlow…
+      Loading Facilflow…
     </div>
   );
 

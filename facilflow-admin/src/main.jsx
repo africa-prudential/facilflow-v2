@@ -397,7 +397,7 @@ function Root() {
     <ForcePasswordChange onDone={async () => {
       const updated = await updateUser(profile.id, { must_change_password: false })
       setProfile({ ...profile, ...updated, role: profile.role })
-      toast.success('Password updated! Welcome to FaciliFlow Admin.')
+      toast.success('Password updated! Welcome to Facilflow Admin.')
     }} />
   )
 

@@ -63,7 +63,7 @@ export default function AcceptInvite({ onComplete, appName='Admin Console' }) {
       <div style={{ textAlign:'center', marginBottom:28 }}>
         <div style={{ width:54,height:54,borderRadius:14,background:C.brand,color:'#fff',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:900,marginBottom:12,boxShadow:`0 4px 20px ${C.brand}50` }}>AP</div>
         <div style={{ fontSize:20,fontWeight:800,color:C.ink }}>Africa Prudential</div>
-        <div style={{ fontSize:12,color:C.muted,marginTop:3 }}>FaciliFlow · {appName}</div>
+        <div style={{ fontSize:12,color:C.muted,marginTop:3 }}>Facilflow · {appName}</div>
       </div>
 
       {/* Card */}
@@ -89,7 +89,7 @@ export default function AcceptInvite({ onComplete, appName='Admin Console' }) {
           <div style={{ textAlign:'center', padding:'20px 0' }}>
             <CheckCircle2 size={40} color={C.green} style={{marginBottom:14}} />
             <div style={{ fontSize:17,fontWeight:800,color:C.green,marginBottom:8 }}>Account ready!</div>
-            <div style={{ fontSize:13,color:C.muted }}>Taking you to FaciliFlow…</div>
+            <div style={{ fontSize:13,color:C.muted }}>Taking you to Facilflow…</div>
           </div>
         )}
 
@@ -97,7 +97,7 @@ export default function AcceptInvite({ onComplete, appName='Admin Console' }) {
           <>
             <div style={{ marginBottom:22 }}>
               <div style={{ fontSize:18,fontWeight:800,color:C.ink }}>Set up your account</div>
-              <div style={{ fontSize:13,color:C.muted,marginTop:5,lineHeight:1.6 }}>You've been invited to FaciliFlow. Enter your name and choose a password.</div>
+              <div style={{ fontSize:13,color:C.muted,marginTop:5,lineHeight:1.6 }}>You've been invited to Facilflow. Enter your name and choose a password.</div>
             </div>
             <div style={{ display:'flex',flexDirection:'column',gap:14 }}>
               <div><label style={LBL}>Your Full Name</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Adaeze Okonkwo" autoFocus style={inp(!name&&!!error)}/></div>
@@ -112,7 +112,7 @@ export default function AcceptInvite({ onComplete, appName='Admin Console' }) {
           </>
         )}
       </div>
-      <p style={{ textAlign:'center',fontSize:11,color:C.muted,marginTop:20 }}>Africa Prudential Plc · FaciliFlow v2</p>
+      <p style={{ textAlign:'center',fontSize:11,color:C.muted,marginTop:20 }}>Africa Prudential Plc · Facilflow v2</p>
     </div>
   )
 }

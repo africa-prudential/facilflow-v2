@@ -7,8 +7,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const SUPABASE_URL     = "https://jdvzoimemzijqamphgyg.supabase.co"
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 const RESEND_API_KEY   = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL       = "noreply@facilflow.africaprudential.com"
-const FROM_NAME        = "FaciliFlow — Africa Prudential"
+const FROM_EMAIL       = "facilflow@africaprudential.com"
+const FROM_NAME        = "Facilflow — Africa Prudential"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,7 +51,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: `${FROM_NAME} <${FROM_EMAIL}>`,
         to: [email],
-        subject: "Reset your FaciliFlow password",
+        subject: "Reset your Facilflow password",
         html: buildResetEmail({ email, resetLink }),
       }),
     })
@@ -103,7 +103,7 @@ function buildResetEmail({ email, resetLink }: { email: string; resetLink: strin
                   <td style="vertical-align:middle">
                     <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Africa Prudential Plc</div>
                     <div style="font-family:Arial,sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px">Password Reset Request</div>
-                    <div style="font-family:Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px">FaciliFlow — Facilities Management Platform</div>
+                    <div style="font-family:Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px">Facilflow — Facilities Management Platform</div>
                   </td>
                 </tr>
               </table>
@@ -114,7 +114,7 @@ function buildResetEmail({ email, resetLink }: { email: string; resetLink: strin
           <div style="padding:32px 32px">
             <p style="font-family:Arial,sans-serif;font-size:15px;color:${ink};margin:0 0 10px;font-weight:600">Hi there,</p>
             <p style="font-family:Arial,sans-serif;font-size:14px;color:#334155;margin:0 0 20px;line-height:1.7">
-              We received a request to reset the password for your FaciliFlow account associated with <strong>${email}</strong>.
+              We received a request to reset the password for your Facilflow account associated with <strong>${email}</strong>.
             </p>
             <p style="font-family:Arial,sans-serif;font-size:14px;color:#334155;margin:0 0 24px;line-height:1.7">
               Click the button below to choose a new password. This link is valid for <strong>1 hour</strong>.
@@ -148,7 +148,7 @@ function buildResetEmail({ email, resetLink }: { email: string; resetLink: strin
         <tr>
           <td style="padding:20px 0;text-align:center">
             <div style="font-family:Arial,sans-serif;font-size:11px;color:${muted};margin-bottom:4px">
-              <strong style="color:${ink}">Africa Prudential Plc</strong> · FaciliFlow Facilities Management
+              <strong style="color:${ink}">Africa Prudential Plc</strong> · Facilflow Facilities Management
             </div>
             <div style="font-family:Arial,sans-serif;font-size:11px;color:#94A3B8">This is an automated message. Please do not reply to this email.</div>
             <div style="font-family:Arial,sans-serif;font-size:11px;color:#CBD5E1;margin-top:4px">© ${new Date().getFullYear()} Africa Prudential Plc. All rights reserved.</div>
