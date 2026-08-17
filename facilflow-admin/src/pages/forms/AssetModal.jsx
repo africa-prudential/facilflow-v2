@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { User, AlertTriangle, ClipboardList, Check } from "lucide-react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { ASSET_STATUS, ASSET_CATS } from "../../constants.js";
-import { fmtSafe } from "../../utils.js";
+import { fmtSafe, isDirty } from "../../utils.js";
 import { Modal, Empty } from "../../components/ui.jsx";
 
 export default function AssetModal({asset,users,onClose,onSave}){
   const isNew=!asset;
   const [form,setForm]=useState(asset||{status:"available",category:"Laptop"});
+  const [initialForm]=useState(form);
   const [saving,setSaving]=useState(false);
   const [tab,setTab]=useState("details");
   const [assignNote,setAssignNote]=useState("");
+  const dirty = isNew || isDirty(form,initialForm) || !!assignNote.trim();
 
   const set=(k,v)=>setForm(p=>({...p,[k]:v}));
 
@@ -91,13 +93,13 @@ export default function AssetModal({asset,users,onClose,onSave}){
             {l:"Serial Number",k:"serial_number"},{l:"Asset Tag",k:"asset_tag"},
             {l:"Category",k:"category",type:"select",opts:ASSET_CATS},
             {l:"Status",k:"status",type:"select",opts:Object.keys(ASSET_STATUS)},
-            {l:"Location / Department",k:"site"},{l:"Purchase Date",k:"purchase_date",type:"date"},
+            {l:"Department",k:"department"},{l:"Purchase Date",k:"purchase_date",type:"date"},
             {l:"Purchase Cost (₦)",k:"purchase_cost",type:"number"},{l:"Warranty Expiry",k:"warranty_expiry",type:"date"},
           ].map(f=>(
             <div key={f.k} style={{gridColumn:f.span===2?"1 / -1":"auto"}}>
               <label style={LBL}>{f.l}</label>
               {f.type==="select"
-                ?<select value={form[f.k]||""} onChange={e=>set(f.k,e.target.value)} style={{...inp(),fontSize:12}}>
+                ?<select value={form[f.k]||""} onChange={e=>set(f.k,e.target.value)} style={{...sel(),fontSize:12}}>
                    <option value="">Select…</option>
                    {f.opts.map(o=>typeof o==="string"?<option key={o} value={o}>{o}</option>:<option key={o} value={o}>{ASSET_STATUS[o]?.label||o}</option>)}
                  </select>
@@ -126,7 +128,7 @@ export default function AssetModal({asset,users,onClose,onSave}){
           )}
           <div>
             <label style={LBL}>Assign To</label>
-            <select value={form.assigned_to||""} onChange={e=>set("assigned_to",e.target.value||null)} style={{...inp(),fontSize:12}}>
+            <select value={form.assigned_to||""} onChange={e=>set("assigned_to",e.target.value||null)} style={{...sel(),fontSize:12}}>
               <option value="">— Unassigned —</option>
               {users.map(u=><option key={u.id} value={u.id}>{u.name} — {u.dept||u.department||""}</option>)}
             </select>
@@ -138,7 +140,7 @@ export default function AssetModal({asset,users,onClose,onSave}){
             </div>
             <div>
               <label style={LBL}>Status</label>
-              <select value={form.status||"available"} onChange={e=>set("status",e.target.value)} style={{...inp(),fontSize:12}}>
+              <select value={form.status||"available"} onChange={e=>set("status",e.target.value)} style={{...sel(),fontSize:12}}>
                 {Object.entries(ASSET_STATUS).map(([v,m])=><option key={v} value={v}>{m.label}</option>)}
               </select>
             </div>
@@ -206,7 +208,10 @@ export default function AssetModal({asset,users,onClose,onSave}){
 
       <div style={{display:"flex",justifyContent:"flex-end",gap:10,marginTop:20,paddingTop:16,borderTop:`1px solid ${C.border}`}}>
         <button onClick={onClose} style={{...btn("ghost")}}>Cancel</button>
-        <button onClick={handleSave} disabled={saving} style={{...btn("primary")}}>{saving?"Saving…":isNew?"Create Asset":"Save Changes"}</button>
+        <button onClick={handleSave} disabled={saving||!form.name?.trim()||!dirty}
+          style={{...btn("primary"),minWidth:130,justifyContent:"center",opacity:saving||!form.name?.trim()||!dirty?0.6:1}}>
+          {saving?"Saving…":isNew?"Create Asset":"Save Changes"}
+        </button>
       </div>
     </Modal>
   );

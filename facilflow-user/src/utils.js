@@ -3,6 +3,10 @@
 // source string's own casing convention.
 export const humanize = s => !s ? "" : String(s).toLowerCase().replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
 
+// Capitalizes only the first character of free-text input (e.g. ticket titles),
+// leaving the rest untouched so acronyms/proper nouns aren't mangled.
+export const sentenceCase = s => !s ? "" : String(s).charAt(0).toUpperCase() + String(s).slice(1);
+
 export const fmtDT = d => { try { if(!d) return "—"; const dt=new Date(d); return isNaN(dt)?"—":dt.toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}); } catch(e){ return "—"; }};
 export const fmtD  = d => { try { if(!d) return "—"; const dt=new Date(d); return isNaN(dt)?"—":dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}); } catch(e){ return "—"; }};
 export const uid   = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;

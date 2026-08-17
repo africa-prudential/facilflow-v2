@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckCircle2, Car, Check, Package, RefreshCw } from "lucide-react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { now, humanize } from "../../utils.js";
 import { Av, Modal } from "../../components/ui.jsx";
 
@@ -92,14 +92,14 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
                 : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:4}}>
                     <div>
                       <label style={LBL}>Vehicle {isPending&&<span style={{color:C.red}}>*</span>}</label>
-                      <select value={vehId} onChange={e=>setVehId(e.target.value)} style={inp()}>
+                      <select value={vehId} onChange={e=>setVehId(e.target.value)} style={sel()}>
                         <option value="">Select vehicle…</option>
                         {availVeh.map(v=><option key={v.id} value={v.id}>{v.plate} — {v.model} ({v.color}){v.id===req.assigned_vehicle?" (currently assigned)":""}</option>)}
                       </select>
                     </div>
                     <div>
                       <label style={LBL}>Driver (optional)</label>
-                      <select value={drvId} onChange={e=>setDrvId(e.target.value)} style={inp()}>
+                      <select value={drvId} onChange={e=>setDrvId(e.target.value)} style={sel()}>
                         <option value="">No driver</option>
                         {availDrv.map(d=><option key={d.id} value={d.id}>{d.name} — {d.phone}{d.id===req.assigned_driver?" (currently assigned)":""}</option>)}
                       </select>

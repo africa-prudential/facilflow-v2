@@ -248,6 +248,35 @@ const templates = {
     `))
   }),
 
+  // Sent to facility admins when a staff member raises a facility request
+  request_created: (d) => ({
+    subject: `New Request ${d.request_id}: ${d.title} — Facilflow`,
+    html: wrap(hdr(B, "New Facility Request", "A staff member has raised a request requiring attention") + body(`
+      ${p(`A new <strong>${d.type || "facility"}</strong> request has been submitted by <strong>${d.raised_by || "a staff member"}</strong>.`)}
+      ${table(
+        row("Request ID", d.request_id) +
+        row("Title",      d.title) +
+        row("Type",       d.type) +
+        row("Raised By",  d.raised_by)
+    )}
+      ${cta(d.app_url || ADMIN_APP_URL, "View & Action Request →", B)}
+    `))
+  }),
+
+  // Sent to an IT staff member when a ticket is assigned to them
+  ticket_assigned: (d) => ({
+    subject: `Ticket ${d.ticket_id} assigned to you — Facilflow`,
+    html: wrap(hdr(BLU, "Ticket Assigned to You", "A support ticket now needs your attention") + body(`
+      ${p(`<strong>${d.assigned_by || "An admin"}</strong> has assigned a ticket to you.`)}
+      ${table(
+        row("Ticket ID", d.ticket_id) +
+        row("Subject",   d.subject) +
+        row("Priority",  (d.priority || "medium").charAt(0).toUpperCase() + (d.priority || "medium").slice(1))
+    )}
+      ${cta(d.app_url || ADMIN_APP_URL, "View Ticket →", BLU)}
+    `))
+  }),
+
   // Sent to the submitter as a receipt confirming their ticket was received
   ticket_received: (d) => ({
     subject: `Ticket Received: ${d.ticket_id} — ${d.subject}`,

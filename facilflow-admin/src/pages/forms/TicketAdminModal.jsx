@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { C, btn, inp, card } from "../../theme.js";
+import { C, btn, inp, sel, card } from "../../theme.js";
 import { TICKET_STATUS } from "../../constants.js";
-import { fmtDT, fmtD } from "../../utils.js";
+import { fmtDT, fmtD, sentenceCase } from "../../utils.js";
 import { TChip, PChip, Modal } from "../../components/ui.jsx";
-import { emailTicketStatusUpdate, emailTicketComment } from "../../lib/email.js";
+import { emailTicketStatusUpdate, emailTicketComment, emailTicketAssigned } from "../../lib/email.js";
 
-export default function TicketAdminModal({ticket,users,onClose,onUpdate,fetchComments,addComment}){
+export default function TicketAdminModal({ticket,users,me,onClose,onUpdate,fetchComments,addComment}){
   const [t,setT]=useState(ticket);
   const [comments,setComments]=useState([]);
   const [commentText,setCommentText]=useState("");
@@ -26,6 +26,11 @@ export default function TicketAdminModal({ticket,users,onClose,onUpdate,fetchCom
       if(upd.status && requester?.email){
         emailTicketStatusUpdate(requester.email, n, upd.status, "Support Team").catch(()=>{});
       }
+      // Notify the newly assigned staff member
+      if(upd.assignee_id){
+        const assignee=users.find(u=>u.id===upd.assignee_id);
+        if(assignee?.email) emailTicketAssigned(assignee.email, n, me?.name||"An admin").catch(()=>{});
+      }
     }finally{ setSaving(false); }
   };
 
@@ -44,7 +49,7 @@ export default function TicketAdminModal({ticket,users,onClose,onUpdate,fetchCom
   };
 
   return (
-    <Modal title={`Ticket: ${t.title}`} sub={`#${t.id?.slice(-6)} · ${t.ticketType==="incident"?"Incident":"Service Request"}`} onClose={onClose} w={720}>
+    <Modal title={`Ticket: ${sentenceCase(t.title)}`} sub={`#${t.id?.slice(-6)} · ${t.ticketType==="incident"?"Incident":"Service Request"}`} onClose={onClose} w={720}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:20}}>
         <div>
           <div style={{...card(14),marginBottom:14}}>
@@ -95,11 +100,11 @@ export default function TicketAdminModal({ticket,users,onClose,onUpdate,fetchCom
           </div>
           <div style={card(14)}>
             <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:10}}>UPDATE STATUS</div>
-            <select value={t.status} onChange={e=>save({status:e.target.value})} style={{...inp(),marginBottom:10,fontSize:12}} disabled={saving}>
+            <select value={t.status} onChange={e=>save({status:e.target.value})} style={{...sel(),marginBottom:10,fontSize:12}} disabled={saving}>
               {Object.entries(TICKET_STATUS).map(([v,m])=><option key={v} value={v}>{m.label}</option>)}
             </select>
             <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6}}>ASSIGN TO</div>
-            <select value={t.assigneeId||""} onChange={e=>save({assignee_id:e.target.value||null})} style={{...inp(),fontSize:12}} disabled={saving}>
+            <select value={t.assigneeId||""} onChange={e=>save({assignee_id:e.target.value||null})} style={{...sel(),fontSize:12}} disabled={saving}>
               <option value="">Unassigned</option>
               {users.filter(u=>["it_admin","super_admin"].includes(u.role)).map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
             </select>

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { X, Ban } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { CR_STATUS, TICKET_STATUS, TICKET_PRIORITY, ASSET_STATUS } from "../constants.js";
-import { vsm, dsm } from "../utils.js";
+import { vsm, dsm, humanize } from "../utils.js";
 
 export const Av = ({i,s=30,bg=C.brand}) => (
   <div style={{width:s,height:s,borderRadius:"50%",background:bg,color:"#fff",display:"flex",
@@ -14,18 +14,18 @@ export const Chip = ({label,color,bg}) => (
     background:bg,color,border:`1px solid ${color}22`,whiteSpace:"nowrap"}}>{label}</span>
 );
 
-export const CRChip  = ({s}) => { const m=CR_STATUS[s]||{label:s,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const CRChip  = ({s}) => { const m=CR_STATUS[s]||{label:humanize(s),color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
 export const VChip   = ({s}) => { const m=vsm(s); return <Chip label={m.l} color={m.color} bg={m.bg}/>; };
 export const DChip   = ({s}) => { const m=dsm(s); return <Chip label={m.l} color={m.color} bg={m.bg}/>; };
 export const UChip   = ({s}) => s==="active"?<Chip label="Active"    color={C.green} bg={C.greenBg}/>:<Chip label="Suspended" color={C.red} bg={C.redBg}/>;
-export const EnvTag  = ({e}) => { const m={Production:{c:C.red,bg:C.redBg},Staging:{c:C.amber,bg:C.amberBg},Dev:{c:C.green,bg:C.greenBg}}; const {c,bg}=m[e]||{c:C.muted,bg:"#F8FAFC"}; return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{e}</span>; };
-export const RiskTag = ({r}) => { const m={High:{c:C.red,bg:C.redBg},Medium:{c:C.amber,bg:C.amberBg},Low:{c:C.green,bg:C.greenBg}}; const {c,bg}=m[r]||{c:C.muted,bg:"#F8FAFC"}; return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{r}</span>; };
+export const EnvTag  = ({e}) => { const m={Production:{c:C.red,bg:C.redBg},Staging:{c:C.amber,bg:C.amberBg},Dev:{c:C.green,bg:C.greenBg}}; const key=humanize(e); const {c,bg}=m[key]||{c:C.muted,bg:"#F8FAFC"}; return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{key}</span>; };
+export const RiskTag = ({r}) => { const m={High:{c:C.red,bg:C.redBg},Medium:{c:C.amber,bg:C.amberBg},Low:{c:C.green,bg:C.greenBg}}; const key=humanize(r); const {c,bg}=m[key]||{c:C.muted,bg:"#F8FAFC"}; return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{key}</span>; };
 
 
-export const TChip = ({s})=>{ const m=TICKET_STATUS[s]||{label:s,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
-export const PChip = ({p})=>{ const m=TICKET_PRIORITY[p]||{label:p,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const TChip = ({s})=>{ const m=TICKET_STATUS[s]||{label:humanize(s),color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const PChip = ({p})=>{ const m=TICKET_PRIORITY[p]||{label:humanize(p),color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
 
-export const AChip = ({s})=>{ const m=ASSET_STATUS[s]||{label:s,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const AChip = ({s})=>{ const m=ASSET_STATUS[s]||{label:humanize(s),color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
 
 export function Modal({title,sub,onClose,children,w=640}){
   useEffect(()=>{
@@ -80,7 +80,7 @@ export function Filters({fields,values,onChange}){
         <div key={f.k} style={{display:"flex",flexDirection:"column",minWidth:f.w||120}}>
           <label style={LBL}>{f.label}</label>
           {f.type==="select"
-            ?<select value={values[f.k]||""} onChange={e=>onChange({...values,[f.k]:e.target.value})} style={{...inp(),padding:"6px 9px",fontSize:12}}>
+            ?<select value={values[f.k]||""} onChange={e=>onChange({...values,[f.k]:e.target.value})} style={{...sel(),padding:"6px 9px",fontSize:12}}>
                <option value="">All</option>
                {f.opts.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
              </select>

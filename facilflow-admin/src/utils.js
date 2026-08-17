@@ -44,6 +44,18 @@ export const isSuperAdmin = (user) => getAdminRoles(user).includes("super_admin"
 // source string's own casing convention.
 export const humanize = s => !s ? "" : String(s).toLowerCase().replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
 
+// Capitalizes only the first character of free-text input (e.g. ticket titles),
+// leaving the rest untouched so acronyms/proper nouns aren't mangled.
+export const sentenceCase = s => !s ? "" : String(s).charAt(0).toUpperCase() + String(s).slice(1);
+
+// Deep-compares two form-state objects (ignoring any keys in `ignore`, e.g.
+// a File field that can't be JSON-compared) to tell whether an edit form
+// has any unsaved changes yet.
+export const isDirty = (current, initial, ignore=[]) => {
+  const strip = o => Object.fromEntries(Object.entries(o||{}).filter(([k])=>!ignore.includes(k)));
+  return JSON.stringify(strip(current)) !== JSON.stringify(strip(initial));
+};
+
 export const fmtDT = d => new Date(d).toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
 export const fmtD  = d => new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 export const genId = p => `${p}${Date.now()}${Math.random().toString(36).slice(2,5)}`;

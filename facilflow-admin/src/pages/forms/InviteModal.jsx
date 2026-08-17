@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Mail } from "lucide-react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../../constants.js";
 import { Chip, Modal } from "../../components/ui.jsx";
 
@@ -81,7 +81,7 @@ export default function InviteModal({onClose,onInvite,departments}){
         {roleType==="staff" ? (
           <div>
             <label style={LBL}>Staff Role</label>
-            <select value={staffRole} onChange={e=>setStaffRole(e.target.value)} style={inp()}>
+            <select value={staffRole} onChange={e=>setStaffRole(e.target.value)} style={sel()}>
               {STAFF_ROLES.map(r=><option key={r} value={r}>{r.replace(/_/g," ")}</option>)}
             </select>
           </div>
@@ -110,7 +110,7 @@ export default function InviteModal({onClose,onInvite,departments}){
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
           <div>
             <label style={LBL}>Department</label>
-            <select value={dept} onChange={e=>setDept(e.target.value)} style={inp()}>
+            <select value={dept} onChange={e=>setDept(e.target.value)} style={sel()}>
               {(departments||[]).map(d=><option key={d.id} value={d.name}>{d.name}</option>)}
             </select>
           </div>

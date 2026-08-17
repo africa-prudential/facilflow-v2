@@ -1,4 +1,4 @@
-# FaciliFlow v2 — Africa Prudential
+# Facilflow v2 — Africa Prudential
 
 Two-app internal workflow platform.
 

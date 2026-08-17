@@ -81,6 +81,15 @@ export const emailTicketCreated = (toEmails, ticket, raisedBy) =>
     app_url: APP_URL,
   })
 
+export const emailTicketAssigned = (toEmail, ticket, assignedBy) =>
+  sendEmail('ticket_assigned', toEmail, {
+    ticket_id: ticket.id,
+    subject: ticket.subject || ticket.title,
+    priority: ticket.priority || 'medium',
+    assigned_by: assignedBy,
+    app_url: APP_URL,
+  })
+
 export const emailTicketStatusUpdate = (toEmail, ticket, newStatus, updatedBy) =>
   sendEmail('ticket_status_update', toEmail, {
     ticket_id: ticket.id,

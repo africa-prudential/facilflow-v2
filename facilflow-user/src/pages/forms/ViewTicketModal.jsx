@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { C, btn, inp, card } from "../../theme.js";
 import { TICKET_STATUS_USER } from "../../constants.js";
-import { fmtDT } from "../../utils.js";
+import { fmtDT, humanize, sentenceCase } from "../../utils.js";
 import { Chip, PChipU } from "../../components/ui.jsx";
 import { emailTicketComment } from "../../lib/email.js";
 
@@ -34,11 +34,11 @@ export default function ViewTicketModal({ticket,me,adminEmails,onClose,fetchComm
     finally{ setPosting(false); }
   };
 
-  const st=TICKET_STATUS_USER[ticket.status]||{label:ticket.status,color:C.muted,bg:"#EEF0F4"};
+  const st=TICKET_STATUS_USER[ticket.status]||{label:humanize(ticket.status),color:C.muted,bg:"#EEF0F4"};
   const isInc=ticket.type==="incident";
   const isOpen=!["closed","resolved","fulfilled"].includes(ticket.status);
   const attachments=Array.isArray(ticket.attachments)?ticket.attachments:[];
-  const catPath=[ticket.category,ticket.subcategory,ticket.item].filter(Boolean).join(" › ");
+  const catPath=[ticket.category,ticket.subcategory,ticket.item].filter(Boolean).map(humanize).join(" › ");
   const fmtBytes=b=>!b?"":b<1024?`${b}B`:b<1048576?`${(b/1024).toFixed(1)}KB`:`${(b/1048576).toFixed(1)}MB`;
   const PCOL={low:C.green,medium:C.blue,high:C.amber,critical:C.red};
 
@@ -79,7 +79,7 @@ export default function ViewTicketModal({ticket,me,adminEmails,onClose,fetchComm
                   {ticket.priority.charAt(0).toUpperCase()+ticket.priority.slice(1)} Priority
                 </span>}
               </div>
-              <h2 style={{margin:0,fontSize:17,fontWeight:800,color:C.ink,letterSpacing:"-.02em",lineHeight:1.25}}>{ticket.subject}</h2>
+              <h2 style={{margin:0,fontSize:17,fontWeight:800,color:C.ink,letterSpacing:"-.02em",lineHeight:1.25}}>{sentenceCase(ticket.subject)}</h2>
               <div style={{fontSize:11,color:C.muted,marginTop:5,display:"flex",gap:14,flexWrap:"wrap"}}>
                 <span>Raised {fmtDT(ticket.created_at)}</span>
                 {ticket.updated_at&&<span>· Updated {fmtDT(ticket.updated_at)}</span>}
@@ -214,18 +214,18 @@ export default function ViewTicketModal({ticket,me,adminEmails,onClose,fetchComm
 
             <DR label="Status"   node={<Chip label={st.label} color={st.color} bg={st.bg}/>}/>
             <DR label="Priority" node={ticket.priority&&<PChipU p={ticket.priority}/>}/>
-            <DR label="Urgency"  val={ticket.urgency&&ticket.urgency.charAt(0).toUpperCase()+ticket.urgency.slice(1)}/>
-            <DR label="Impact Level" val={ticket.impact&&ticket.impact.charAt(0).toUpperCase()+ticket.impact.slice(1)}/>
-            {isInc&&<DR label="Severity" val={ticket.severity&&ticket.severity.charAt(0).toUpperCase()+ticket.severity.slice(1)}/>}
+            <DR label="Urgency"  val={ticket.urgency&&humanize(ticket.urgency)}/>
+            <DR label="Impact Level" val={ticket.impact&&humanize(ticket.impact)}/>
+            {isInc&&<DR label="Severity" val={ticket.severity&&humanize(ticket.severity)}/>}
             {catPath&&<DR label="Category" val={catPath}/>}
-            {ticket.ticket_type&&<DR label="Ticket Area" val={ticket.ticket_type}/>}
-            {ticket.department&&<DR label="Department" val={ticket.department}/>}
-            {ticket.site&&<DR label="Site / Location" val={ticket.site}/>}
+            {ticket.ticket_type&&<DR label="Ticket Area" val={humanize(ticket.ticket_type)}/>}
+            {ticket.department&&<DR label="Department" val={humanize(ticket.department)}/>}
+            {ticket.site&&<DR label="Site / Location" val={humanize(ticket.site)}/>}
             {ticket.product_service&&<DR label="Product / Service" val={ticket.product_service}/>}
             {ticket.asset_free_text&&<DR label="Asset / Device" val={ticket.asset_free_text}/>}
             {ticket.linked_cr_id&&<DR label="Linked CR" val={ticket.linked_cr_id}/>}
-            {ticket.mode&&<DR label="Reported Via" val={ticket.mode.replace(/-/g," ").replace(/\b\w/g,l=>l.toUpperCase())}/>}
-            {ticket.support_level&&<DR label="Support Level" val={ticket.support_level}/>}
+            {ticket.mode&&<DR label="Reported Via" val={humanize(ticket.mode)}/>}
+            {ticket.support_level&&<DR label="Support Level" val={humanize(ticket.support_level)}/>}
             {ticket.resolved_at&&<DR label="Resolved" val={fmtDT(ticket.resolved_at)}/>}
             {ticket.closed_at&&<DR label="Closed" val={fmtDT(ticket.closed_at)}/>}
             <DR label="Raised" val={fmtDT(ticket.created_at)}/>

@@ -442,7 +442,7 @@ export const fetchAssets = async (tenantId) => {
   return data
 }
 
-const ASSET_COLS = ['tenant_id','asset_tag','name','category','serial_number','assigned_to','assigned_date','department','site','status','purchase_date','notes','usage_history']
+const ASSET_COLS = ['tenant_id','asset_tag','name','category','serial_number','assigned_to','assigned_date','department','site','status','purchase_date','notes','usage_history','brand','model','purchase_cost','warranty_expiry']
 
 export const createAsset = async (asset) => {
   const clean = Object.fromEntries(Object.entries(asset).filter(([k]) => ASSET_COLS.includes(k)))

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Car, Pencil, Search, X, Inbox } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { RQChip, PageTitle, TH, Empty } from "../components/ui.jsx";
 import PoolCarForm from "./forms/PoolCarForm.jsx";
@@ -116,7 +116,7 @@ export default function MyRequests({ctx}){
           {/* Type */}
           <div style={{minWidth:130}}>
             <label style={LBL}>Type</label>
-            <select value={fType} onChange={e=>setFType(e.target.value)} style={inp()}>
+            <select value={fType} onChange={e=>setFType(e.target.value)} style={sel()}>
               <option value="">All Types</option>
               <option value="pool_car">🚗 Pool Car</option>
               <option value="stationary">✏️ Stationery</option>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { C, btn, inp, card, LBL } from "../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { FIXED_CR_ROLE_KEYS } from "../constants.js";
 import { Av, Modal, PageTitle } from "../components/ui.jsx";
 import AddRoleControl from "../components/AddRoleControl.jsx";
@@ -133,7 +133,7 @@ function CRPolicyFull({ctx}){
             <select
               value={tenantConfig?.change_manager_id||""}
               onChange={e=>saveManager(e.target.value)}
-              style={inp()}>
+              style={sel()}>
               <option value="">— Not configured —</option>
               {cmUser&&!changeManagerIds.has(cmUser.id)&&(
                 <option value={cmUser.id}>{cmUser.name} ({cmUser.email}) — role no longer assigned</option>
@@ -171,7 +171,7 @@ function CRPolicyFull({ctx}){
               <select
                 value={escForm.escalation_authority_id}
                 onChange={e=>setEscForm(p=>({...p,escalation_authority_id:e.target.value}))}
-                style={inp()}>
+                style={sel()}>
                 <option value="">— Not configured —</option>
                 {users.filter(u=>u.status==="active").map(u=>(
                   <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
@@ -300,7 +300,7 @@ function CRPolicyFull({ctx}){
             <div>
               <label style={LBL}>Required Role</label>
               <div style={{display:"flex",gap:8}}>
-                <select value={editing.role_key||""} onChange={e=>setEditing(p=>({...p,role_key:e.target.value}))} style={inp()}>
+                <select value={editing.role_key||""} onChange={e=>setEditing(p=>({...p,role_key:e.target.value}))} style={sel()}>
                   {(changeRoles||[]).filter(r=>!FIXED_CR_ROLE_KEYS.includes(r.key)).map(r=>(
                     <option key={r.key} value={r.key}>{r.label}</option>
                   ))}

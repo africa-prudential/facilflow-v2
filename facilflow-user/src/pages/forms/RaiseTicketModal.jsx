@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../../theme.js";
 
 export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachment,onClose,onCreate}){
   const [step,setStep]=useState("form"); // "form" | "preview"
@@ -108,7 +108,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                 <div>
                   <label style={LBL}>Request Type *</label>
-                  <select value={form.type} onChange={e=>set("type",e.target.value)} style={{...inp(),fontSize:13}}>
+                  <select value={form.type} onChange={e=>set("type",e.target.value)} style={{...sel(),fontSize:13}}>
                     <option value="service_request">Service Request</option>
                     <option value="incident">Incident</option>
                   </select>
@@ -116,7 +116,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                 </div>
                 <div>
                   <label style={LBL}>Area / Ticket Type</label>
-                  <select value={form.ticket_type} onChange={e=>set("ticket_type",e.target.value)} style={{...inp(),fontSize:13}}>
+                  <select value={form.ticket_type} onChange={e=>set("ticket_type",e.target.value)} style={{...sel(),fontSize:13}}>
                     <option value="">Select area…</option>
                     {["Hardware","Software","Network","Security","Access","Infrastructure","Other"].map(t=><option key={t} value={t}>{t}</option>)}
                   </select>
@@ -126,21 +126,21 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
                   <div>
                     <label style={LBL}>Category</label>
-                    <select value={form.category} onChange={e=>{set("category",e.target.value);set("subcategory","");set("item","");}} style={{...inp(),fontSize:13}}>
+                    <select value={form.category} onChange={e=>{set("category",e.target.value);set("subcategory","");set("item","");}} style={{...sel(),fontSize:13}}>
                       <option value="">Select…</option>
                       {cats.map(c=><option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
                     <label style={LBL}>Subcategory</label>
-                    <select value={form.subcategory} onChange={e=>{set("subcategory",e.target.value);set("item","");}} style={{...inp(),fontSize:13}} disabled={!form.category}>
+                    <select value={form.subcategory} onChange={e=>{set("subcategory",e.target.value);set("item","");}} style={{...sel(),fontSize:13}} disabled={!form.category}>
                       <option value="">Select…</option>
                       {subcats.map(s=><option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
                     <label style={LBL}>Item</label>
-                    <select value={form.item} onChange={e=>set("item",e.target.value)} style={{...inp(),fontSize:13}} disabled={!form.subcategory||items.length===0}>
+                    <select value={form.item} onChange={e=>set("item",e.target.value)} style={{...sel(),fontSize:13}} disabled={!form.subcategory||items.length===0}>
                       <option value="">Select…</option>
                       {items.map(i=><option key={i} value={i}>{i}</option>)}
                     </select>
@@ -171,7 +171,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
                 <div>
                   <label style={LBL}>Priority</label>
-                  <select value={form.priority} onChange={e=>{set("priority",e.target.value);set("priority_auto",false);}} style={{...inp(),fontSize:13}}>
+                  <select value={form.priority} onChange={e=>{set("priority",e.target.value);set("priority_auto",false);}} style={{...sel(),fontSize:13}}>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -180,7 +180,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                 </div>
                 <div>
                   <label style={LBL}>Urgency</label>
-                  <select value={form.urgency} onChange={e=>set("urgency",e.target.value)} style={{...inp(),fontSize:13}}>
+                  <select value={form.urgency} onChange={e=>set("urgency",e.target.value)} style={{...sel(),fontSize:13}}>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -188,7 +188,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                 </div>
                 <div>
                   <label style={LBL}>Impact Level</label>
-                  <select value={form.impact} onChange={e=>set("impact",e.target.value)} style={{...inp(),fontSize:13}}>
+                  <select value={form.impact} onChange={e=>set("impact",e.target.value)} style={{...sel(),fontSize:13}}>
                     <option value="low">Low — Affects me only</option>
                     <option value="medium">Medium — My team</option>
                     <option value="high">High — Department</option>
@@ -200,7 +200,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                   <div>
                     <label style={LBL}>Severity</label>
-                    <select value={form.severity} onChange={e=>set("severity",e.target.value)} style={{...inp(),fontSize:13}}>
+                    <select value={form.severity} onChange={e=>set("severity",e.target.value)} style={{...sel(),fontSize:13}}>
                       <option value="minor">Minor — Minor disruption</option>
                       <option value="moderate">Moderate — Significant impact</option>
                       <option value="major">Major — Core service down</option>
@@ -209,7 +209,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
                   </div>
                   <div>
                     <label style={LBL}>Mode of Report</label>
-                    <select value={form.mode} onChange={e=>set("mode",e.target.value)} style={{...inp(),fontSize:13}}>
+                    <select value={form.mode} onChange={e=>set("mode",e.target.value)} style={{...sel(),fontSize:13}}>
                       <option value="portal">Portal</option>
                       <option value="email">Email</option>
                       <option value="phone">Phone</option>
@@ -254,7 +254,7 @@ export default function RaiseTicketModal({cats,ticketCats,me,crs,uploadAttachmen
               {(crs||[]).length>0&&(
                 <div>
                   <label style={LBL}>Linked Change Request (optional)</label>
-                  <select value={form.linked_cr_id} onChange={e=>set("linked_cr_id",e.target.value)} style={{...inp(),fontSize:13}}>
+                  <select value={form.linked_cr_id} onChange={e=>set("linked_cr_id",e.target.value)} style={{...sel(),fontSize:13}}>
                     <option value="">None</option>
                     {crs.map(cr=><option key={cr.id} value={cr.id}>{cr.id} — {cr.title||cr.subject||""}</option>)}
                   </select>

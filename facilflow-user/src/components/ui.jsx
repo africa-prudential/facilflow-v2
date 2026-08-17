@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { CR_STATUS, REQ_STATUS, TICKET_STATUS_USER, TICKET_PRIORITY_USER } from "../constants.js";
+import { humanize } from "../utils.js";
 
 export const Av = ({i,s=30,bg=C.brand}) => (
   <div style={{width:s,height:s,borderRadius:"50%",background:bg,color:"#fff",display:"flex",
@@ -13,19 +14,21 @@ export const Chip = ({label,color,bg}) => (
     fontSize:11,fontWeight:600,background:bg,color,border:`1px solid ${color}22`,whiteSpace:"nowrap"}}>{label}</span>
 );
 
-export const CRChip = ({s}) => { const m=CR_STATUS[s]||{label:s,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
-export const RQChip = ({s}) => { const m=REQ_STATUS[s]||{label:s,color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const CRChip = ({s}) => { const m=CR_STATUS[s]||{label:humanize(s),color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const RQChip = ({s}) => { const m=REQ_STATUS[s]||{label:humanize(s),color:C.muted,bg:"#F8FAFC"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
 
 export const EnvTag = ({e}) => {
   const m={Production:{c:C.red,bg:C.redBg},Staging:{c:C.amber,bg:C.amberBg},Dev:{c:C.green,bg:C.greenBg}};
-  const {c,bg}=m[e]||{c:C.muted,bg:"#F8FAFC"};
-  return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{e}</span>;
+  const key=humanize(e);
+  const {c,bg}=m[key]||{c:C.muted,bg:"#F8FAFC"};
+  return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{key}</span>;
 };
 
 export const RiskTag = ({r}) => {
   const m={High:{c:C.red,bg:C.redBg},Medium:{c:C.amber,bg:C.amberBg},Low:{c:C.green,bg:C.greenBg}};
-  const {c,bg}=m[r]||{c:C.muted,bg:"#F8FAFC"};
-  return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{r}</span>;
+  const key=humanize(r);
+  const {c,bg}=m[key]||{c:C.muted,bg:"#F8FAFC"};
+  return <span style={{fontSize:11,fontWeight:600,padding:"1px 7px",borderRadius:4,background:bg,color:c}}>{key}</span>;
 };
 
 export function Modal({title,sub,onClose,children,w=640}){
@@ -97,7 +100,7 @@ export function Filters({fields,values,onChange}){
           <label style={LBL}>{f.label}</label>
           {f.type==="select"
             ?<select value={values[f.k]||""} onChange={e=>onChange({...values,[f.k]:e.target.value})}
-               style={{...inp(),padding:"6px 9px",fontSize:12}}>
+               style={{...sel(),padding:"6px 9px",fontSize:12}}>
                <option value="">All</option>
                {f.opts.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
              </select>
@@ -111,5 +114,5 @@ export function Filters({fields,values,onChange}){
   );
 }
 
-export const TChipU = ({s})=>{ const m=TICKET_STATUS_USER[s]||{label:s,color:C.muted,bg:"#EEF0F4"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
-export const PChipU = ({p})=>{ const m=TICKET_PRIORITY_USER[p]||{label:p,color:C.muted,bg:"#EEF0F4"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const TChipU = ({s})=>{ const m=TICKET_STATUS_USER[s]||{label:humanize(s),color:C.muted,bg:"#EEF0F4"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };
+export const PChipU = ({p})=>{ const m=TICKET_PRIORITY_USER[p]||{label:humanize(p),color:C.muted,bg:"#EEF0F4"}; return <Chip label={m.label} color={m.color} bg={m.bg}/>; };

@@ -153,7 +153,7 @@ export default function UserMgmt({ctx}){
                       })}
                     </div>
                   </td>
-                  <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{u.dept}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{humanize(u.dept)}</td>
                   <td style={{padding:"11px 14px"}}><UChip s={u.status}/></td>
                   <td style={{padding:"11px 14px",fontSize:11,color:C.muted,whiteSpace:"nowrap"}}>{fmtSafe(u.created_at)}</td>
                   <td style={{padding:"11px 14px"}}>

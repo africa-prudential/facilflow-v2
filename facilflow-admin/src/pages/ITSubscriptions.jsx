@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, CreditCard, Paperclip } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { SUB_STATUSES, SUB_CYCLES } from "../constants.js";
-import { genId, now, normSub, fmtSafe, exportCSV } from "../utils.js";
+import { genId, now, normSub, fmtSafe, exportCSV, humanize } from "../utils.js";
 import { createSubscription, updateSubscription, uploadSubInvoice } from "../lib/supabase.js";
 import { Chip, PageTitle, TH, Empty } from "../components/ui.jsx";
 import SubDetailModal from "./forms/SubDetailModal.jsx";
@@ -159,35 +159,35 @@ export default function ITSubscriptions({ctx}){
         </div>
         <div style={{minWidth:140}}>
           <label style={LBL}>Status</label>
-          <select value={f.status||""} onChange={e=>setF(p=>({...p,status:e.target.value}))} style={{...inp(),padding:"6px 9px",fontSize:12}}>
+          <select value={f.status||""} onChange={e=>setF(p=>({...p,status:e.target.value}))} style={{...sel(),padding:"6px 9px",fontSize:12}}>
             <option value="">All</option>
             {SUB_STATUSES.map(s=><option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
         </div>
         <div style={{minWidth:140}}>
           <label style={LBL}>Billing Cycle</label>
-          <select value={f.cycle||""} onChange={e=>setF(p=>({...p,cycle:e.target.value}))} style={{...inp(),padding:"6px 9px",fontSize:12}}>
+          <select value={f.cycle||""} onChange={e=>setF(p=>({...p,cycle:e.target.value}))} style={{...sel(),padding:"6px 9px",fontSize:12}}>
             <option value="">All</option>
             {SUB_CYCLES.map(c=><option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div style={{minWidth:140}}>
           <label style={LBL}>Category</label>
-          <select value={f.category||""} onChange={e=>setF(p=>({...p,category:e.target.value}))} style={{...inp(),padding:"6px 9px",fontSize:12}}>
+          <select value={f.category||""} onChange={e=>setF(p=>({...p,category:e.target.value}))} style={{...sel(),padding:"6px 9px",fontSize:12}}>
             <option value="">All</option>
             {cats.map(v=><option key={v} value={v}>{v}</option>)}
           </select>
         </div>
         <div style={{minWidth:140}}>
           <label style={LBL}>Vendor</label>
-          <select value={f.vendor||""} onChange={e=>setF(p=>({...p,vendor:e.target.value}))} style={{...inp(),padding:"6px 9px",fontSize:12}}>
+          <select value={f.vendor||""} onChange={e=>setF(p=>({...p,vendor:e.target.value}))} style={{...sel(),padding:"6px 9px",fontSize:12}}>
             <option value="">All</option>
             {vendors.map(v=><option key={v} value={v}>{v}</option>)}
           </select>
         </div>
         <div style={{minWidth:140}}>
           <label style={LBL}>Department</label>
-          <select value={f.dept||""} onChange={e=>setF(p=>({...p,dept:e.target.value}))} style={{...inp(),padding:"6px 9px",fontSize:12}}>
+          <select value={f.dept||""} onChange={e=>setF(p=>({...p,dept:e.target.value}))} style={{...sel(),padding:"6px 9px",fontSize:12}}>
             <option value="">All</option>
             {depts.map(d=><option key={d} value={d}>{d}</option>)}
           </select>
@@ -219,7 +219,7 @@ export default function ITSubscriptions({ctx}){
                   <tr key={s.id} onClick={()=>setDetail(s)} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none",background:rowBg,cursor:"pointer"}}>
                     <td style={{padding:"11px 14px"}}>
                       <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{s.name}</div>
-                      {s.category&&<div style={{fontSize:10,color:C.muted,marginTop:1}}>{s.category}</div>}
+                      {s.category&&<div style={{fontSize:10,color:C.muted,marginTop:1}}>{humanize(s.category)}</div>}
                     </td>
                     <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{s.vendor||"—"}</td>
                     <td style={{padding:"11px 14px",fontSize:13,fontWeight:700,color:C.ink}}>
@@ -275,8 +275,8 @@ export default function ITSubscriptions({ctx}){
         </div>
       </div>
 
-      {modal==="add"&&<SubModal depts={depts} onClose={()=>setModal(null)} onSave={d=>saveSub(d,null)}/>}
-      {modal?.edit&&<SubModal sub={modal.edit} depts={depts} onClose={()=>setModal(null)} onSave={d=>saveSub(d,modal.edit)}/>}
+      {modal==="add"&&<SubModal depts={depts} users={users} onClose={()=>setModal(null)} onSave={d=>saveSub(d,null)}/>}
+      {modal?.edit&&<SubModal sub={modal.edit} depts={depts} users={users} onClose={()=>setModal(null)} onSave={d=>saveSub(d,modal.edit)}/>}
       {detail&&<SubDetailModal sub={detail} depts={depts} users={users} onClose={()=>setDetail(null)} onEdit={s=>{setDetail(null);setModal({edit:s});}}/>}
     </div>
   );

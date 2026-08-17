@@ -35,6 +35,15 @@ export const inp = (err=false) => ({
   fontFamily:"inherit", outline:"none", boxSizing:"border-box",
 });
 
+export const sel = (err=false) => ({
+  ...inp(err),
+  appearance:"none", WebkitAppearance:"none", MozAppearance:"none",
+  lineHeight:"normal",
+  backgroundImage:'url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 viewBox=%270 0 10 6%27><path d=%27M1 1l4 4 4-4%27 stroke=%27%2394A3B8%27 stroke-width=%271.5%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/></svg>")',
+  backgroundRepeat:"no-repeat", backgroundPosition:"right 10px center", backgroundSize:"10px 6px",
+  paddingRight:28,
+});
+
 export const card = (p=16) => ({
   background:"#fff", border:`1px solid ${C.border}`,
   borderRadius:10, padding:p, boxShadow:"0 1px 3px rgba(0,0,0,.05)",

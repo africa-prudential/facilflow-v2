@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { X, Search, Car, Pencil } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../theme.js";
-import { now } from "../utils.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
+import { now, humanize } from "../utils.js";
 import { Av, PageTitle, TH, Filters } from "../components/ui.jsx";
 import { supabase, updateVehicle, updateInventoryItem, updateRequest, USER_APP_URL } from "../lib/supabase.js";
 import RequestDetailModal from "./forms/RequestDetailModal.jsx";
@@ -279,7 +279,7 @@ export default function RequestsMgmt({ctx}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
           <div>
             <label style={LBL}>Request Type</label>
-            <select value={fType} onChange={e=>resetPage(setFType)(e.target.value)} style={inp()}>
+            <select value={fType} onChange={e=>resetPage(setFType)(e.target.value)} style={sel()}>
               <option value="">All Types</option>
               <option value="pool_car">Pool Car</option>
               <option value="stationary">Stationery</option>
@@ -287,7 +287,7 @@ export default function RequestsMgmt({ctx}){
           </div>
           <div>
             <label style={LBL}>Approval Status</label>
-            <select value={fStatus} onChange={e=>resetPage(setFStatus)(e.target.value)} style={inp()}>
+            <select value={fStatus} onChange={e=>resetPage(setFStatus)(e.target.value)} style={sel()}>
               <option value="">All Statuses</option>
               <option value="pending_approval">Pending Approval</option>
               <option value="approved">Approved</option>
@@ -298,35 +298,35 @@ export default function RequestsMgmt({ctx}){
           </div>
           <div>
             <label style={LBL}>Department</label>
-            <select value={fDept} onChange={e=>resetPage(setFDept)(e.target.value)} style={inp()}>
+            <select value={fDept} onChange={e=>resetPage(setFDept)(e.target.value)} style={sel()}>
               <option value="">All Departments</option>
               {depts.map(d=><option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Requester</label>
-            <select value={fUser} onChange={e=>resetPage(setFUser)(e.target.value)} style={inp()}>
+            <select value={fUser} onChange={e=>resetPage(setFUser)(e.target.value)} style={sel()}>
               <option value="">All Users</option>
               {(users||[]).filter(u=>u.role!=="admin").map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Assigned Vehicle</label>
-            <select value={fVehicle} onChange={e=>resetPage(setFVehicle)(e.target.value)} style={inp()}>
+            <select value={fVehicle} onChange={e=>resetPage(setFVehicle)(e.target.value)} style={sel()}>
               <option value="">Any Vehicle</option>
               {(vehicles||[]).map(v=><option key={v.id} value={v.id}>{v.plate} — {v.model}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Assigned Driver</label>
-            <select value={fDriver} onChange={e=>resetPage(setFDriver)(e.target.value)} style={inp()}>
+            <select value={fDriver} onChange={e=>resetPage(setFDriver)(e.target.value)} style={sel()}>
               <option value="">Any Driver</option>
               {(drivers||[]).map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Inventory Item</label>
-            <select value={fItem} onChange={e=>resetPage(setFItem)(e.target.value)} style={inp()}>
+            <select value={fItem} onChange={e=>resetPage(setFItem)(e.target.value)} style={sel()}>
               <option value="">Any Item</option>
               {invItems.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}
             </select>
@@ -406,8 +406,8 @@ export default function RequestsMgmt({ctx}){
                     {r.updated_at ? new Date(r.updated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "—"}
                   </td>
                   <td style={{padding:"11px 14px"}}>
-                    <span style={{fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:20,background:sc.bg,color:sc.color,textTransform:"capitalize",whiteSpace:"nowrap"}}>
-                      {r.status.replace(/_/g," ")}
+                    <span style={{fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:20,background:sc.bg,color:sc.color,whiteSpace:"nowrap"}}>
+                      {humanize(r.status)}
                     </span>
                   </td>
                   <td style={{padding:"11px 14px",fontSize:11,color:C.muted}}>{resource}</td>
@@ -428,7 +428,7 @@ export default function RequestsMgmt({ctx}){
         <div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:11,color:C.muted}}>Rows per page:</span>
-            <select value={pageSize} onChange={e=>{setPageSize(+e.target.value);setPage(1);}} style={{...inp(),width:70,padding:"4px 8px",fontSize:12}}>
+            <select value={pageSize} onChange={e=>{setPageSize(+e.target.value);setPage(1);}} style={{...sel(),width:70,padding:"4px 8px",fontSize:12}}>
               {[10,25,50,100].map(n=><option key={n} value={n}>{n}</option>)}
             </select>
           </div>
