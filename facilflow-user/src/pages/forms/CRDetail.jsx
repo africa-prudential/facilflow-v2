@@ -3,6 +3,7 @@ import { Zap, Monitor, XCircle, Check, CheckCircle2, Wrench, Paperclip, External
 import { C, btn, inp, LBL } from "../../theme.js";
 import { CR_STATUS, DOC_LABELS } from "../../constants.js";
 import { fmtDT, fmtD, humanize } from "../../utils.js";
+import RichTextView from "../../components/RichTextView.jsx";
 import { Av, CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
 
 export default function CRDetail({cr,onClose,ctx,onAction}){
@@ -135,8 +136,8 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
               </div>
             ):null)}
           </div>
-          {cr.description&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Description</div><div style={{fontSize:13,color:C.ink,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{cr.description}</div></div>}
-          {cr.rollback&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Rollback Plan</div><div style={{fontSize:13,color:C.ink,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{cr.rollback}</div></div>}
+          {cr.description&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Description</div><RichTextView value={cr.description} style={{lineHeight:1.7}}/></div>}
+          {cr.rollback&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Rollback Plan</div><RichTextView value={cr.rollback} style={{lineHeight:1.7}}/></div>}
           {cr.test_evidence&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Testing Evidence</div><div style={{fontSize:13,color:C.ink,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{cr.test_evidence}</div></div>}
           {cr.attachments?.length>0&&<div style={{background:C.pageBg,borderRadius:7,padding:"12px 14px"}}>
             <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Supporting Documents</div>
