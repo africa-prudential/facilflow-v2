@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { X, Search, Zap, Eye } from "lucide-react";
 import { C, btn, inp, sel, card, LBL } from "../theme.js";
-import { fmtD } from "../utils.js";
+import { fmtD, stripHtml } from "../utils.js";
 import { Av, EnvTag, RiskTag, PageTitle, TH, Filters } from "../components/ui.jsx";
 import CRForm from "./forms/CRForm.jsx";
 import CRDetail from "./forms/CRDetail.jsx";
@@ -121,7 +121,7 @@ export default function ChangePage({ctx}){
       if(fFrom && new Date(c.created_at)<new Date(fFrom)) return false;
       if(fTo   && new Date(c.created_at)>new Date(fTo+"T23:59:59")) return false;
       if(q){
-        const hay=[c.id,c.title||"",c.description||"",raiser?.name||"",c.system_name||""].join(" ").toLowerCase();
+        const hay=[c.id,c.title||"",stripHtml(c.description),raiser?.name||"",c.system_name||""].join(" ").toLowerCase();
         if(!hay.includes(q)) return false;
       }
       return true;

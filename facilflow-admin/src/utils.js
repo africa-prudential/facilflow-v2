@@ -44,6 +44,10 @@ export const isSuperAdmin = (user) => getAdminRoles(user).includes("super_admin"
 // source string's own casing convention.
 export const humanize = s => !s ? "" : String(s).toLowerCase().replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
 
+// Strips HTML tags from rich-text fields (e.g. CR description/rollback) so
+// they can be matched against plain-text search queries.
+export const stripHtml = html => !html ? "" : String(html).replace(/<[^>]*>/g," ");
+
 // Capitalizes only the first character of free-text input (e.g. ticket titles),
 // leaving the rest untouched so acronyms/proper nouns aren't mangled.
 export const sentenceCase = s => !s ? "" : String(s).charAt(0).toUpperCase() + String(s).slice(1);

@@ -3,6 +3,7 @@ import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock, Paperclip, ExternalLin
 import { C, btn, inp, LBL } from "../../theme.js";
 import { fmtDT, fmtD, now, isSuperAdmin, humanize, hasAdminAccess } from "../../utils.js";
 import { CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
+import RichTextView from "../../components/RichTextView.jsx";
 import { updateCR, USER_APP_URL, APP_URL } from "../../lib/supabase.js";
 import { sendEmail } from "../../lib/email.js";
 
@@ -321,8 +322,8 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
               </div>
             ))}
           </div>
-          {cr.description&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Description</div><div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{cr.description}</div></div>}
-          {cr.rollback&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Rollback Plan</div><div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{cr.rollback}</div></div>}
+          {cr.description&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Description</div><RichTextView value={cr.description}/></div>}
+          {cr.rollback&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Rollback Plan</div><RichTextView value={cr.rollback}/></div>}
           {cr.test_evidence&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}><div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>Testing Evidence</div><div style={{fontSize:13,color:C.ink,lineHeight:1.6}}>{cr.test_evidence}</div></div>}
           {cr.attachments?.length>0&&<div style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}>
             <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Supporting Documents</div>

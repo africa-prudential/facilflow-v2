@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Check, Zap, Paperclip, FileText, X, ClipboardList, ExternalLink } from "lucide-react";
 import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { Av, Modal } from "../../components/ui.jsx";
+import RichTextEditor, { isEmptyHtml } from "../../components/RichTextEditor.jsx";
+import RichTextView from "../../components/RichTextView.jsx";
 import { CR_CATEGORIES, CR_MODULES, DOC_LABELS } from "../../constants.js";
 import { uploadCRAttachment } from "../../lib/supabase.js";
 
@@ -40,14 +42,14 @@ export default function CRForm({onClose,onSubmit,ctx}){
   const validate1 = () => {
     const er = {};
     if(!title)      er.title      = "Required";
-    if(!desc)       er.desc       = "Required";
+    if(isEmptyHtml(desc)) er.desc = "Required";
     if(module==="Other" && !systemOther) er.systemOther = "Required";
     if(!deployDate) er.deployDate = "Required";
     setErrs(er); return Object.keys(er).length===0;
   };
   const validate2 = () => {
     const er = {};
-    if(!rollback) er.rollback = "Required";
+    if(isEmptyHtml(rollback)) er.rollback = "Required";
     rules.mandatory.forEach(dt=>{ if((docs[dt]||[]).length===0) er[dt]="Required"; });
     if(rules.oneOf.length>0 && !rules.oneOf.some(dt=>(docs[dt]||[]).length>0)){
       er.oneOf = `At least one of ${rules.oneOf.map(dt=>DOC_LABELS[dt]).join(" or ")} is required`;
@@ -156,7 +158,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
           )}
           <div style={{gridColumn:"1/-1"}}>
             <label style={LBL}>Description{errs.desc&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.desc}</span>}</label>
-            <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="What will be changed and why…" style={{...inp(!!errs.desc),minHeight:80,resize:"vertical"}}/>
+            <RichTextEditor value={desc} onChange={setDesc} placeholder="What will be changed and why…" error={!!errs.desc}/>
           </div>
           <div>
             <label style={LBL}>Deployment Date{errs.deployDate&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.deployDate}</span>}</label>
@@ -203,7 +205,7 @@ export default function CRForm({onClose,onSubmit,ctx}){
           </div>
           <div>
             <label style={LBL}>Rollback Plan{errs.rollback&&<span style={{color:C.red,fontWeight:400,textTransform:"none"}}> · {errs.rollback}</span>}</label>
-            <textarea value={rollback} onChange={e=>setRollback(e.target.value)} placeholder="Step-by-step instructions to revert if something goes wrong…" style={{...inp(!!errs.rollback),minHeight:90,resize:"vertical"}}/>
+            <RichTextEditor value={rollback} onChange={setRollback} placeholder="Step-by-step instructions to revert if something goes wrong…" error={!!errs.rollback} minHeight={90}/>
           </div>
 
           {errs.oneOf&&<div style={{padding:"9px 13px",borderRadius:7,background:C.redBg,border:`1px solid ${C.red}30`,fontSize:12,color:C.red,fontWeight:500}}>{errs.oneOf}</div>}
@@ -255,11 +257,11 @@ export default function CRForm({onClose,onSubmit,ctx}){
           </div>
           <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
             <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Description</div>
-            <div style={{fontSize:13,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{desc||"—"}</div>
+            {isEmptyHtml(desc) ? <div style={{fontSize:13,color:C.ink}}>—</div> : <RichTextView value={desc}/>}
           </div>
           <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
             <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>Rollback Plan</div>
-            <div style={{fontSize:13,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{rollback||"—"}</div>
+            {isEmptyHtml(rollback) ? <div style={{fontSize:13,color:C.ink}}>—</div> : <RichTextView value={rollback}/>}
           </div>
           {DOC_TYPES.some(dt=>docs[dt].length>0)&&<div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
             <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>Supporting Documents</div>
