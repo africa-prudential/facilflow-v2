@@ -2,21 +2,21 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, CreditCard, Paperclip } from "lucide-react";
 import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { SUB_STATUSES, SUB_CYCLES } from "../constants.js";
-import { genId, now, normSub, fmtSafe, exportCSV, humanize } from "../utils.js";
+import { genId, now, normSub, fmtSafe, exportCSV, humanize, resolveNames } from "../utils.js";
 import { createSubscription, updateSubscription, uploadSubInvoice } from "../lib/supabase.js";
 import { Chip, PageTitle, TH, Empty } from "../components/ui.jsx";
 import SubDetailModal from "./forms/SubDetailModal.jsx";
 import SubModal from "./forms/SubModal.jsx";
 
 export default function ITSubscriptions({ctx}){
-  const {subscriptions,setSubs,addAudit,flash,tid,uid,users}=ctx;
+  const {subscriptions,setSubs,addAudit,flash,tid,uid,users,departments}=ctx;
   const [f,setF]          = useState({});
   const [modal,setModal]  = useState(null);
   const [detail,setDetail]= useState(null);
   const [page,setPage]    = useState(1);
   const [pageSize,setPageSize] = useState(20);
 
-  const depts = [...new Set((users||[]).map(u=>u.dept).filter(Boolean))].sort();
+  const depts = [...new Set((departments||[]).map(d=>d.name))].sort();
 
   // Auto-detect pending_renewal status on load
   useEffect(()=>{
@@ -43,14 +43,14 @@ export default function ITSubscriptions({ctx}){
     if(f.cycle     && s.billingCycle!==f.cycle)   return false;
     if(f.dept      && s.assignedDept!==f.dept)    return false;
     if(f.vendor){const q=f.vendor.toLowerCase();if(!(s.vendor||"").toLowerCase().includes(q)) return false;}
-    if(f.owner){const q=f.owner.toLowerCase();if(!(s.assignedOwner||"").toLowerCase().includes(q)) return false;}
+    if(f.owner){const q=f.owner.toLowerCase();if(!resolveNames(s.assignedOwners,users).toLowerCase().includes(q)) return false;}
     if(f.renewal_from && s.renewalDate < f.renewal_from) return false;
     if(f.renewal_to   && s.renewalDate > f.renewal_to)   return false;
     if(f.q){
       const q=f.q.toLowerCase();
       if(!s.name.toLowerCase().includes(q)
         &&!(s.vendor||"").toLowerCase().includes(q)
-        &&!(s.assignedOwner||"").toLowerCase().includes(q)) return false;
+        &&!resolveNames(s.assignedOwners,users).toLowerCase().includes(q)) return false;
     }
     return true;
   });
@@ -82,7 +82,7 @@ export default function ITSubscriptions({ctx}){
         prev_cost:data.prevCost?parseFloat(data.prevCost):null,
         status:data.status, notes:data.notes||"",
         attachment_url:attachmentUrl,
-        assigned_owner:data.assignedOwner||"",
+        assigned_owners:data.assignedOwners||[],
         assigned_dept:data.assignedDept||"",
         reminder_schedule:data.reminderSchedule||["monthly"],
         tenant_id:tid,
@@ -120,6 +120,7 @@ export default function ITSubscriptions({ctx}){
 
   const exportSubs = () => {
     if(shown.length===0){ flash("No subscriptions to export","error"); return; }
+    const rows = shown.map(s=>({...s, ownerNames:resolveNames(s.assignedOwners,users)}));
     exportCSV(`it-subscriptions-${new Date().toISOString().slice(0,10)}.csv`, [
       {key:"name",           label:"Subscription"},
       {key:"vendor",         label:"Vendor"},
@@ -129,11 +130,11 @@ export default function ITSubscriptions({ctx}){
       {key:"billingCycle",   label:"Billing Cycle"},
       {key:"renewalDate",    label:"Renewal Date"},
       {key:"status",         label:"Status"},
-      {key:"assignedOwner",  label:"Owner"},
+      {key:"ownerNames",     label:"Owner(s)"},
       {key:"assignedDept",   label:"Department"},
       {key:"notes",          label:"Notes"},
       {key:"lastUpdated",    label:"Last Updated"},
-    ], shown);
+    ], rows);
     flash(`Exported ${shown.length} subscription(s)`);
   };
 
@@ -233,7 +234,7 @@ export default function ITSubscriptions({ctx}){
                     </td>
                     <td style={{padding:"11px 14px"}}>{subStatusChip(s.status)}</td>
                     <td style={{padding:"11px 14px"}}>
-                      <div style={{fontSize:12,color:C.ink2}}>{s.assignedOwner||"—"}</div>
+                      <div style={{fontSize:12,color:C.ink2}}>{resolveNames(s.assignedOwners,users)||"—"}</div>
                       {s.assignedDept&&<div style={{fontSize:10,color:C.muted}}>{s.assignedDept}</div>}
                     </td>
                     <td style={{padding:"11px 14px",fontSize:11,color:C.muted,whiteSpace:"nowrap"}}>{fmtSafe(s.lastUpdated)}</td>

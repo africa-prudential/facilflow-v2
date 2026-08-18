@@ -16,7 +16,7 @@ import {
   fetchMyTickets, createTicket, updateTicket, fetchTicketComments, addTicketComment, fetchTicketCategories, uploadTicketAttachment,
   addAuditEntry,
   fetchDepartments, fetchDepartmentModules,
-  APP_URL,
+  APP_URL, ADMIN_APP_URL,
 } from "./lib/supabase.js";
 import { emailCRSubmitted, emailCRScheduled, emailCRReviewerAdded, emailCRLineManagerReview, emailCRNoManagerConfigured, emailRequestApproved, emailRequestCreated, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
@@ -502,22 +502,43 @@ export default function UserApp({ currentUser }){
         // Deduplicate and send
         const uniqueEmails=[...new Set(emailRecipients)].filter(Boolean);
         if(uniqueEmails.length>0 && stageLabel){
-          const emailRes = await supabase.functions.invoke("send-email",{body:{
-            template:"cr_stage_notification",
-            to: uniqueEmails,
-            data:{
-              cr_id:   saved.id,
-              title:   saved.title,
-              stage:   stageLabel,
-              subject: `${saved.id} - ${saved.title} - ${stageLabel}`,
-              action:  action==="reject"
-                ? "This change request has been rejected. Please review and raise a new CR if needed."
-                : `Action required: The change request has progressed to ${stageLabel}.`,
-              note:    note||"",
-              app_url: appUrl,
-            }
-          }});
-          if(emailRes?.error) flash(`CR updated but email failed: ${emailRes.error.message}`, "error");
+          // Recipients are a mixed audience: regular staff (Staff Portal) alongside
+          // Admin Console users (super_admin/facility_admin/it_admin change managers,
+          // level approvers, implementers). Classify each via one batched lookup so
+          // each group gets a link to the portal they actually use.
+          const { data: recipientUsers } = await supabase.from("users").select("email,role,admin_roles").in("email", uniqueEmails);
+          const isAdminEmail = email => {
+            const u = (recipientUsers||[]).find(x=>x.email===email);
+            if(!u) return false;
+            return ["super_admin","facility_admin","it_admin","admin"].includes(u.role) || (Array.isArray(u.admin_roles)&&u.admin_roles.length>0);
+          };
+          const staffEmails = uniqueEmails.filter(e=>!isAdminEmail(e));
+          const adminEmails = uniqueEmails.filter(isAdminEmail);
+          const adminUrl = `${ADMIN_APP_URL}/change_requests`;
+          const baseData = {
+            cr_id:   saved.id,
+            title:   saved.title,
+            stage:   stageLabel,
+            subject: `${saved.id} - ${saved.title} - ${stageLabel}`,
+            action:  action==="reject"
+              ? "This change request has been rejected. Please review and raise a new CR if needed."
+              : `Action required: The change request has progressed to ${stageLabel}.`,
+            note:    note||"",
+          };
+          const errors=[];
+          if(staffEmails.length){
+            const res = await supabase.functions.invoke("send-email",{body:{
+              template:"cr_stage_notification", to: staffEmails, data:{...baseData, app_url: appUrl}
+            }});
+            if(res?.error) errors.push(res.error.message);
+          }
+          if(adminEmails.length){
+            const res = await supabase.functions.invoke("send-email",{body:{
+              template:"cr_stage_notification", to: adminEmails, data:{...baseData, app_url: adminUrl}
+            }});
+            if(res?.error) errors.push(res.error.message);
+          }
+          if(errors.length) flash(`CR updated but email failed: ${errors.join("; ")}`, "error");
         }
       } catch(ne){ flash(`CR updated but notification error: ${ne.message}`, "error"); }
 

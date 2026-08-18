@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js'
+import { supabase, USER_APP_URL } from './supabase.js'
 
 // ── sendEmail ──────────────────────────────────────────────
 // Calls the Supabase Edge Function which sends via Resend
@@ -23,49 +23,10 @@ export const sendEmail = async (template, to, data) => {
 
 const APP_URL = window.location.origin
 
-export const emailCRSubmitted = (toEmails, cr, raisedBy) =>
-  sendEmail('cr_submitted', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    change_type: cr.changeType || cr.change_type,
-    risk_level: cr.riskLevel || cr.risk_level,
-    raised_by: raisedBy,
-    deploy_date: cr.deployDate || cr.deploy_date,
-    app_url: APP_URL,
-  })
-
-export const emailCRScheduled = (toEmails, cr) =>
-  sendEmail('cr_scheduled', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    deploy_date: cr.deployDate || cr.deploy_date,
-    deploy_start: cr.deployStart || cr.deploy_start,
-    deploy_end: cr.deployEnd || cr.deploy_end,
-    environment: cr.environment,
-    app_url: APP_URL,
-  })
-
-export const emailCRReminder = (toEmails, cr, raisedBy, submittedDate) =>
-  sendEmail('cr_reminder', toEmails, {
-    cr_id: cr.id,
-    title: cr.title,
-    raised_by: raisedBy,
-    submitted_date: submittedDate,
-    app_url: APP_URL,
-  })
-
 export const emailUserInvitation = (toEmail, role, inviteUrl) =>
   sendEmail('user_invitation', toEmail, {
     role,
     invite_url: inviteUrl,
-  })
-
-export const emailRequestApproved = (toEmail, req, type, approver) =>
-  sendEmail('request_approved', toEmail, {
-    title: req.title,
-    type,
-    approver,
-    app_url: APP_URL,
   })
 
 export const emailTicketCreated = (toEmails, ticket, raisedBy) =>
@@ -90,13 +51,16 @@ export const emailTicketAssigned = (toEmail, ticket, assignedBy) =>
     app_url: APP_URL,
   })
 
+// Both sent to the ticket's original requester — a Staff Portal user, not an
+// Admin Console user — so these use USER_APP_URL, not the local APP_URL
+// (window.location.origin, which resolves to the Admin Console here).
 export const emailTicketStatusUpdate = (toEmail, ticket, newStatus, updatedBy) =>
   sendEmail('ticket_status_update', toEmail, {
     ticket_id: ticket.id,
     subject: ticket.subject || ticket.title,
     new_status: newStatus,
     updated_by: updatedBy,
-    app_url: APP_URL,
+    app_url: USER_APP_URL,
   })
 
 export const emailTicketComment = (toEmails, ticket, commenterName, commentBody) =>
@@ -105,5 +69,5 @@ export const emailTicketComment = (toEmails, ticket, commenterName, commentBody)
     subject: ticket.subject || ticket.title,
     commenter: commenterName,
     comment: commentBody.slice(0, 600),
-    app_url: APP_URL,
+    app_url: USER_APP_URL,
   })

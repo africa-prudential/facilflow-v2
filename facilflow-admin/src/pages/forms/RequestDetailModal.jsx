@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { CheckCircle2, Car, Check, Package, RefreshCw } from "lucide-react";
 import { C, btn, inp, sel, LBL } from "../../theme.js";
-import { now, humanize } from "../../utils.js";
+import { now, humanize, poolCarWindowsOverlap } from "../../utils.js";
 import { Av, Modal } from "../../components/ui.jsx";
 
-export default function RequestDetailModal({req,usersMap,vehicles,drivers,inventory,onClose,onAction,onAssign,onDeliver}){
+export default function RequestDetailModal({req,usersMap,vehicles,drivers,inventory,allRequests,onClose,onAction,onAssign,onDeliver}){
   const [note,  setNote]  = useState("");
   const [vehId, setVehId] = useState(req.assigned_vehicle||"");
   const [drvId, setDrvId] = useState(req.assigned_driver||"");
@@ -14,9 +14,27 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
   const isPending  = req.status==="pending_approval";
   const isApproved = req.status==="approved";
   const isCarReq   = req.type==="pool_car";
-  // For pending: only show available. For approved: show available + currently assigned
-  const availVeh   = vehicles.filter(v=>v.status==="available" || v.id===req.assigned_vehicle);
-  const availDrv   = drivers.filter(d=>d.status==="available"  || d.id===req.assigned_driver);
+  // Exclude vehicles/drivers already booked on a different, still-active Pool Car
+  // request whose date/time window overlaps this one — but always keep this
+  // request's own currently-assigned vehicle/driver selectable.
+  const busyVehicleIds = new Set(
+    (allRequests||[])
+      .filter(r=>r.id!==req.id && r.type==="pool_car" && r.status==="approved" && r.assigned_vehicle && poolCarWindowsOverlap(r.details,req.details))
+      .map(r=>r.assigned_vehicle)
+  );
+  const busyDriverIds = new Set(
+    (allRequests||[])
+      .filter(r=>r.id!==req.id && r.type==="pool_car" && r.status==="approved" && r.assigned_driver && poolCarWindowsOverlap(r.details,req.details))
+      .map(r=>r.assigned_driver)
+  );
+  // For pending: only show available Pool Car vehicles. For approved: also keep the
+  // currently assigned vehicle visible even if it's not (or no longer) categorized as Pool Car.
+  const availVeh   = vehicles.filter(v=>
+    (v.status==="available" && (!isCarReq || v.category==="Pool Car") && !busyVehicleIds.has(v.id)) || v.id===req.assigned_vehicle
+  );
+  const availDrv   = drivers.filter(d=>
+    (d.status==="available" && !busyDriverIds.has(d.id)) || d.id===req.assigned_driver
+  );
   const assignedVeh= req.assigned_vehicle ? vehicles.find(v=>v.id===req.assigned_vehicle) : null;
   const assignedDrv= req.assigned_driver  ? drivers.find(d=>d.id===req.assigned_driver)  : null;
 

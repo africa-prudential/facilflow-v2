@@ -1,7 +1,7 @@
 import { Paperclip } from "lucide-react";
 import { C, btn } from "../../theme.js";
 import { SUB_STATUSES, SUB_REMINDER_OPTS } from "../../constants.js";
-import { fmtSafe } from "../../utils.js";
+import { fmtSafe, resolveNames } from "../../utils.js";
 import { Chip, Modal } from "../../components/ui.jsx";
 
 export default function SubDetailModal({sub,depts,users,onClose,onEdit}){
@@ -21,7 +21,7 @@ export default function SubDetailModal({sub,depts,users,onClose,onEdit}){
 
       {/* Detail grid */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-        {[["Vendor",sub.vendor],["Category",sub.category],["Cost",sub.cost?`₦${Number(sub.cost).toLocaleString()}`:"—"],["Previous Cost",sub.prevCost!=null?`₦${Number(sub.prevCost).toLocaleString()}`:"—"],["Billing Cycle",sub.billingCycle],["Renewal Date",fmtSafe(sub.renewalDate+"T12:00:00")],["Assigned Owner",sub.assignedOwner||"—"],["Department",sub.assignedDept||"—"],["Reminders",reminders.join(", ")],["Last Updated",fmtSafe(sub.lastUpdated)]].map(([k,v])=>(
+        {[["Vendor",sub.vendor],["Category",sub.category],["Cost",sub.cost?`₦${Number(sub.cost).toLocaleString()}`:"—"],["Previous Cost",sub.prevCost!=null?`₦${Number(sub.prevCost).toLocaleString()}`:"—"],["Billing Cycle",sub.billingCycle],["Renewal Date",fmtSafe(sub.renewalDate+"T12:00:00")],["Assigned Owner(s)",resolveNames(sub.assignedOwners,users)||"—"],["Department",sub.assignedDept||"—"],["Reminders",reminders.join(", ")],["Last Updated",fmtSafe(sub.lastUpdated)]].map(([k,v])=>(
           <div key={k} style={{background:C.pageBg,borderRadius:7,padding:"10px 12px"}}>
             <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:3}}>{k}</div>
             <div style={{fontSize:13,color:C.ink,fontWeight:500}}>{String(v||"—")}</div>

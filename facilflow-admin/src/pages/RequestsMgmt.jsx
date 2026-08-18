@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react";
 import { X, Search, Car, Pencil } from "lucide-react";
 import { C, btn, inp, sel, card, LBL } from "../theme.js";
-import { now, humanize } from "../utils.js";
+import { now, humanize, poolCarWindowActiveNow } from "../utils.js";
 import { Av, PageTitle, TH, Filters } from "../components/ui.jsx";
-import { supabase, updateVehicle, updateInventoryItem, updateRequest, USER_APP_URL } from "../lib/supabase.js";
+import { supabase, updateInventoryItem, updateRequest, USER_APP_URL } from "../lib/supabase.js";
 import RequestDetailModal from "./forms/RequestDetailModal.jsx";
 
 export default function RequestsMgmt({ctx}){
-  const {requests,setRequests,users,vehicles,setVehicles,drivers,inventory,setInv,addAudit,flash,uid}=ctx;
+  const {requests,setRequests,users,vehicles,drivers,inventory,setInv,addAudit,flash,uid}=ctx;
 
   // ── FILTER STATE ─────────────────────────────────────────
   const [search,    setSearch]    = useState("");
@@ -33,7 +33,12 @@ export default function RequestsMgmt({ctx}){
   const totalReqs     = allReqs.length;
   const pendingAppr   = allReqs.filter(r=>r.status==="pending_approval").length;
   const pendingProc   = allReqs.filter(r=>r.status==="approved").length;
-  const activeFleet   = (vehicles||[]).filter(v=>v.status==="in_use").length;
+  // Distinct vehicles currently out on an approved Pool Car trip right now
+  // (date/time-based, since vehicle.status is no longer auto-flipped on assignment)
+  const activeFleet   = new Set(
+    allReqs.filter(r=>r.type==="pool_car" && r.status==="approved" && r.assigned_vehicle && poolCarWindowActiveNow(r.details))
+      .map(r=>r.assigned_vehicle)
+  ).size;
   const completed     = allReqs.filter(r=>["delivered","fulfilled","completed"].includes(r.status)).length;
 
   // ── FILTER LOGIC ──────────────────────────────────────────
@@ -126,7 +131,6 @@ export default function RequestsMgmt({ctx}){
       const now = new Date().toISOString();
       const history = [...(req.history||[]), {s:"approved", at:now, by:uid, note:"Vehicle & driver assigned"}];
       const saved = await updateRequest(id, {status:"approved", history, approved_by:uid, approved_at:now, assigned_vehicle:vehicleId, assigned_driver:driverId||null});
-      if(vehicleId) await updateVehicle(vehicleId,{status:"in_use"});
       setRequests(p=>p.map(r=>r.id===id ? saved : r));
       addAudit("REQUEST_ASSIGNED", id, `Vehicle assigned to ${id}`);
       flash("Vehicle assigned & request approved");
@@ -167,11 +171,6 @@ export default function RequestsMgmt({ctx}){
       const noteLabel   = isCarReq ? "Trip completed, vehicle returned" : "Items delivered";
       const history = [...(req.history||[]), {s:statusLabel, at:now, by:uid, note:noteLabel}];
       const saved = await updateRequest(id, {status:statusLabel, history, delivered_at:now});
-      // Reset vehicle back to available when trip is complete
-      if(isCarReq && req.assigned_vehicle){
-        await updateVehicle(req.assigned_vehicle, {status:"available"});
-        setVehicles(p=>p.map(v=>v.id===req.assigned_vehicle ? {...v,status:"available"} : v));
-      }
       // Deduct inventory stock for stationery requests on delivery
       if(!isCarReq){
         const items=req.details?.items||[];
@@ -456,6 +455,7 @@ export default function RequestsMgmt({ctx}){
           vehicles={vehicles||[]}
           drivers={drivers||[]}
           inventory={inventory||[]}
+          allRequests={allReqs||[]}
           onClose={()=>setSel(null)}
           onAction={actionReq}
           onAssign={assignVehicle}

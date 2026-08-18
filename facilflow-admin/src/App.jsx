@@ -1,10 +1,10 @@
 import { supabase } from "./lib/supabase.js";
-import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories, fetchDepartments, fetchDepartmentModules, fetchTenants } from "./lib/supabase.js";
+import { fetchUsers, fetchVehicles, fetchDrivers, fetchInventory, fetchRequests, fetchCRs, fetchAuditLog, addAuditEntry, fetchChangeRoles, fetchUserChangeRoles, fetchApprovalLevels, fetchTenantConfig, fetchVehicleDocs, fetchSubscriptions, fetchTickets, updateTicket, fetchTicketComments, addTicketComment, fetchAssets, createAsset, updateAsset, fetchTicketCategories, fetchDepartments, fetchDepartmentModules, fetchTenants, fetchLicences } from "./lib/supabase.js";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { C, btn } from "./theme.js";
 import { NAV, ADMIN_ROLE_META } from "./constants.js";
-import { getAdminRoles, hasAdminAccess, genId, normCR, normVeh, normSub, normDrv, normInv, normAudit, normTicket } from "./utils.js";
+import { getAdminRoles, hasAdminAccess, genId, normCR, normVeh, normSub, normDrv, normInv, normAudit, normTicket, normLicence } from "./utils.js";
 import { Av, AccessDenied } from "./components/ui.jsx";
 import { toast } from "sonner";
 import AdminDash from "./pages/AdminDash.jsx";
@@ -23,6 +23,7 @@ import ITSubscriptions from "./pages/ITSubscriptions.jsx";
 import AuditLog from "./pages/AuditLog.jsx";
 import HelpdeskAdmin from "./pages/HelpdeskAdmin.jsx";
 import AssetRegistry from "./pages/AssetRegistry.jsx";
+import Licences from "./pages/Licences.jsx";
 
 export default function AdminApp({ currentUser }){
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export default function AdminApp({ currentUser }){
   const [tenantConfig,  setTenantConfig]  = useState(null);
   const [vehicleDocs, setVehicleDocs] = useState([]);
   const [subscriptions, setSubs]      = useState([]);
+  const [licences,   setLicences]  = useState([]);
   const [tickets,    setTickets]   = useState([]);
   const [assets,     setAssets]    = useState([]);
   const [ticketCats, setTicketCats]= useState([]);
@@ -82,9 +84,11 @@ export default function AdminApp({ currentUser }){
     Promise.all([
       fetchVehicleDocs(tid),
       fetchSubscriptions(tid),
-    ]).then(([vdocs,subs])=>{
+      fetchLicences(tid),
+    ]).then(([vdocs,subs,lics])=>{
       setVehicleDocs(vdocs||[]);
       setSubs((subs||[]).map(normSub));
+      setLicences((lics||[]).map(normLicence));
     }).catch(e=>console.warn("Compliance/subscription data load:", e.message));
 
     // Load helpdesk and asset data (non-fatal — tables may not exist yet)
@@ -167,6 +171,7 @@ export default function AdminApp({ currentUser }){
     tenantConfig, setTenantConfig,
     vehicleDocs, setVehicleDocs,
     subscriptions, setSubs,
+    licences, setLicences,
     tickets, setTickets, assets, setAssets, ticketCats, setTicketCats,
     updateTicketFn, createAssetFn, updateAssetFn, addCommentFn, fetchCommentsFn,
   };
@@ -246,6 +251,7 @@ export default function AdminApp({ currentUser }){
             <Route path="/fleet" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <FleetMgmt ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/drivers" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <DriverRoster ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/inventory" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <InventoryMgmt ctx={ctx}/> : <AccessDenied/>}/>
+            <Route path="/licences" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <Licences ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/facility_ops" element={hasAdminAccess(me,["super_admin","facility_admin"]) ? <FacilityOps ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/change_requests" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <CRAdmin ctx={ctx}/> : <AccessDenied/>}/>
             <Route path="/cr_policy" element={hasAdminAccess(me,["super_admin","it_admin"]) ? <CRPolicy ctx={ctx}/> : <AccessDenied/>}/>

@@ -7,17 +7,28 @@ import { isDirty as checkDirty } from "../../utils.js";
 
 export default function SubModal({sub,depts,users,onClose,onSave}){
   const [d,setD]=useState(sub
-    ?{name:sub.name,vendor:sub.vendor||"",category:sub.category||"Other",renewalDate:sub.renewalDate||"",billingCycle:sub.billingCycle||"Annual",cost:sub.cost||"",prevCost:sub.prevCost||"",status:sub.status||"active",notes:sub.notes||"",assignedOwner:sub.assignedOwner||"",assignedDept:sub.assignedDept||"",reminderSchedule:sub.reminderSchedule||["monthly"],invoiceFile:null}
-    :{name:"",vendor:"",category:"Other",renewalDate:"",billingCycle:"Annual",cost:"",prevCost:"",status:"active",notes:"",assignedOwner:"",assignedDept:"",reminderSchedule:["monthly"],invoiceFile:null});
+    ?{name:sub.name,vendor:sub.vendor||"",category:sub.category||"Other",renewalDate:sub.renewalDate||"",billingCycle:sub.billingCycle||"Annual",cost:sub.cost||"",prevCost:sub.prevCost||"",status:sub.status||"active",notes:sub.notes||"",assignedOwners:sub.assignedOwners||[],assignedDept:sub.assignedDept||"",reminderSchedule:sub.reminderSchedule||["monthly"],invoiceFile:null}
+    :{name:"",vendor:"",category:"Other",renewalDate:"",billingCycle:"Annual",cost:"",prevCost:"",status:"active",notes:"",assignedOwners:[],assignedDept:"",reminderSchedule:["monthly"],invoiceFile:null});
   const [initial]=useState(d);
   const [saving,setSaving]=useState(false);
   const dirty = !sub || !!d.invoiceFile || checkDirty(d,initial,["invoiceFile"]);
   const deptUsers = (users||[]).filter(u=>u.dept===d.assignedDept);
+  // Keep any already-selected owner visible even if they're outside the
+  // currently selected department (e.g. department changed after assignment).
+  const extraOwners = (users||[]).filter(u=>d.assignedOwners.includes(u.id) && u.dept!==d.assignedDept);
+  const ownerCandidates = [...deptUsers, ...extraOwners];
 
   const toggleReminder = (v) => {
     setD(p=>{
       const cur = p.reminderSchedule||[];
       return {...p, reminderSchedule: cur.includes(v) ? cur.filter(x=>x!==v) : [...cur,v]};
+    });
+  };
+
+  const toggleOwner = (id) => {
+    setD(p=>{
+      const cur = p.assignedOwners||[];
+      return {...p, assignedOwners: cur.includes(id) ? cur.filter(x=>x!==id) : [...cur,id]};
     });
   };
 
@@ -60,20 +71,30 @@ export default function SubModal({sub,depts,users,onClose,onSave}){
         </div>
         <div>
           <label style={LBL}>Department</label>
-          <select value={d.assignedDept} onChange={e=>setD(p=>({...p,assignedDept:e.target.value,assignedOwner:""}))} style={sel()}>
+          <select value={d.assignedDept} onChange={e=>setD(p=>({...p,assignedDept:e.target.value}))} style={sel()}>
             <option value="">Select department…</option>
             {(depts||[]).map(dept=><option key={dept} value={dept}>{dept}</option>)}
           </select>
         </div>
-        <div>
-          <label style={LBL}>Assigned Owner</label>
-          {d.assignedDept && deptUsers.length>0
-            ? <select value={d.assignedOwner} onChange={e=>setD(p=>({...p,assignedOwner:e.target.value}))} style={sel()}>
-                <option value="">Select owner…</option>
-                {deptUsers.map(u=><option key={u.id} value={u.name}>{u.name}</option>)}
-              </select>
-            : <input value={d.assignedOwner} onChange={e=>setD(p=>({...p,assignedOwner:e.target.value}))} style={inp()}
-                placeholder={d.assignedDept?"No users found in department — enter name":"Select a department first…"}/>}
+        <div style={{gridColumn:"1/-1"}}>
+          <label style={LBL}>Assigned Owner(s) <span style={{textTransform:"none",fontWeight:500,color:C.muted}}>(select one or more)</span></label>
+          {ownerCandidates.length>0
+            ? <div style={{display:"flex",flexDirection:"column",gap:6,padding:"10px 12px",borderRadius:6,border:`1px solid ${C.border}`,background:"#FAFAFA",maxHeight:150,overflowY:"auto"}}>
+                {ownerCandidates.map(u=>{
+                  const checked = d.assignedOwners.includes(u.id);
+                  return (
+                    <label key={u.id} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+                      <input type="checkbox" checked={checked} onChange={()=>toggleOwner(u.id)}
+                        style={{width:14,height:14,accentColor:C.brand,cursor:"pointer"}}/>
+                      <span style={{fontSize:13,color:C.ink}}>{u.name}</span>
+                      {u.dept!==d.assignedDept&&<span style={{fontSize:11,color:C.muted}}>({u.dept})</span>}
+                    </label>
+                  );
+                })}
+              </div>
+            : <div style={{fontSize:12,color:C.muted,padding:"8px 0"}}>
+                {d.assignedDept?"No users found in this department.":"Select a department first…"}
+              </div>}
         </div>
 
         {/* REMINDER SCHEDULE */}

@@ -24,6 +24,8 @@ export const VEHICLE_STATUSES = [
   {v:"out_of_service",   l:"Out of Service",   color:C.red,   bg:C.redBg},
 ];
 
+export const VEHICLE_CATEGORIES = ["Status Car","Pool Car"];
+
 export const DRIVER_STATUSES = [
   {v:"available",  l:"Available",   color:C.green, bg:C.greenBg},
   {v:"unavailable",l:"Not Available",color:C.amber, bg:C.amberBg},
@@ -63,7 +65,7 @@ export const TICKET_PRIORITY = { critical:{label:"Critical",color:C.red,bg:C.red
 
 export const ASSET_STATUS = { new:{label:"New",color:C.violet,bg:C.violetBg}, in_store:{label:"In Store",color:C.teal,bg:C.tealBg}, available:{label:"Available",color:C.green,bg:C.greenBg}, assigned:{label:"Assigned",color:C.blue,bg:C.blueBg}, in_repair:{label:"In Repair",color:C.amber,bg:C.amberBg}, condemned:{label:"Condemned",color:C.red,bg:C.redBg}, bidded:{label:"Bidded",color:C.orange,bg:C.orangeBg}, retired:{label:"Retired",color:C.muted,bg:C.surface}, lost:{label:"Lost",color:C.red,bg:C.redBg} };
 
-import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell, Building2, UserCog } from "lucide-react";
+import { LayoutDashboard, User, ClipboardList, Car, IdCard, Package, RefreshCw, Settings, Wrench, CreditCard, Ticket, Laptop, Bell, Building2, UserCog, ScrollText } from "lucide-react";
 
 export const NAV = [
   {group:"Overview", roles:["super_admin","facility_admin","it_admin"], items:[
@@ -78,6 +80,7 @@ export const NAV = [
     {k:"fleet",      l:"Fleet Management", icon:Car},
     {k:"drivers",    l:"Driver Roster",    icon:IdCard},
     {k:"inventory",  l:"Inventory",        icon:Package},
+    {k:"licences",   l:"Licences",         icon:ScrollText},
     {k:"facility_ops",l:"Facility Ops",    icon:UserCog},
   ]},
   {group:"Change Management", roles:["super_admin","it_admin"], items:[

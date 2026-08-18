@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock, Paperclip, ExternalLink, ShieldAlert } from "lucide-react";
 import { C, btn, inp, LBL } from "../../theme.js";
-import { fmtDT, fmtD, now, isSuperAdmin, humanize } from "../../utils.js";
+import { fmtDT, fmtD, now, isSuperAdmin, humanize, hasAdminAccess } from "../../utils.js";
 import { CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
-import { updateCR, USER_APP_URL } from "../../lib/supabase.js";
+import { updateCR, USER_APP_URL, APP_URL } from "../../lib/supabase.js";
 import { sendEmail } from "../../lib/email.js";
 
 const DOC_LABELS = {
@@ -151,12 +151,21 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       // previously sent no notification at all.
       try {
         const emailRecipients = [];
+        // Recipients here are a mixed audience: regular staff (who review CRs in
+        // the Staff Portal) alongside Admin Console users (super_admin/facility_admin/
+        // it_admin). Each group needs a link to the portal they actually use — the
+        // Admin Console has no per-CR deep link, so admin recipients get the CR list.
         const crUrl = `${USER_APP_URL}/change_requests?cr=${cr.id}`;
+        const adminCrUrl = `${APP_URL}/change_requests`;
         const getEmail = userId => uniqueUsers.find(u=>u.id===userId)?.email || null;
         const getRoleEmails = roleKey => (userCRoles||[])
           .filter(r=>r.role_key===roleKey)
           .map(r=>getEmail(r.user_id))
           .filter(Boolean);
+        const isAdminEmail = email => {
+          const u = uniqueUsers.find(x=>x.email===email);
+          return !!u && hasAdminAccess(u, ["super_admin","facility_admin","it_admin"]);
+        };
 
         const techEmail = getEmail(saved.initiator);
         if(techEmail) emailRecipients.push(techEmail);
@@ -165,7 +174,7 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
           sendEmail("cr_scheduled", [techEmail], {
             cr_id: saved.id, title: saved.title,
             deploy_date: saved.deploy_date, deploy_start: saved.deploy_start, deploy_end: saved.deploy_end,
-            environment: saved.environment, app_url: crUrl,
+            environment: saved.environment, app_url: isAdminEmail(techEmail)?adminCrUrl:crUrl,
           }).catch(()=>{});
         }
 
@@ -218,15 +227,26 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
 
         const uniqueEmails=[...new Set(emailRecipients)].filter(Boolean);
         if(uniqueEmails.length>0 && notifStage){
-          const emailRes = await sendEmail("cr_stage_notification", uniqueEmails, {
+          const staffEmails = uniqueEmails.filter(e=>!isAdminEmail(e));
+          const adminEmails = uniqueEmails.filter(isAdminEmail);
+          const baseData = {
             cr_id: saved.id, title: saved.title, stage: notifStage,
             subject: `${saved.id} - ${saved.title} - ${notifStage}`,
             action: action==="reject"
               ? "This change request has been rejected. Please review and raise a new CR if needed."
               : `Action required: The change request has progressed to ${notifStage}.`,
-            note: note||"", app_url: crUrl,
-          });
-          if(emailRes?.error) flash(`CR updated but email failed: ${emailRes.error.message}`, "error");
+            note: note||"",
+          };
+          const errors = [];
+          if(staffEmails.length){
+            const res = await sendEmail("cr_stage_notification", staffEmails, {...baseData, app_url: crUrl});
+            if(res?.error) errors.push(res.error.message);
+          }
+          if(adminEmails.length){
+            const res = await sendEmail("cr_stage_notification", adminEmails, {...baseData, app_url: adminCrUrl});
+            if(res?.error) errors.push(res.error.message);
+          }
+          if(errors.length) flash(`CR updated but email failed: ${errors.join("; ")}`, "error");
         }
       } catch(ne){ flash(`CR updated but notification error: ${ne.message}`, "error"); }
 

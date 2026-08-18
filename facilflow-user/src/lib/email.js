@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js'
+import { supabase, ADMIN_APP_URL } from './supabase.js'
 
 // ── sendEmail ──────────────────────────────────────────────
 // Calls the Supabase Edge Function which sends via Resend
@@ -82,7 +82,7 @@ export const emailCRNoManagerConfigured = (toEmails, cr, raisedBy) =>
     stage: 'Action Required — No Change Manager Configured',
     subject: `Action required: ${cr.id} has no Change Manager to route to`,
     action: `${raisedBy} submitted change request ${cr.id} ("${cr.title}"), but no Change Manager is configured for this tenant, so it cannot move forward. Go to Admin → CR Policy to assign one.`,
-    app_url: 'https://admin-facilflow.africaprudential.com',
+    app_url: ADMIN_APP_URL,
   })
 
 export const emailUserInvitation = (toEmail, role, inviteUrl) =>
@@ -105,9 +105,12 @@ export const emailRequestCreated = (toEmails, req, raisedBy) =>
     title: req.title,
     type: req.type,
     raised_by: raisedBy,
-    app_url: 'https://admin-facilflow.africaprudential.com',
+    app_url: ADMIN_APP_URL,
   })
 
+// Sent to Admin Console users (IT admins) when a staff member raises a ticket —
+// always an admin audience, so this uses the Admin Console URL, not the local
+// (Staff Portal) APP_URL this file otherwise defaults to.
 export const emailTicketCreated = (toEmails, ticket, raisedBy) =>
   sendEmail('ticket_created', toEmails, {
     ticket_id: ticket.id,
@@ -118,16 +121,18 @@ export const emailTicketCreated = (toEmails, ticket, raisedBy) =>
     department: ticket.department || '—',
     description: (ticket.description || '').slice(0, 400),
     raised_by: raisedBy,
-    app_url: APP_URL,
+    app_url: ADMIN_APP_URL,
   })
 
+// Sent to Admin Console users when a staff member replies on their own ticket —
+// always an admin audience (see ViewTicketModal.jsx), same reasoning as above.
 export const emailTicketComment = (toEmails, ticket, commenterName, commentBody) =>
   sendEmail('ticket_comment', toEmails, {
     ticket_id: ticket.id,
     subject: ticket.subject,
     commenter: commenterName,
     comment: commentBody.slice(0, 600),
-    app_url: APP_URL,
+    app_url: ADMIN_APP_URL,
   })
 
 export const emailTicketReceived = (toEmail, ticket) =>
