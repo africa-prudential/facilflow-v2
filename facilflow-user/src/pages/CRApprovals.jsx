@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Zap, PartyPopper } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { EnvTag, RiskTag, PageTitle, TH, Empty } from "../components/ui.jsx";
+import { humanize } from "../utils.js";
 import CRDetail from "./forms/CRDetail.jsx";
 
 export default function CRApprovals({ctx}){
@@ -60,7 +61,7 @@ export default function CRApprovals({ctx}){
                 <tr key={c.id} style={{borderBottom:i<queue.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"11px 14px",fontSize:11,fontWeight:700}}>{c.id}</td>
                   <td style={{padding:"11px 14px",fontSize:12,maxWidth:200,color:C.ink}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div></td>
-                  <td style={{padding:"11px 14px",fontSize:11,color:C.muted}}>{c.change_type}</td>
+                  <td style={{padding:"11px 14px",fontSize:11,color:C.muted}}>{humanize(c.change_type)}</td>
                   <td style={{padding:"11px 14px"}}><RiskTag r={c.risk_level}/></td>
                   <td style={{padding:"11px 14px"}}><EnvTag e={c.environment}/></td>
                   <td style={{padding:"11px 14px",fontSize:11,color:C.muted}}>{users[c.initiator]?.name}</td>

@@ -4,7 +4,7 @@ import { C, btn, inp, card } from "../theme.js";
 import { Av, Chip, Modal, PageTitle } from "../components/ui.jsx";
 import AddRoleControl from "../components/AddRoleControl.jsx";
 import { assignChangeRole, removeChangeRole, deleteChangeRole } from "../lib/supabase.js";
-import { isSuperAdmin } from "../utils.js";
+import { isSuperAdmin, humanize } from "../utils.js";
 
 export default function ChangeConfig({ctx}){
   const {me,users,changeRoles,setChangeRoles,userCRoles,setUserCRoles,approvalLevels,flash,tid}=ctx;
@@ -108,7 +108,7 @@ export default function ChangeConfig({ctx}){
                       </div>
                     </div>
                   </td>
-                  <td style={{padding:"11px 14px",fontSize:11,color:C.muted}}>{u.dept}</td>
+                  <td style={{padding:"11px 14px",fontSize:11,color:C.muted}}>{humanize(u.dept)}</td>
                   <td style={{padding:"11px 14px"}}>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                       {myRoles.length===0

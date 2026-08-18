@@ -1,7 +1,7 @@
 {
   "name": "facilflow-admin",
   "version": "2.0.0",
-  "description": "Africa Prudential FaciliFlow — Admin Console (admin.africaprudential.com)",
+  "description": "Africa Prudential Facilflow — Admin Console (admin.africaprudential.com)",
   "type": "module",
   "scripts": {
     "dev": "vite --port 3001",

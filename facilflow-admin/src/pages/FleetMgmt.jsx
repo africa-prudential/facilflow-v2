@@ -52,10 +52,10 @@ export default function FleetMgmt({ctx}){
   const saveVehicle=async(data,existing)=>{
     try{
       const plateTrimmed=(data.plate||"").trim().toUpperCase();
-      if(!plateTrimmed||!data.model){ flash("Plate number and model are required","error"); return; }
+      if(!plateTrimmed||!data.model) throw new Error("Plate number and model are required");
       if(!existing){
         const dup=vehicles.find(v=>v.plate.trim().toUpperCase()===plateTrimmed);
-        if(dup){ flash(`Plate number ${plateTrimmed} already exists on ${dup.model}`,"error"); return; }
+        if(dup) throw new Error(`Plate number ${plateTrimmed} already exists on ${dup.model}`);
       }
       const rec={
         plate:plateTrimmed, model:data.model, year:data.year, color:data.color,
@@ -72,7 +72,7 @@ export default function FleetMgmt({ctx}){
         setVehicles(p=>[...p,normVeh(saved)]);
         addAudit("VEHICLE_ADDED",saved.id,`${data.model} added`);flash("Vehicle added");
       }
-    }catch(e){flash(e.message,"error");}
+    }catch(e){flash(e.message,"error"); throw e;}
   };
 
   const saveDoc=async(vehicleId,docType,expiryDate,attachmentUrl)=>{

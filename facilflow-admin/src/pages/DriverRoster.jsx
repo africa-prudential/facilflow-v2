@@ -27,10 +27,10 @@ export default function DriverRoster({ctx}){
   const save=async d=>{
     try{
       const licTrimmed=(d.license||"").trim();
-      if(!d.name?.trim()||!licTrimmed){ flash("Name and licence number are required","error"); return; }
+      if(!d.name?.trim()||!licTrimmed) throw new Error("Name and licence number are required");
       // Licence uniqueness check
       const dupLic=drivers.find(dr=>dr.license.trim().toLowerCase()===licTrimmed.toLowerCase()&&dr.id!==d.id);
-      if(dupLic){ flash(`Licence ${licTrimmed} is already registered to ${dupLic.name}`,"error"); return; }
+      if(dupLic) throw new Error(`Licence ${licTrimmed} is already registered to ${dupLic.name}`);
 
       if(d.id){
         const saved=await updateDriver(d.id,{name:d.name.trim(),license:licTrimmed,phone:d.phone,status:d.status,vehicle_id:d.vehicleId||null});
@@ -42,7 +42,7 @@ export default function DriverRoster({ctx}){
         setDrivers(p=>[...p,normDrv(saved)]);
         addAudit("DRIVER_ADDED",saved.id,`Driver ${d.name} registered`);flash("Driver added");
       }
-    }catch(e){flash(e.message,"error");}
+    }catch(e){flash(e.message,"error"); throw e;}
   };
 
   return (

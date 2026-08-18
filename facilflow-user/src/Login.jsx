@@ -220,7 +220,7 @@ export default function Login({ onLogin, appName = 'Staff Portal' }) {
                 Africa Prudential
               </div>
               <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,.38)', letterSpacing: '.08em', marginTop: 1, textTransform: 'uppercase' }}>
-                FaciliFlow Platform
+                Facilflow Platform
               </div>
             </div>
           </div>
@@ -422,7 +422,7 @@ export default function Login({ onLogin, appName = 'Staff Portal' }) {
           </div>
 
           <div style={{ position: 'absolute', bottom: 20, fontSize: 11, color: '#CBD5E1', textAlign: 'center', width: '100%' }}>
-            © {new Date().getFullYear()} Africa Prudential · FaciliFlow v2.0
+            © {new Date().getFullYear()} Africa Prudential · Facilflow v2.0
           </div>
         </div>
       </div>

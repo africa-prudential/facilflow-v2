@@ -203,7 +203,7 @@ export default function Login({ onLogin }) {
                 Africa Prudential
               </div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,.55)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 1 }}>
-                FaciliFlow Admin
+                Facilflow Admin
               </div>
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function Login({ onLogin }) {
               letterSpacing: '-.03em', lineHeight: 1.2, marginBottom: 8,
             }}>Admin Console</h2>
             <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.6)', lineHeight: 1.6 }}>
-              Manage workflows, users, and operations across the FaciliFlow platform.
+              Manage workflows, users, and operations across the Facilflow platform.
             </p>
           </div>
         </div>
@@ -245,7 +245,7 @@ export default function Login({ onLogin }) {
               }}>AP</div>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, letterSpacing: '-.02em' }}>Africa Prudential</div>
-                <div style={{ fontSize: 10.5, color: C.muted, marginTop: 1 }}>FaciliFlow Admin Console</div>
+                <div style={{ fontSize: 10.5, color: C.muted, marginTop: 1 }}>Facilflow Admin Console</div>
               </div>
             </div>
 

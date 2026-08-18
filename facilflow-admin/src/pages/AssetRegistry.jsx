@@ -35,8 +35,8 @@ export default function AssetRegistry({ctx}){
   };
 
   const downloadTemplate=()=>{
-    const headers=["name","brand","model","serial_number","tag","category","status","purchase_date","purchase_cost","warranty_expiry","location","notes"];
-    const sample=["Dell Laptop","Dell","Latitude 5540","SN12345678","AP-LT-001","Laptop","available","2024-01-15","850000","2027-01-15","IT Store","Assigned to IT dept"];
+    const headers=["name","brand","model","serial_number","asset_tag","category","status","purchase_date","purchase_cost","warranty_expiry","department","notes"];
+    const sample=["Dell Laptop","Dell","Latitude 5540","SN12345678","AP-LT-001","Laptop","available","2024-01-15","850000","2027-01-15","IT","Assigned to IT dept"];
     const csv=[headers.join(","),sample.join(",")].join("\n");
     const blob=new Blob([csv],{type:"text/csv"});
     const url=URL.createObjectURL(blob);

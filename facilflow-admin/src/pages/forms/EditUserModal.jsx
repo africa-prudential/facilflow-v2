@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { STAFF_ROLES, ADMIN_ROLE_TYPES, ADMIN_ROLE_META } from "../../constants.js";
-import { getAdminRoles } from "../../utils.js";
+import { getAdminRoles, isDirty } from "../../utils.js";
 import { Chip, Modal } from "../../components/ui.jsx";
 
 export default function EditUserModal({user,onClose,onSave,departments}){
@@ -17,6 +17,8 @@ export default function EditUserModal({user,onClose,onSave,departments}){
   const [adminRoles, setAdminRoles]= useState(initialAdminRoles.length ? initialAdminRoles : ["facility_admin"]);
   const [isAdmin,    setIsAdmin]   = useState(isAdminUser);
   const [saving,     setSaving]    = useState(false);
+  const [initial]=useState({firstName:nameParts[0]||"",lastName:nameParts.slice(1).join(" ")||"",dept:user.dept,staffRole:isAdminUser?"staff":user.role,adminRoles:initialAdminRoles.length?initialAdminRoles:["facility_admin"],isAdmin:isAdminUser});
+  const dirty = isDirty({firstName,lastName,dept,staffRole,adminRoles,isAdmin},initial);
 
   const toggleAdminRole = (r) => {
     setAdminRoles(prev =>
@@ -96,7 +98,7 @@ export default function EditUserModal({user,onClose,onSave,departments}){
         ) : (
           <div>
             <label style={LBL}>Staff Role</label>
-            <select value={staffRole} onChange={e=>setStaffRole(e.target.value)} style={inp()}>
+            <select value={staffRole} onChange={e=>setStaffRole(e.target.value)} style={sel()}>
               {STAFF_ROLES.map(r=><option key={r} value={r}>{r.replace(/_/g," ")}</option>)}
             </select>
           </div>
@@ -104,7 +106,7 @@ export default function EditUserModal({user,onClose,onSave,departments}){
 
         <div>
           <label style={LBL}>Department</label>
-          <select value={dept} onChange={e=>setDept(e.target.value)} style={inp()}>
+          <select value={dept} onChange={e=>setDept(e.target.value)} style={sel()}>
             {!(departments||[]).some(d=>d.name===dept) && dept && <option value={dept}>{dept}</option>}
             {(departments||[]).map(d=><option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
@@ -112,7 +114,10 @@ export default function EditUserModal({user,onClose,onSave,departments}){
       </div>
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:16,borderTop:`1px solid ${C.border}`}}>
         <button onClick={onClose} style={btn("ghost")} disabled={saving}>Cancel</button>
-        <button onClick={save} style={btn("primary")} disabled={saving}>{saving?"Saving…":"Save Changes"}</button>
+        <button onClick={save} disabled={saving||!firstName.trim()||!dirty}
+          style={{...btn("primary"),minWidth:130,justifyContent:"center",opacity:saving||!firstName.trim()||!dirty?0.6:1}}>
+          {saving?"Saving…":"Save Changes"}
+        </button>
       </div>
     </Modal>
   );

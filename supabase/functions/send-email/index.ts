@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL     = "noreply@facilflow.africaprudential.com"
+const FROM_EMAIL     = "facilflow@africaprudential.com"
 const FROM_NAME      = "Facilflow — Africa Prudential"
 const APP_URL        = Deno.env.get("APP_URL") ?? "https://facilflow.africaprudential.com"
 const ADMIN_APP_URL  = Deno.env.get("ADMIN_APP_URL") ?? "https://admin-facilflow.africaprudential.com"
@@ -30,7 +30,7 @@ const LOGO = `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.
 
 // ── LAYOUT HELPERS ────────────────────────────────────────
 function wrap(inner) {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FaciliFlow</title></head>
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Facilflow</title></head>
 <body style="margin:0;padding:0;background:${BG}">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};padding:40px 16px">
 <tr><td align="center">
@@ -39,7 +39,7 @@ function wrap(inner) {
 ${inner}
 </td></tr>
 <tr><td style="padding:20px 0;text-align:center">
-<div style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-bottom:4px"><strong style="color:${INK}">Africa Prudential Plc</strong> · FaciliFlow Facilities Management</div>
+<div style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-bottom:4px"><strong style="color:${INK}">Africa Prudential Plc</strong> · Facilflow Facilities Management</div>
 <div style="font-family:Arial,sans-serif;font-size:11px;color:#94A3B8">This is an automated message. Please do not reply.</div>
 <div style="font-family:Arial,sans-serif;font-size:11px;color:#CBD5E1;margin-top:4px">© ${new Date().getFullYear()} Africa Prudential Plc. All rights reserved.</div>
 </td></tr>
@@ -92,18 +92,18 @@ function p(text, size, color, mb) {
 const templates = {
 
   user_invitation: (d) => ({
-    subject: "You've been invited to join FaciliFlow — Africa Prudential",
-    html: wrap(hdr(B, "Welcome to FaciliFlow", "You have been invited to join the platform") + body(`
+    subject: "You've been invited to join Facilflow — Africa Prudential",
+    html: wrap(hdr(B, "Welcome to Facilflow", "You have been invited to join the platform") + body(`
       ${p(`Hi <strong>${d.name || "there"}</strong>,`)}
-      ${p("You have been invited to join <strong>Africa Prudential FaciliFlow</strong> — the facilities and IT change management platform.")}
+      ${p("You have been invited to join <strong>Africa Prudential Facilflow</strong> — the facilities and IT change management platform.")}
       ${table(row("Name", d.name) + row("Email", d.email) + row("Role", (d.role||"").replace(/_/g," ")) + row("Department", d.dept) + row("Temp Password", d.temp_password ? `<code style="background:#F1F5F9;padding:2px 8px;border-radius:4px;color:${B};font-weight:700">${d.temp_password}</code>` : "Set on first login"))}
-      ${cta(d.invite_url || APP_URL, "Access FaciliFlow →", B)}
+      ${cta(d.invite_url || APP_URL, "Access Facilflow →", B)}
       <p style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-top:20px">If you were not expecting this, please ignore this email.</p>
     `))
   }),
 
   request_approved: (d) => ({
-    subject: `Your ${d.type || "facility"} request has been approved — FaciliFlow`,
+    subject: `Your ${d.type || "facility"} request has been approved — Facilflow`,
     html: wrap(hdr(GRN, "Request Approved", `Your ${d.type || "facility"} request has been actioned`) + body(`
       ${p(`Hi <strong>${d.requester_name || "there"}</strong>,`)}
       ${p(`Your <strong>${d.type}</strong> request has been <strong style="color:${GRN}">approved</strong> by ${d.approver}.`)}
@@ -121,7 +121,7 @@ const templates = {
   }),
 
   request_rejected: (d) => ({
-    subject: `Your ${d.type || "facility"} request was not approved — FaciliFlow`,
+    subject: `Your ${d.type || "facility"} request was not approved — Facilflow`,
     html: wrap(hdr(RED, "Request Not Approved", `Your ${d.type || "facility"} request requires attention`) + body(`
       ${p(`Hi <strong>${d.requester_name || "there"}</strong>,`)}
       ${p(`Your <strong>${d.type}</strong> request has not been approved at this time.`)}
@@ -132,7 +132,7 @@ const templates = {
   }),
 
   request_delivered: (d) => ({
-    subject: `Your ${d.type || "facility"} request has been delivered — FaciliFlow`,
+    subject: `Your ${d.type || "facility"} request has been delivered — Facilflow`,
     html: wrap(hdr(BLU, "Request Delivered", "Your request has been fulfilled") + body(`
       ${p(`Hi <strong>${d.requester_name || "there"}</strong>,`)}
       ${p(`Your <strong>${d.type}</strong> request has been <strong style="color:${BLU}">delivered</strong> and marked complete.`)}
@@ -153,7 +153,7 @@ const templates = {
   }),
 
   cr_approved: (d) => ({
-    subject: `${d.cr_id} Approved at Stage ${d.stage} — FaciliFlow`,
+    subject: `${d.cr_id} Approved at Stage ${d.stage} — Facilflow`,
     html: wrap(hdr(GRN, "Change Request Approved", `Stage ${d.stage} approval complete`) + body(`
       ${p(`Hi <strong>${d.initiator_name || "there"}</strong>,`)}
       ${p(`Your change request <strong>${d.cr_id}</strong> has been approved at <strong>Stage ${d.stage}</strong>.`)}
@@ -164,7 +164,7 @@ const templates = {
   }),
 
   cr_rejected: (d) => ({
-    subject: `${d.cr_id} Has Been Rejected — FaciliFlow`,
+    subject: `${d.cr_id} Has Been Rejected — Facilflow`,
     html: wrap(hdr(RED, "Change Request Rejected", "Your change request was not approved") + body(`
       ${p(`Hi <strong>${d.initiator_name || "there"}</strong>,`)}
       ${p(`Your change request <strong>${d.cr_id}: ${d.title}</strong> has been rejected.`)}
@@ -175,7 +175,7 @@ const templates = {
   }),
 
   cr_scheduled: (d) => ({
-    subject: `${d.cr_id} Scheduled for ${d.deploy_date} — FaciliFlow`,
+    subject: `${d.cr_id} Scheduled for ${d.deploy_date} — Facilflow`,
     html: wrap(hdr(BLU, "Change Request Scheduled", "Approved and scheduled for deployment") + body(`
       ${p(`Hi <strong>${d.initiator_name || "there"}</strong>,`)}
       ${p(`Your change request <strong>${d.cr_id}: ${d.title}</strong> has been fully approved and scheduled.`)}
@@ -211,7 +211,7 @@ const templates = {
   }),
 
   cr_reminder: (d) => ({
-    subject: `Reminder: ${d.cr_id} is awaiting your approval — FaciliFlow`,
+    subject: `Reminder: ${d.cr_id} is awaiting your approval — Facilflow`,
     html: wrap(hdr(AMB, "Approval Reminder", "A change request is waiting for your review") + body(`
       ${p(`Hi <strong>${d.approver_name || "there"}</strong>,`)}
       ${p("This is a reminder that the following change request is still awaiting your approval.")}
@@ -225,7 +225,7 @@ const templates = {
 
   // Sent to IT admins when a user raises a new ticket
   ticket_created: (d) => ({
-    subject: `New Ticket ${d.ticket_id}: ${d.subject} — FaciliFlow`,
+    subject: `New Ticket ${d.ticket_id}: ${d.subject} — Facilflow`,
     html: wrap(hdr(B, "New Support Ticket", "A staff member has raised a ticket requiring attention") + body(`
       ${p(`A new <strong>${d.type || "support"}</strong> ticket has been submitted by <strong>${d.raised_by || "a staff member"}</strong>.`)}
       ${d.priority === "critical" || d.priority === "high"
@@ -245,6 +245,35 @@ const templates = {
         <div style="background:#F8FAFC;border:1px solid ${BDR};border-radius:8px;padding:14px 16px;font-family:Arial,sans-serif;font-size:13px;color:${INK};line-height:1.7">${d.description}</div>
       </div>` : ""}
       ${cta(d.app_url || ADMIN_APP_URL, "View & Assign Ticket →", B)}
+    `))
+  }),
+
+  // Sent to facility admins when a staff member raises a facility request
+  request_created: (d) => ({
+    subject: `New Request ${d.request_id}: ${d.title} — Facilflow`,
+    html: wrap(hdr(B, "New Facility Request", "A staff member has raised a request requiring attention") + body(`
+      ${p(`A new <strong>${d.type || "facility"}</strong> request has been submitted by <strong>${d.raised_by || "a staff member"}</strong>.`)}
+      ${table(
+        row("Request ID", d.request_id) +
+        row("Title",      d.title) +
+        row("Type",       d.type) +
+        row("Raised By",  d.raised_by)
+    )}
+      ${cta(d.app_url || ADMIN_APP_URL, "View & Action Request →", B)}
+    `))
+  }),
+
+  // Sent to an IT staff member when a ticket is assigned to them
+  ticket_assigned: (d) => ({
+    subject: `Ticket ${d.ticket_id} assigned to you — Facilflow`,
+    html: wrap(hdr(BLU, "Ticket Assigned to You", "A support ticket now needs your attention") + body(`
+      ${p(`<strong>${d.assigned_by || "An admin"}</strong> has assigned a ticket to you.`)}
+      ${table(
+        row("Ticket ID", d.ticket_id) +
+        row("Subject",   d.subject) +
+        row("Priority",  (d.priority || "medium").charAt(0).toUpperCase() + (d.priority || "medium").slice(1))
+    )}
+      ${cta(d.app_url || ADMIN_APP_URL, "View Ticket →", BLU)}
     `))
   }),
 
@@ -283,7 +312,7 @@ const templates = {
     const s = statusColors[d.new_status] || { color: MUT, bg: BG, label: d.new_status || "Updated" }
     const isResolved = ["resolved","fulfilled","closed"].includes(d.new_status)
     return {
-      subject: `Your ticket ${d.ticket_id} has been ${s.label} — FaciliFlow`,
+      subject: `Your ticket ${d.ticket_id} has been ${s.label} — Facilflow`,
       html: wrap(hdr(s.color, `Ticket ${s.label}`, `Update on your support ticket`) + body(`
         ${p(`Hi there,`)}
         ${p(`Your support ticket has been updated by <strong>${d.updated_by || "the support team"}</strong>.`)}

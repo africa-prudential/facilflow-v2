@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Zap, Paperclip, FileText, X, ClipboardList, ExternalLink } from "lucide-react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { Av, Modal } from "../../components/ui.jsx";
 import { CR_CATEGORIES, CR_MODULES, DOC_LABELS } from "../../constants.js";
 import { uploadCRAttachment } from "../../lib/supabase.js";
@@ -126,25 +126,25 @@ export default function CRForm({onClose,onSubmit,ctx}){
           </div>
           <div>
             <label style={LBL}>Environment</label>
-            <select value={environment} onChange={e=>setEnv(e.target.value)} style={inp()}>
+            <select value={environment} onChange={e=>setEnv(e.target.value)} style={sel()}>
               {["Dev","Staging","Production"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Risk Level</label>
-            <select value={riskLevel} onChange={e=>setRisk(e.target.value)} style={inp()}>
+            <select value={riskLevel} onChange={e=>setRisk(e.target.value)} style={sel()}>
               {["Low","Medium","High"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Category</label>
-            <select value={category} onChange={e=>setCat(e.target.value)} style={inp()}>
+            <select value={category} onChange={e=>setCat(e.target.value)} style={sel()}>
               {CR_CATEGORIES.map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           <div>
             <label style={LBL}>Module / System</label>
-            <select value={module} onChange={e=>setModule(e.target.value)} style={inp()}>
+            <select value={module} onChange={e=>setModule(e.target.value)} style={sel()}>
               {CR_MODULES.map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>

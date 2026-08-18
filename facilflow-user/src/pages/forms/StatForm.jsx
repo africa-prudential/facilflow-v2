@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { Modal } from "../../components/ui.jsx";
 
 export default function StatForm({onClose,onSubmit,invItems=[]}){
@@ -23,7 +23,7 @@ export default function StatForm({onClose,onSubmit,invItems=[]}){
           </div>
           {items.map((it,i)=>(
             <div key={i} style={{display:"flex",gap:8,marginBottom:6}}>
-              <select value={it.id} onChange={e=>setItems(p=>p.map((x,j)=>j===i?{...x,id:e.target.value}:x))} style={{...inp(),flex:2}}>
+              <select value={it.id} onChange={e=>setItems(p=>p.map((x,j)=>j===i?{...x,id:e.target.value}:x))} style={{...sel(),flex:2}}>
                 <option value="">Select item…</option>
                 {invItems.map(inv=><option key={inv.id} value={inv.id}>{inv.name} ({inv.stock} {inv.unit}s)</option>)}
               </select>

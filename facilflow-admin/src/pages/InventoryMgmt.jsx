@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, Package } from "lucide-react";
 import { C, btn, card } from "../theme.js";
-import { fmtD, genId, normInv } from "../utils.js";
+import { fmtD, genId, normInv, humanize } from "../utils.js";
 import { createInventoryItem, updateInventoryItem } from "../lib/supabase.js";
 import { PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
 import ItemModal from "./forms/ItemModal.jsx";
@@ -31,7 +31,7 @@ export default function InventoryMgmt({ctx}){
       const rec={...rest,description:desc,id:genId("INV"),tenant_id:tid};
       const saved=await createInventoryItem(rec);
       setInv(p=>[...p,normInv(saved)]);addAudit("ITEM_ADDED",saved.id,`${d.name} added`);flash("Item added");
-    }catch(e){flash(e.message,"error");}
+    }catch(e){flash(e.message,"error"); throw e;}
   };
   const editItem=async(id,d)=>{
     try{
@@ -39,7 +39,7 @@ export default function InventoryMgmt({ctx}){
       const saved=await updateInventoryItem(id,{...rest,description:desc});
       setInv(p=>p.map(i=>i.id!==id?i:normInv(saved)));
       addAudit("ITEM_UPDATED",id,"Item details updated");flash("Item updated");
-    }catch(e){flash(e.message,"error");}
+    }catch(e){flash(e.message,"error"); throw e;}
   };
   const adjustStock=async(id,qty,op)=>{
     try{
@@ -74,7 +74,7 @@ export default function InventoryMgmt({ctx}){
               <tr key={item.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                 <td style={{padding:"11px 14px",fontSize:13,fontWeight:600,color:C.ink}}>{item.name}</td>
                 <td style={{padding:"11px 14px",fontSize:12,color:C.muted,fontFamily:"monospace"}}>{item.code}</td>
-                <td style={{padding:"11px 14px"}}><span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,background:C.surface,color:C.ink2}}>{item.category}</span></td>
+                <td style={{padding:"11px 14px"}}><span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,background:C.surface,color:C.ink2}}>{humanize(item.category)}</span></td>
                 <td style={{padding:"11px 14px"}}>
                   <span style={{fontSize:14,fontWeight:700,color:item.stock<5?C.red:C.ink}}>{item.stock}</span>
                   {item.stock<5&&<span style={{fontSize:10,color:C.red,marginLeft:4,fontWeight:600}}>LOW</span>}

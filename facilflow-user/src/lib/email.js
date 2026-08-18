@@ -99,6 +99,15 @@ export const emailRequestApproved = (toEmail, req, type, approver) =>
     app_url: APP_URL,
   })
 
+export const emailRequestCreated = (toEmails, req, raisedBy) =>
+  sendEmail('request_created', toEmails, {
+    request_id: req.id,
+    title: req.title,
+    type: req.type,
+    raised_by: raisedBy,
+    app_url: 'https://admin-facilflow.africaprudential.com',
+  })
+
 export const emailTicketCreated = (toEmails, ticket, raisedBy) =>
   sendEmail('ticket_created', toEmails, {
     ticket_id: ticket.id,

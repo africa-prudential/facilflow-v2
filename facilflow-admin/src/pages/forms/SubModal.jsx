@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { C, btn, inp, LBL } from "../../theme.js";
+import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { SUB_CATEGORIES, SUB_STATUSES, SUB_CYCLES, SUB_REMINDER_OPTS } from "../../constants.js";
 import { Modal } from "../../components/ui.jsx";
+import { isDirty as checkDirty } from "../../utils.js";
 
-export default function SubModal({sub,depts,onClose,onSave}){
+export default function SubModal({sub,depts,users,onClose,onSave}){
   const [d,setD]=useState(sub
     ?{name:sub.name,vendor:sub.vendor||"",category:sub.category||"Other",renewalDate:sub.renewalDate||"",billingCycle:sub.billingCycle||"Annual",cost:sub.cost||"",prevCost:sub.prevCost||"",status:sub.status||"active",notes:sub.notes||"",assignedOwner:sub.assignedOwner||"",assignedDept:sub.assignedDept||"",reminderSchedule:sub.reminderSchedule||["monthly"],invoiceFile:null}
     :{name:"",vendor:"",category:"Other",renewalDate:"",billingCycle:"Annual",cost:"",prevCost:"",status:"active",notes:"",assignedOwner:"",assignedDept:"",reminderSchedule:["monthly"],invoiceFile:null});
+  const [initial]=useState(d);
   const [saving,setSaving]=useState(false);
+  const dirty = !sub || !!d.invoiceFile || checkDirty(d,initial,["invoiceFile"]);
+  const deptUsers = (users||[]).filter(u=>u.dept===d.assignedDept);
 
   const toggleReminder = (v) => {
     setD(p=>{
@@ -35,14 +39,14 @@ export default function SubModal({sub,depts,onClose,onSave}){
         <div><label style={LBL}>Vendor</label><input value={d.vendor} onChange={e=>setD(p=>({...p,vendor:e.target.value}))} style={inp()} placeholder="e.g. Figma Inc."/></div>
         <div>
           <label style={LBL}>Category</label>
-          <select value={d.category} onChange={e=>setD(p=>({...p,category:e.target.value}))} style={inp()}>
+          <select value={d.category} onChange={e=>setD(p=>({...p,category:e.target.value}))} style={sel()}>
             {SUB_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div><label style={LBL}>Renewal Date</label><input type="date" value={d.renewalDate} onChange={e=>setD(p=>({...p,renewalDate:e.target.value}))} style={inp()}/></div>
         <div>
           <label style={LBL}>Billing Cycle</label>
-          <select value={d.billingCycle} onChange={e=>setD(p=>({...p,billingCycle:e.target.value}))} style={inp()}>
+          <select value={d.billingCycle} onChange={e=>setD(p=>({...p,billingCycle:e.target.value}))} style={sel()}>
             {SUB_CYCLES.map(c=><option key={c} value={c}>{c}</option>)}
           </select>
         </div>
@@ -50,18 +54,27 @@ export default function SubModal({sub,depts,onClose,onSave}){
         <div><label style={LBL}>Previous Cost (optional)</label><input type="number" value={d.prevCost} onChange={e=>setD(p=>({...p,prevCost:e.target.value}))} style={inp()} placeholder="0.00"/></div>
         <div>
           <label style={LBL}>Status</label>
-          <select value={d.status} onChange={e=>setD(p=>({...p,status:e.target.value}))} style={inp()}>
+          <select value={d.status} onChange={e=>setD(p=>({...p,status:e.target.value}))} style={sel()}>
             {SUB_STATUSES.map(s=><option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
         </div>
         <div>
           <label style={LBL}>Department</label>
-          <select value={d.assignedDept} onChange={e=>setD(p=>({...p,assignedDept:e.target.value}))} style={inp()}>
+          <select value={d.assignedDept} onChange={e=>setD(p=>({...p,assignedDept:e.target.value,assignedOwner:""}))} style={sel()}>
             <option value="">Select department…</option>
             {(depts||[]).map(dept=><option key={dept} value={dept}>{dept}</option>)}
           </select>
         </div>
-        <div><label style={LBL}>Assigned Owner</label><input value={d.assignedOwner} onChange={e=>setD(p=>({...p,assignedOwner:e.target.value}))} style={inp()} placeholder="Person responsible…"/></div>
+        <div>
+          <label style={LBL}>Assigned Owner</label>
+          {d.assignedDept && deptUsers.length>0
+            ? <select value={d.assignedOwner} onChange={e=>setD(p=>({...p,assignedOwner:e.target.value}))} style={sel()}>
+                <option value="">Select owner…</option>
+                {deptUsers.map(u=><option key={u.id} value={u.name}>{u.name}</option>)}
+              </select>
+            : <input value={d.assignedOwner} onChange={e=>setD(p=>({...p,assignedOwner:e.target.value}))} style={inp()}
+                placeholder={d.assignedDept?"No users found in department — enter name":"Select a department first…"}/>}
+        </div>
 
         {/* REMINDER SCHEDULE */}
         <div style={{gridColumn:"1/-1"}}>
@@ -90,7 +103,8 @@ export default function SubModal({sub,depts,onClose,onSave}){
       </div>
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:18,paddingTop:16,borderTop:`1px solid ${C.border}`}}>
         <button onClick={onClose} disabled={saving} style={btn("ghost")}>Cancel</button>
-        <button onClick={submit} disabled={saving||!d.name||!d.renewalDate} style={{...btn("primary"),opacity:saving||!d.name||!d.renewalDate?0.6:1}}>
+        <button onClick={submit} disabled={saving||!d.name||!d.renewalDate||!dirty}
+          style={{...btn("primary"),minWidth:150,justifyContent:"center",opacity:saving||!d.name||!d.renewalDate||!dirty?0.6:1}}>
           {saving?"Saving…":(sub?"Save Changes":"Add Subscription")}
         </button>
       </div>

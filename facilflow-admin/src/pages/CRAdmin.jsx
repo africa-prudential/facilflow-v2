@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { X, Search, Zap } from "lucide-react";
-import { C, btn, inp, card, LBL } from "../theme.js";
+import { C, btn, inp, sel, card, LBL } from "../theme.js";
 import { fmtD } from "../utils.js";
 import { Av, EnvTag, RiskTag, PageTitle, TH, Filters } from "../components/ui.jsx";
 import AdminCRDetailModal from "./forms/AdminCRDetailModal.jsx";
@@ -142,7 +142,7 @@ export default function CRAdmin({ctx}){
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
           <div><label style={LBL}>Status / Stage</label>
-            <select value={fStatus} onChange={e=>resetPage(setFStatus)(e.target.value)} style={inp()}>
+            <select value={fStatus} onChange={e=>resetPage(setFStatus)(e.target.value)} style={sel()}>
               <option value="">All Statuses</option>
               <option value="pending_line_manager">Pending Line Manager</option>
               <option value="pending_manager">Pending Manager</option>
@@ -153,31 +153,31 @@ export default function CRAdmin({ctx}){
             </select>
           </div>
           <div><label style={LBL}>Change Type</label>
-            <select value={fType} onChange={e=>resetPage(setFType)(e.target.value)} style={inp()}>
+            <select value={fType} onChange={e=>resetPage(setFType)(e.target.value)} style={sel()}>
               <option value="">All Types</option>
               {["Standard","Normal","Emergency"].map(t=><option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div><label style={LBL}>Environment</label>
-            <select value={fEnv} onChange={e=>resetPage(setFEnv)(e.target.value)} style={inp()}>
+            <select value={fEnv} onChange={e=>resetPage(setFEnv)(e.target.value)} style={sel()}>
               <option value="">All Environments</option>
               {["Dev","Staging","Production"].map(e=><option key={e} value={e}>{e}</option>)}
             </select>
           </div>
           <div><label style={LBL}>Risk Level</label>
-            <select value={fRisk} onChange={e=>resetPage(setFRisk)(e.target.value)} style={inp()}>
+            <select value={fRisk} onChange={e=>resetPage(setFRisk)(e.target.value)} style={sel()}>
               <option value="">All Risks</option>
               {["Low","Medium","High"].map(r=><option key={r} value={r}>{r}</option>)}
             </select>
           </div>
           <div><label style={LBL}>Requester</label>
-            <select value={fUser} onChange={e=>resetPage(setFUser)(e.target.value)} style={inp()}>
+            <select value={fUser} onChange={e=>resetPage(setFUser)(e.target.value)} style={sel()}>
               <option value="">All Requesters</option>
               {uniqueUsers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
           </div>
           <div><label style={LBL}>Outcome</label>
-            <select value={fOutcome} onChange={e=>resetPage(setFOutcome)(e.target.value)} style={inp()}>
+            <select value={fOutcome} onChange={e=>resetPage(setFOutcome)(e.target.value)} style={sel()}>
               <option value="">Any Outcome</option>
               <option value="successful">Successful</option>
               <option value="failed">Failed</option>

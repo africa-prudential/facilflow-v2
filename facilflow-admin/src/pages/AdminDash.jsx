@@ -1,7 +1,7 @@
 import { Users, Car, ClipboardList, Zap, AlertTriangle, Info, RefreshCw } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { VEHICLE_STATUSES, ADMIN_ROLE_META } from "../constants.js";
-import { hasAdminAccess, isSuperAdmin } from "../utils.js";
+import { hasAdminAccess, isSuperAdmin, humanize } from "../utils.js";
 import { Chip, CRChip, EnvTag, PageTitle, TH, StatCard } from "../components/ui.jsx";
 
 export default function AdminDash({ctx,setPage}){
@@ -53,7 +53,7 @@ export default function AdminDash({ctx,setPage}){
                   <tr key={c.id} style={{borderBottom:i<4?`1px solid #FAFAFA`:"none"}}>
                     <td style={{padding:"10px 14px",fontSize:11,fontWeight:700,color:C.ink}}>{c.id}</td>
                     <td style={{padding:"10px 14px",fontSize:12,color:C.ink,maxWidth:180}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>{c.isEmergency&&<Zap size={12}/>}{c.title}</div></td>
-                    <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.changeType}</td>
+                    <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{humanize(c.changeType)}</td>
                     <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
                     <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
                   </tr>

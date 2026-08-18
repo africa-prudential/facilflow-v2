@@ -3,7 +3,8 @@ import { Zap, Check, CheckCircle2, XCircle, Wrench, Lock, Paperclip, ExternalLin
 import { C, btn, inp, LBL } from "../../theme.js";
 import { fmtDT, fmtD, now, isSuperAdmin, humanize } from "../../utils.js";
 import { CRChip, EnvTag, RiskTag, Modal } from "../../components/ui.jsx";
-import { updateCR } from "../../lib/supabase.js";
+import { updateCR, USER_APP_URL } from "../../lib/supabase.js";
+import { sendEmail } from "../../lib/email.js";
 
 const DOC_LABELS = {
   uat_signoff:      "UAT Sign-off Form",
@@ -144,6 +145,91 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
       setCrs(p=>p.map(c=>c.id===cr.id?saved:c));
       flash(`CR ${nextStatus.replace(/_/g," ")}`);
       if(isOverride) addAudit?.("CR_ADMIN_OVERRIDE", cr.id, `Admin override: ${action} on ${cr.id} (${cr.status} → ${nextStatus})`);
+
+      // Send stage notification emails — mirrors facilflow-user's advanceCR,
+      // since actions taken from the admin console (including Admin Override)
+      // previously sent no notification at all.
+      try {
+        const emailRecipients = [];
+        const crUrl = `${USER_APP_URL}/change_requests?cr=${cr.id}`;
+        const getEmail = userId => uniqueUsers.find(u=>u.id===userId)?.email || null;
+        const getRoleEmails = roleKey => (userCRoles||[])
+          .filter(r=>r.role_key===roleKey)
+          .map(r=>getEmail(r.user_id))
+          .filter(Boolean);
+
+        const techEmail = getEmail(saved.initiator);
+        if(techEmail) emailRecipients.push(techEmail);
+
+        if(techEmail && saved.status==="pending_implementation"){
+          sendEmail("cr_scheduled", [techEmail], {
+            cr_id: saved.id, title: saved.title,
+            deploy_date: saved.deploy_date, deploy_start: saved.deploy_start, deploy_end: saved.deploy_end,
+            environment: saved.environment, app_url: crUrl,
+          }).catch(()=>{});
+        }
+
+        let notifStage = "";
+        if(action==="approve_line_manager"){
+          notifStage = "Change Manager Review";
+          const mgrEmail = getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+        else if(action==="approve_manager"){
+          const lvls = saved.level_approvals||[];
+          if(lvls.length>0){
+            notifStage = lvls[0].name||"Level 1 Approval";
+            getRoleEmails(lvls[0].role_key).forEach(e=>emailRecipients.push(e));
+          } else {
+            notifStage = "Implementation";
+            getRoleEmails("change_implementer").forEach(e=>emailRecipients.push(e));
+          }
+          const mgrEmail = getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+        else if(action==="approve_level"){
+          const lvls = saved.level_approvals||[];
+          const nxt = lvls.find(l=>l.level===saved.current_level);
+          if(nxt){
+            notifStage = nxt.name||`Level ${saved.current_level} Approval`;
+            getRoleEmails(nxt.role_key).forEach(e=>emailRecipients.push(e));
+          } else {
+            notifStage = "Implementation";
+            getRoleEmails("change_implementer").forEach(e=>emailRecipients.push(e));
+          }
+          const mgrEmail = getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+        else if(action==="reject"){
+          notifStage = "Rejected";
+          const mgrEmail = getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+        else if(action==="start_implementation"){
+          notifStage = "Implementation Started";
+          const mgrEmail = getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+        else if(action==="complete_implementation"){
+          notifStage = saved.implementation_outcome==="failed"?"Implementation Failed":"Implementation Completed";
+          const mgrEmail = getEmail(saved.change_manager_id);
+          if(mgrEmail) emailRecipients.push(mgrEmail);
+        }
+
+        const uniqueEmails=[...new Set(emailRecipients)].filter(Boolean);
+        if(uniqueEmails.length>0 && notifStage){
+          const emailRes = await sendEmail("cr_stage_notification", uniqueEmails, {
+            cr_id: saved.id, title: saved.title, stage: notifStage,
+            subject: `${saved.id} - ${saved.title} - ${notifStage}`,
+            action: action==="reject"
+              ? "This change request has been rejected. Please review and raise a new CR if needed."
+              : `Action required: The change request has progressed to ${notifStage}.`,
+            note: note||"", app_url: crUrl,
+          });
+          if(emailRes?.error) flash(`CR updated but email failed: ${emailRes.error.message}`, "error");
+        }
+      } catch(ne){ flash(`CR updated but notification error: ${ne.message}`, "error"); }
+
       onClose();
     } catch(e){ flash(e.message,"error"); }
     finally { setSaving(false); }

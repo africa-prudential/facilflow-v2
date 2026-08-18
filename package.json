@@ -1,7 +1,7 @@
 {
   "name": "facilflow-v2",
   "version": "2.0.0",
-  "description": "Africa Prudential FaciliFlow — Monorepo",
+  "description": "Africa Prudential Facilflow — Monorepo",
   "private": true,
   "workspaces": [
     "facilflow-user",

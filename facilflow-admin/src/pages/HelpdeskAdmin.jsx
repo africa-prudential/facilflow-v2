@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Ticket, Unlock, Check } from "lucide-react";
 import { C, btn, card } from "../theme.js";
 import { TICKET_STATUS, TICKET_PRIORITY } from "../constants.js";
-import { fmtD } from "../utils.js";
+import { fmtD, sentenceCase } from "../utils.js";
 import { TChip, PChip, PageTitle, TH, Empty, Filters, StatCard } from "../components/ui.jsx";
 import TicketAdminModal from "./forms/TicketAdminModal.jsx";
 
 export default function HelpdeskAdmin({ctx}){
-  const {tickets,setTickets,users,updateTicketFn,addCommentFn,fetchCommentsFn,flash}=ctx;
+  const {tickets,setTickets,users,updateTicketFn,addCommentFn,fetchCommentsFn,flash,me}=ctx;
   const [f,setF]=useState({});
   const [sel,setSel]=useState(null);
   const [page,setPage]    = useState(1);
@@ -56,7 +56,7 @@ export default function HelpdeskAdmin({ctx}){
               :paged.map((t,i)=>(
                 <tr key={t.id} style={{borderBottom:i<paged.length-1?`1px solid #FAFAFA`:"none"}}>
                   <td style={{padding:"10px 14px",maxWidth:260}}>
-                    <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{t.title}</div>
+                    <div style={{fontSize:13,fontWeight:600,color:C.ink}}>{sentenceCase(t.title)}</div>
                     <div style={{fontSize:11,color:C.muted,marginTop:2}}>#{t.id?.slice(-6)}</div>
                   </td>
                   <td style={{padding:"10px 14px"}}>
@@ -104,7 +104,7 @@ export default function HelpdeskAdmin({ctx}){
           )}
         </div>
       </div>
-      {sel&&<TicketAdminModal ticket={sel} users={users} onClose={()=>setSel(null)}
+      {sel&&<TicketAdminModal ticket={sel} users={users} me={me} onClose={()=>setSel(null)}
         onUpdate={async(id,upd)=>{ const n=await updateTicketFn(id,upd); setSel(n); flash("Ticket updated"); }}
         fetchComments={fetchCommentsFn} addComment={addCommentFn}/>}
     </div>

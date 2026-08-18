@@ -18,7 +18,7 @@ import {
   fetchDepartments, fetchDepartmentModules,
   APP_URL,
 } from "./lib/supabase.js";
-import { emailCRSubmitted, emailCRScheduled, emailCRReviewerAdded, emailCRLineManagerReview, emailCRNoManagerConfigured, emailRequestApproved, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
+import { emailCRSubmitted, emailCRScheduled, emailCRReviewerAdded, emailCRLineManagerReview, emailCRNoManagerConfigured, emailRequestApproved, emailRequestCreated, emailTicketCreated, emailTicketComment, emailTicketReceived, emailTicketStatusUpdate } from "./lib/email.js";
 import { C, btn } from "./theme.js";
 import { CR_STATUS, NAV_GROUPS } from "./constants.js";
 import { fmtDT, normCR, normReq, humanize } from "./utils.js";
@@ -161,8 +161,11 @@ export default function UserApp({ currentUser }){
       const saved = await createRequest(rec);
       setReqs(p=>[normReq(saved),...p]);
       flash(`${id} submitted`);
+
+      const facilityAdminEmails = Object.values(users||{}).filter(u=>['facility_admin','super_admin'].includes(u.role)).map(u=>u.email).filter(Boolean);
+      if(facilityAdminEmails.length) emailRequestCreated(facilityAdminEmails, saved, users[uid]?.name||"A team member").catch(()=>{});
     } catch(e){ flash(e.message,"error"); }
-  },[reqs.length, uid, tenantId, flash]);
+  },[reqs.length, uid, tenantId, flash, users]);
 
   const transReq = useCallback(async (id,ns,note="")=>{
     try {
@@ -602,7 +605,7 @@ export default function UserApp({ currentUser }){
   if(loading) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
       fontFamily:"system-ui",color:C.muted,fontSize:14,background:C.pageBg}}>
-      Loading FaciliFlow…
+      Loading Facilflow…
     </div>
   );
 

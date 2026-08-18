@@ -1,6 +1,6 @@
 import { Zap, Car, Pencil, Calendar, RefreshCw, Hourglass } from "lucide-react";
 import { C, btn, card } from "../theme.js";
-import { fmtD } from "../utils.js";
+import { fmtD, humanize } from "../utils.js";
 import { CRChip, EnvTag, TH, Empty } from "../components/ui.jsx";
 
 export default function Dashboard({ctx,setPage}){
@@ -68,7 +68,7 @@ export default function Dashboard({ctx,setPage}){
                         {c.is_emergency&&<span style={{color:C.red,marginRight:4,display:"inline-flex",verticalAlign:"middle"}}><Zap size={12}/></span>}{c.title}
                       </div>
                     </td>
-                    <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{c.change_type}</td>
+                    <td style={{padding:"10px 14px",fontSize:11,color:C.muted}}>{humanize(c.change_type)}</td>
                     <td style={{padding:"10px 14px"}}><EnvTag e={c.environment}/></td>
                     <td style={{padding:"10px 14px"}}><CRChip s={c.status}/></td>
                   </tr>

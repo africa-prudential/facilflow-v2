@@ -7,8 +7,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const SUPABASE_URL        = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const RESEND_API_KEY      = Deno.env.get("RESEND_API_KEY") ?? ""
-const FROM_EMAIL          = "noreply@facilflow.africaprudential.com"
-const FROM_NAME           = "FaciliFlow — Africa Prudential"
+const FROM_EMAIL          = "facilflow@africaprudential.com"
+const FROM_NAME           = "Facilflow — Africa Prudential"
 const APP_URL             = Deno.env.get("APP_URL") ?? "https://facilflow.africaprudential.com"
 
 const CORS = {
@@ -29,7 +29,7 @@ const RBG = "#FEF2F2"
 const LOGO = `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="12" fill="${B}"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#fff">AP</text></svg>`
 
 function wrap(inner: string) {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FaciliFlow</title></head>
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Facilflow</title></head>
 <body style="margin:0;padding:0;background:${BG}">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};padding:40px 16px">
 <tr><td align="center">
@@ -38,7 +38,7 @@ function wrap(inner: string) {
 ${inner}
 </td></tr>
 <tr><td style="padding:20px 0;text-align:center">
-<div style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-bottom:4px"><strong style="color:${INK}">Africa Prudential Plc</strong> · FaciliFlow Change Management</div>
+<div style="font-family:Arial,sans-serif;font-size:11px;color:${MUT};margin-bottom:4px"><strong style="color:${INK}">Africa Prudential Plc</strong> · Facilflow Change Management</div>
 <div style="font-family:Arial,sans-serif;font-size:11px;color:#94A3B8">This is an automated message. Please do not reply.</div>
 </td></tr></table></td></tr></table></body></html>`
 }
@@ -229,7 +229,7 @@ serve(async (req) => {
               ${cta(`${APP_URL}/change_requests?cr=${cr.id}`, "Review & Approve Now →", AMB)}
             `)
           )
-          const sent = await sendEmail(recipientEmails, `Reminder: ${cr.id} is awaiting your approval — FaciliFlow`, html)
+          const sent = await sendEmail(recipientEmails, `Reminder: ${cr.id} is awaiting your approval — Facilflow`, html)
           if (sent) {
             await db.from("change_requests").update({ reminder_sent_at: now.toISOString() }).eq("id", cr.id)
             await db.from("audit_log").insert([{
