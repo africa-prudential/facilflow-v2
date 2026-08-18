@@ -66,11 +66,29 @@ export const dsm   = v => DRIVER_STATUSES.find(s=>s.v===v)||{l:v,color:C.muted,b
 // DB → UI field normalizers (DB is snake_case, UI expects camelCase from original seed)
 export const normCR  = cr => cr ? ({...cr, changeType:cr.change_type??cr.changeType, riskLevel:cr.risk_level??cr.riskLevel, deployDate:cr.deploy_date??cr.deployDate, deployStart:cr.deploy_start??cr.deployStart, deployEnd:cr.deploy_end??cr.deployEnd, isEmergency:cr.is_emergency??cr.isEmergency, systemName:cr.system_name??cr.systemName, createdAt:cr.created_at??cr.createdAt, updatedAt:cr.updated_at??cr.updatedAt }) : cr;
 export const normVeh = v  => v  ? ({...v,  driverId:v.driver_id??v.driverId, lastUpdated:v.updated_at??v.lastUpdated, createdAt:v.created_at??v.createdAt, ownershipType:v.ownership_type??v.ownershipType, companyName:v.company_name??v.companyName, coOwnerName:v.co_owner_name??v.coOwnerName }) : v;
-export const normSub  = s  => s  ? ({...s,  renewalDate:s.renewal_date??s.renewalDate, billingCycle:s.billing_cycle??s.billingCycle, prevCost:s.prev_cost??s.prevCost, attachmentUrl:s.attachment_url??s.attachmentUrl, assignedOwner:s.assigned_owner??s.assignedOwner, assignedDept:s.assigned_dept??s.assignedDept, reminderSchedule:s.reminder_schedule??s.reminderSchedule??["monthly"], lastUpdated:s.updated_at??s.lastUpdated, createdAt:s.created_at??s.createdAt }) : s;
+export const normSub  = s  => s  ? ({...s,  renewalDate:s.renewal_date??s.renewalDate, billingCycle:s.billing_cycle??s.billingCycle, prevCost:s.prev_cost??s.prevCost, attachmentUrl:s.attachment_url??s.attachmentUrl, assignedOwners:s.assigned_owners??s.assignedOwners??[], assignedDept:s.assigned_dept??s.assignedDept, reminderSchedule:s.reminder_schedule??s.reminderSchedule??["monthly"], lastUpdated:s.updated_at??s.lastUpdated, createdAt:s.created_at??s.createdAt }) : s;
 export const normDrv = d  => d  ? ({...d,  vehicleId:d.vehicle_id??d.vehicleId, lastUpdated:d.updated_at??d.lastUpdated, createdAt:d.created_at??d.createdAt }) : d;
 export const normInv = i  => i  ? ({...i,  desc:i.description??i.desc, lastUpdated:i.updated_at??i.lastUpdated, createdAt:i.created_at??i.createdAt }) : i;
 export const normAudit = a => a ? ({...a,  at:a.created_at??a.at, by:a.performed_by??a.by }) : a;
+export const resolveNames = (ids, users) => (ids||[]).map(id=>(users||[]).find(u=>u.id===id)?.name).filter(Boolean).join(", ");
 export const normLicence = l => l ? ({...l, issuingAuthority:l.issuing_authority??l.issuingAuthority, licenceNumber:l.licence_number??l.licenceNumber, expiryDate:l.expiry_date??l.expiryDate, attachmentUrl:l.attachment_url??l.attachmentUrl, lastUpdated:l.updated_at??l.lastUpdated, createdAt:l.created_at??l.createdAt }) : l;
+
+// True if two Pool Car request date/time windows overlap. Defensive about
+// missing data — an incomplete window never counts as an overlap.
+export const poolCarWindowsOverlap = (a, b) => {
+  if (!a?.date || !a?.start || !a?.end || !b?.date || !b?.start || !b?.end) return false;
+  const aStart = new Date(`${a.date}T${a.start}:00`), aEnd = new Date(`${a.date}T${a.end}:00`);
+  const bStart = new Date(`${b.date}T${b.start}:00`), bEnd = new Date(`${b.date}T${b.end}:00`);
+  return aStart < bEnd && bStart < aEnd;
+};
+
+// True if a Pool Car request's date/time window covers right now.
+export const poolCarWindowActiveNow = (details) => {
+  if (!details?.date || !details?.start || !details?.end) return false;
+  const start = new Date(`${details.date}T${details.start}:00`), end = new Date(`${details.date}T${details.end}:00`);
+  const now = new Date();
+  return now >= start && now <= end;
+};
 export const fmtSafe = d => { if(!d) return "—"; const dt = new Date(d); return isNaN(dt) ? "—" : dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}); };
 export const normTicket = t => t ? ({...t, title:t.subject??t.title, ticketType:t.ticket_type??t.ticketType??t.type, priorityAuto:t.priority_auto??t.priorityAuto, impactDetails:t.impact_details??t.impactDetails, requesterId:t.requester_id??t.requesterId, assigneeId:t.assignee_id??t.assigneeId, productService:t.product_service??t.productService, supportLevel:t.support_level??t.supportLevel, assetId:t.asset_id??t.assetId, assetFreeText:t.asset_free_text??t.assetFreeText, linkedCrId:t.linked_cr_id??t.linkedCrId, resolutionNotes:t.resolution_notes??t.resolutionNotes, resolutionStatus:t.resolution_status??t.resolutionStatus, rootCause:t.root_cause??t.rootCause, resolvedAt:t.resolved_at??t.resolvedAt, closedAt:t.closed_at??t.closedAt, createdAt:t.created_at??t.createdAt, updatedAt:t.updated_at??t.updatedAt }) : t;
 

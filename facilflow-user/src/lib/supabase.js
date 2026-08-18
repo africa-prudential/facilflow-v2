@@ -16,6 +16,7 @@ export const getSession = () => supabase.auth.getSession()
 export const onAuthChange = (cb) => supabase.auth.onAuthStateChange(cb)
 
 export const APP_URL = import.meta.env.VITE_APP_URL || 'https://facilflow.africaprudential.com'
+export const ADMIN_APP_URL = import.meta.env.VITE_ADMIN_APP_URL || 'https://admin-facilflow.africaprudential.com'
 
 export const sendPasswordReset = (email) =>
   supabase.functions.invoke('reset-password', { body: { email, redirect_to: APP_URL } })

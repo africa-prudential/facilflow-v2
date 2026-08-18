@@ -219,6 +219,14 @@ serve(async (req) => {
       if (u.email) itAdminsByTenant[u.tenant_id].push(u.email)
     }
 
+    // For resolving each subscription's assigned_owners (user IDs) to emails/names
+    const { data: allUsers } = await db
+      .from("users")
+      .select("id, email, name, tenant_id")
+      .eq("status", "active")
+    const usersById: Record<string, any> = {}
+    for (const u of allUsers || []) usersById[u.id] = u
+
     const subAlerts: Record<string, any[]> = {}
     for (const sub of subs || []) {
       const renewal = new Date(sub.renewal_date)
@@ -235,10 +243,15 @@ serve(async (req) => {
     let subEmailsSent = 0
     let subAlertsCount = 0
     for (const [tenantId, alerts] of Object.entries(subAlerts)) {
-      const recipients = itAdminsByTenant[tenantId] || []
-      if (!recipients.length) continue
+      const itAdminRecipients = itAdminsByTenant[tenantId] || []
 
       for (const sub of alerts) {
+        const ownerIds: string[] = Array.isArray(sub.assigned_owners) ? sub.assigned_owners : []
+        const ownerEmails = ownerIds.map(id => usersById[id]?.email).filter(Boolean)
+        const ownerNames = ownerIds.map(id => usersById[id]?.name).filter(Boolean).join(", ")
+        const recipients = [...new Set([...itAdminRecipients, ...ownerEmails])]
+        if (!recipients.length) continue
+
         const isToday = sub.daysRemaining === 0
         const subject = isToday
           ? `Subscription Renewal Due Today — ${sub.name}`
@@ -255,7 +268,7 @@ serve(async (req) => {
               tblRow("Renewal Date", new Date(sub.renewal_date).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})) +
               tblRow("Cost", sub.cost ? `₦${Number(sub.cost).toLocaleString()}` : "—") +
               tblRow("Billing Cycle", sub.billing_cycle || "—") +
-              tblRow("Assigned Owner", sub.assigned_owner || "—")
+              tblRow("Assigned Owner(s)", ownerNames || "—")
             )}
             ${isToday
               ? hl("⚠ This subscription is due for renewal <strong>today</strong>. Please process payment to avoid service interruption.", RED, RBG)
