@@ -382,6 +382,40 @@ export const uploadSubInvoice = async (subId, file) => {
   const { data: { publicUrl } } = supabase.storage.from('sub-invoices').getPublicUrl(path)
   return { path, publicUrl, name: file.name, size: file.size }
 }
+
+// ── LICENCES ──────────────────────────────────────────────
+export const fetchLicences = async (tenantId) => {
+  const { data, error } = await supabase
+    .from('licences')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('expiry_date')
+  if (error) throw error
+  return data
+}
+
+export const createLicence = async (l) => {
+  const { data, error } = await supabase.from('licences').insert([l]).select().single()
+  if (error) throw error
+  return data
+}
+
+export const updateLicence = async (id, updates) => {
+  const { data, error } = await supabase
+    .from('licences')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export const uploadLicenceDoc = async (licenceId, file) => {
+  const path = `${licenceId}/${Date.now()}-${file.name}`
+  const { error } = await supabase.storage.from('licence-docs').upload(path, file)
+  if (error) throw error
+  const { data: { publicUrl } } = supabase.storage.from('licence-docs').getPublicUrl(path)
+  return { path, publicUrl, name: file.name, size: file.size }
+}
 // ── HELPDESK TICKETS ─────────────────────────────────────
 export const fetchTickets = async (tenantId) => {
   const { data, error } = await supabase

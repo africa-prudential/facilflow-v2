@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, Car } from "lucide-react";
 import { C, btn, card } from "../theme.js";
-import { VEHICLE_STATUSES } from "../constants.js";
+import { VEHICLE_STATUSES, VEHICLE_CATEGORIES } from "../constants.js";
 import { worstDocStatus, genId, now, vsm, normVeh } from "../utils.js";
 import { createVehicle, updateVehicle, upsertVehicleDoc, uploadVehicleDoc } from "../lib/supabase.js";
 import { Chip, PageTitle, TH, Empty, Filters } from "../components/ui.jsx";
@@ -18,6 +18,7 @@ export default function FleetMgmt({ctx}){
 
   const shown = vehicles.filter(v=>{
     if(f.status && v.status!==f.status) return false;
+    if(f.category && v.category!==f.category) return false;
     if(f.ownership && v.ownershipType!==f.ownership) return false;
     if(f.coOwner){const q=f.coOwner.toLowerCase();if(!(v.coOwnerName||"").toLowerCase().includes(q)) return false;}
     if(f.q){const q=f.q.toLowerCase();if(!v.model.toLowerCase().includes(q)&&!v.plate.toLowerCase().includes(q)) return false;}
@@ -59,6 +60,7 @@ export default function FleetMgmt({ctx}){
       }
       const rec={
         plate:plateTrimmed, model:data.model, year:data.year, color:data.color,
+        category:data.category||"Status Car",
         ownership_type:data.ownershipType||"Company",
         company_name:data.companyName||"",
         co_owner_name:data.ownershipType==="Joint"?data.coOwnerName||"":null,
@@ -114,16 +116,17 @@ export default function FleetMgmt({ctx}){
       <Filters values={f} onChange={setF} fields={[
         {k:"q",        label:"Search",         w:180, ph:"Plate or model…"},
         {k:"status",   label:"Status",          type:"select",w:160, opts:VEHICLE_STATUSES.map(s=>({v:s.v,l:s.l}))},
+        {k:"category", label:"Category",        type:"select",w:150, opts:VEHICLE_CATEGORIES.map(c=>({v:c,l:c}))},
         {k:"ownership",label:"Ownership Type",  type:"select",w:150, opts:[{v:"Company",l:"Company"},{v:"Joint",l:"Joint"}]},
         {k:"coOwner",  label:"Co-owner Search", w:160, ph:"Co-owner name…"},
       ]}/>
 
       <div style={card(0)}>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
-          <TH cols={["Plate","Model","Year","Colour","Assigned Owner","Docs","Status","Driver",""]}/>
+          <TH cols={["Plate","Model","Year","Colour","Category","Assigned Owner","Docs","Status","Driver",""]}/>
           <tbody>
             {paged.length===0
-              ?<tr><td colSpan={9}><Empty icon={<Car size={32}/>} title="No vehicles found"/></td></tr>
+              ?<tr><td colSpan={10}><Empty icon={<Car size={32}/>} title="No vehicles found"/></td></tr>
               :paged.map((v,i)=>{
                 const drv=drivers.find(d=>d.id===v.driverId);
                 const vd=allDocs.filter(d=>d.vehicle_id===v.id);
@@ -138,6 +141,9 @@ export default function FleetMgmt({ctx}){
                     <td style={{padding:"11px 14px",fontSize:13,color:C.ink}}>{v.model}</td>
                     <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{v.year}</td>
                     <td style={{padding:"11px 14px",fontSize:12,color:C.muted}}>{v.color}</td>
+                    <td style={{padding:"11px 14px"}}>
+                      <Chip label={v.category||"Status Car"} color={v.category==="Pool Car"?C.violet:C.blue} bg={v.category==="Pool Car"?C.violetBg:C.blueBg}/>
+                    </td>
                     <td style={{padding:"11px 14px",fontSize:12,color:C.ink2}}>{owner}</td>
                     <td style={{padding:"11px 14px"}}>
                       <Chip label={ws.l} color={ws.color} bg={ws.bg}/>

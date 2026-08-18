@@ -97,6 +97,30 @@ async function sendEmail(to: string[], subject: string, html: string) {
   return res.ok
 }
 
+// Fixed day-thresholds a vehicle document alerts at before expiry, then
+// weekly buckets (-7, -14, -21, ...) once overdue. Each doc gets exactly
+// one email per milestone crossed, tracked via last_reminder_milestone.
+const DOC_MILESTONES = [30, 14, 7, 3, 1, 0]
+
+function docMilestone(daysRemaining: number): number {
+  if (daysRemaining >= 0) {
+    const candidates = DOC_MILESTONES.filter(m => daysRemaining <= m)
+    return candidates.length ? Math.min(...candidates) : DOC_MILESTONES[0]
+  }
+  const weeksOverdue = Math.ceil(Math.abs(daysRemaining) / 7)
+  return -7 * weeksOverdue
+}
+
+// Maps each reminder_schedule entry to a repeat interval in days; a
+// subscription with multiple selected cadences uses the shortest one.
+const CADENCE_DAYS: Record<string, number> = { daily: 1, every_2_weeks: 14, monthly: 30, quarterly: 90 }
+
+function subIntervalDays(schedule: string[] | null | undefined): number {
+  const list = Array.isArray(schedule) && schedule.length ? schedule : ["monthly"]
+  const intervals = list.map(s => CADENCE_DAYS[s] ?? 30)
+  return Math.min(...intervals)
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS })
 
@@ -104,8 +128,6 @@ serve(async (req) => {
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const in7 = new Date(today)
-    in7.setDate(in7.getDate() + 7)
 
     // ── 1. VEHICLE DOCUMENT ALERTS ─────────────────────────────
     const { data: docs } = await db
@@ -116,7 +138,7 @@ serve(async (req) => {
     const { data: facilityAdmins } = await db
       .from("users")
       .select("email, tenant_id")
-      .in("role", ["facility_admin", "admin"])
+      .in("role", ["facility_admin"])
       .eq("status", "active")
 
     const adminsByTenant: Record<string, string[]> = {}
@@ -125,19 +147,22 @@ serve(async (req) => {
       if (u.email) adminsByTenant[u.tenant_id].push(u.email)
     }
 
-    // Group expiring/expired docs by tenant
+    // Group docs due for a reminder (new milestone crossed) by tenant
     const docAlerts: Record<string, any[]> = {}
     for (const doc of docs || []) {
       const expiry = new Date(doc.expiry_date)
       const days = Math.ceil((expiry.getTime() - today.getTime()) / 86400000)
-      if (days > 7) continue  // not yet alerting
+      if (days > 30) continue  // not yet within the alert window
+      const milestone = docMilestone(days)
+      if (doc.last_reminder_milestone === milestone) continue  // already alerted for this milestone
       const tenantId = doc.vehicles?.tenant_id
       if (!tenantId) continue
       if (!docAlerts[tenantId]) docAlerts[tenantId] = []
-      docAlerts[tenantId].push({ ...doc, daysRemaining: days })
+      docAlerts[tenantId].push({ ...doc, daysRemaining: days, milestone })
     }
 
     let docEmailsSent = 0
+    let docAlertsCount = 0
     for (const [tenantId, alerts] of Object.entries(docAlerts)) {
       const recipients = adminsByTenant[tenantId] || []
       if (!recipients.length) continue
@@ -154,10 +179,10 @@ serve(async (req) => {
       const html = wrap(
         hdr(headerColor, "Vehicle Compliance Alert", `${alerts.length} document(s) expiring or expired`) +
         body(`
-          ${p("The following vehicle compliance documents require immediate attention:")}
+          ${p("The following vehicle compliance documents require attention:")}
           ${hl(hasExpired
             ? "⚠ One or more documents have already <strong>expired</strong>. Please renew immediately."
-            : "⏰ One or more documents will expire <strong>within 7 days</strong>. Please arrange renewal.",
+            : "⏰ One or more documents are approaching their expiry date. Please arrange renewal.",
             hasExpired ? RED : AMB,
             hasExpired ? RBG : ABG)}
           ${tbl(rows)}
@@ -166,8 +191,14 @@ serve(async (req) => {
         `)
       )
 
-      await sendEmail(recipients, subject, html)
-      docEmailsSent += recipients.length
+      const sent = await sendEmail(recipients, subject, html)
+      if (sent) {
+        docEmailsSent += recipients.length
+        docAlertsCount += alerts.length
+        for (const a of alerts) {
+          await db.from("vehicle_documents").update({ last_reminder_milestone: a.milestone }).eq("id", a.id)
+        }
+      }
     }
 
     // ── 2. IT SUBSCRIPTION ALERTS ──────────────────────────────
@@ -179,7 +210,7 @@ serve(async (req) => {
     const { data: itAdmins } = await db
       .from("users")
       .select("email, tenant_id")
-      .in("role", ["it_admin", "admin"])
+      .in("role", ["it_admin"])
       .eq("status", "active")
 
     const itAdminsByTenant: Record<string, string[]> = {}
@@ -192,12 +223,17 @@ serve(async (req) => {
     for (const sub of subs || []) {
       const renewal = new Date(sub.renewal_date)
       const days = Math.ceil((renewal.getTime() - today.getTime()) / 86400000)
-      if (days > 7 || days < 0) continue  // only 0–7 days window
+      if (days > 30 || days < 0) continue  // only within 30 days out, up to renewal date
+      const intervalDays = subIntervalDays(sub.reminder_schedule)
+      const lastSent = sub.last_reminder_sent_at ? new Date(sub.last_reminder_sent_at) : null
+      const daysSinceLast = lastSent ? (today.getTime() - lastSent.getTime()) / 86400000 : Infinity
+      if (daysSinceLast < intervalDays) continue  // not due yet per its configured cadence
       if (!subAlerts[sub.tenant_id]) subAlerts[sub.tenant_id] = []
       subAlerts[sub.tenant_id].push({ ...sub, daysRemaining: days })
     }
 
     let subEmailsSent = 0
+    let subAlertsCount = 0
     for (const [tenantId, alerts] of Object.entries(subAlerts)) {
       const recipients = itAdminsByTenant[tenantId] || []
       if (!recipients.length) continue
@@ -228,18 +264,100 @@ serve(async (req) => {
           `)
         )
 
-        await sendEmail(recipients, subject, html)
-        subEmailsSent += recipients.length
+        const sent = await sendEmail(recipients, subject, html)
+        if (sent) {
+          subEmailsSent += recipients.length
+          subAlertsCount++
+          await db.from("it_subscriptions").update({ last_reminder_sent_at: today.toISOString() }).eq("id", sub.id)
+        }
       }
+    }
+
+    // ── 3. LICENCE ALERTS ───────────────────────────────────────
+    // Same facility_admin audience and milestone dedup as vehicle docs —
+    // reuses adminsByTenant and docMilestone() directly.
+    const { data: licences } = await db
+      .from("licences")
+      .select("*")
+
+    const licenceAlerts: Record<string, any[]> = {}
+    for (const lic of licences || []) {
+      if (!lic.expiry_date) continue
+      const expiry = new Date(lic.expiry_date)
+      const days = Math.ceil((expiry.getTime() - today.getTime()) / 86400000)
+      if (days > 30) continue
+      const milestone = docMilestone(days)
+      if (lic.last_reminder_milestone === milestone) continue
+      if (!licenceAlerts[lic.tenant_id]) licenceAlerts[lic.tenant_id] = []
+      licenceAlerts[lic.tenant_id].push({ ...lic, daysRemaining: days, milestone })
+    }
+
+    let licEmailsSent = 0
+    let licAlertsCount = 0
+    for (const [tenantId, alerts] of Object.entries(licenceAlerts)) {
+      const recipients = adminsByTenant[tenantId] || []
+      if (!recipients.length) continue
+
+      const rows = alerts.map(a =>
+        tblRow(a.name,
+          `${a.daysRemaining < 0 ? `<span style="color:${RED};font-weight:700">EXPIRED ${Math.abs(a.daysRemaining)} days ago</span>` : `<span style="color:${a.daysRemaining<=7?AMB:GRN};font-weight:700">${a.daysRemaining} day(s) remaining</span>`} · Expires: ${new Date(a.expiry_date).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}`)
+      ).join("")
+
+      const hasExpired = alerts.some(a => a.daysRemaining < 0)
+      const headerColor = hasExpired ? RED : AMB
+      const subject = `Licence Alert — ${alerts.length} licence(s) require attention`
+
+      const html = wrap(
+        hdr(headerColor, "Licence Compliance Alert", `${alerts.length} licence(s) expiring or expired`) +
+        body(`
+          ${p("The following licences require attention:")}
+          ${hl(hasExpired
+            ? "⚠ One or more licences have already <strong>expired</strong>. Please renew immediately."
+            : "⏰ One or more licences are approaching their expiry date. Please arrange renewal.",
+            hasExpired ? RED : AMB,
+            hasExpired ? RBG : ABG)}
+          ${tbl(rows)}
+          ${p("Log in to the Admin Console to update licence details and upload renewal documents.")}
+          ${cta(ADMIN_APP_URL, "Go to Licences →", headerColor)}
+        `)
+      )
+
+      const sent = await sendEmail(recipients, subject, html)
+      if (sent) {
+        licEmailsSent += recipients.length
+        licAlertsCount += alerts.length
+        for (const a of alerts) {
+          await db.from("licences").update({ last_reminder_milestone: a.milestone }).eq("id", a.id)
+        }
+      }
+    }
+
+    // ── 4. RUN LOG ──────────────────────────────────────────────
+    // One audit_log entry per tenant we checked, even when nothing was
+    // sent — a missing entry for today is what signals a missed cron run.
+    const allTenantIds = new Set([...Object.keys(adminsByTenant), ...Object.keys(itAdminsByTenant)])
+    for (const tenantId of allTenantIds) {
+      const docCount = (docAlerts[tenantId] || []).length
+      const subCount = (subAlerts[tenantId] || []).length
+      const licCount = (licenceAlerts[tenantId] || []).length
+      await db.from("audit_log").insert([{
+        tenant_id: tenantId,
+        performed_by: null,
+        action: "COMPLIANCE_ALERTS_RUN",
+        target: null,
+        detail: `Vehicle doc alerts due: ${docCount}. Subscription alerts due: ${subCount}. Licence alerts due: ${licCount}.`,
+      }])
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        doc_alerts: Object.values(docAlerts).flat().length,
+        doc_alerts: docAlertsCount,
         doc_emails_sent: docEmailsSent,
-        sub_alerts: Object.values(subAlerts).flat().length,
+        sub_alerts: subAlertsCount,
         sub_emails_sent: subEmailsSent,
+        licence_alerts: licAlertsCount,
+        licence_emails_sent: licEmailsSent,
       }),
       { headers: { ...CORS, "Content-Type": "application/json" } }
     )

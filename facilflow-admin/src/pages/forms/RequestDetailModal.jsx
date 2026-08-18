@@ -14,8 +14,11 @@ export default function RequestDetailModal({req,usersMap,vehicles,drivers,invent
   const isPending  = req.status==="pending_approval";
   const isApproved = req.status==="approved";
   const isCarReq   = req.type==="pool_car";
-  // For pending: only show available. For approved: show available + currently assigned
-  const availVeh   = vehicles.filter(v=>v.status==="available" || v.id===req.assigned_vehicle);
+  // For pending: only show available Pool Car vehicles. For approved: also keep the
+  // currently assigned vehicle visible even if it's not (or no longer) categorized as Pool Car.
+  const availVeh   = vehicles.filter(v=>
+    (v.status==="available" && (!isCarReq || v.category==="Pool Car")) || v.id===req.assigned_vehicle
+  );
   const availDrv   = drivers.filter(d=>d.status==="available"  || d.id===req.assigned_driver);
   const assignedVeh= req.assigned_vehicle ? vehicles.find(v=>v.id===req.assigned_vehicle) : null;
   const assignedDrv= req.assigned_driver  ? drivers.find(d=>d.id===req.assigned_driver)  : null;

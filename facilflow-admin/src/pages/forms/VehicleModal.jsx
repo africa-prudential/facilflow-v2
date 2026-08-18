@@ -2,11 +2,12 @@ import { useState } from "react";
 import { C, btn, inp, sel, LBL } from "../../theme.js";
 import { Modal } from "../../components/ui.jsx";
 import { isDirty } from "../../utils.js";
+import { VEHICLE_CATEGORIES } from "../../constants.js";
 
 export default function VehicleModal({vehicle,onClose,onSave}){
   const [d,setD]=useState(vehicle
-    ?{plate:vehicle.plate,model:vehicle.model,year:vehicle.year,color:vehicle.color,ownershipType:vehicle.ownershipType||"Company",companyName:vehicle.companyName||"",coOwnerName:vehicle.coOwnerName||""}
-    :{plate:"",model:"",year:new Date().getFullYear(),color:"White",ownershipType:"Company",companyName:"Africa Prudential",coOwnerName:""});
+    ?{plate:vehicle.plate,model:vehicle.model,year:vehicle.year,color:vehicle.color,category:vehicle.category||"Status Car",ownershipType:vehicle.ownershipType||"Company",companyName:vehicle.companyName||"",coOwnerName:vehicle.coOwnerName||""}
+    :{plate:"",model:"",year:new Date().getFullYear(),color:"White",category:"Status Car",ownershipType:"Company",companyName:"Africa Prudential",coOwnerName:""});
   const [initial]=useState(d);
   const [saving,setSaving]=useState(false);
   const dirty = !vehicle || isDirty(d,initial);
@@ -28,6 +29,12 @@ export default function VehicleModal({vehicle,onClose,onSave}){
         <div><label style={LBL}>Model</label><input value={d.model} onChange={e=>setD(p=>({...p,model:e.target.value}))} style={inp()} placeholder="e.g. Toyota Camry"/></div>
         <div><label style={LBL}>Year</label><input type="number" value={d.year} onChange={e=>setD(p=>({...p,year:+e.target.value}))} style={inp()}/></div>
         <div><label style={LBL}>Colour</label><input value={d.color} onChange={e=>setD(p=>({...p,color:e.target.value}))} style={inp()} placeholder="e.g. Silver"/></div>
+        <div>
+          <label style={LBL}>Category</label>
+          <select value={d.category} onChange={e=>setD(p=>({...p,category:e.target.value}))} style={sel()}>
+            {VEHICLE_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         <div>
           <label style={LBL}>Ownership Type</label>
           <select value={d.ownershipType} onChange={e=>setD(p=>({...p,ownershipType:e.target.value}))} style={sel()}>
