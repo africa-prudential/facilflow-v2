@@ -10,6 +10,7 @@ const RESEND_API_KEY      = Deno.env.get("RESEND_API_KEY") ?? ""
 const FROM_EMAIL          = "facilflow@africaprudential.com"
 const FROM_NAME           = "Facilflow — Africa Prudential"
 const APP_URL             = Deno.env.get("APP_URL") ?? "https://facilflow.africaprudential.com"
+const ADMIN_APP_URL       = Deno.env.get("ADMIN_APP_URL") ?? "https://admin-facilflow.africaprudential.com"
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -111,7 +112,7 @@ serve(async (req) => {
 
     const { data: levels } = await db.from("change_approval_levels").select("*")
     const { data: tenantConfigs } = await db.from("change_tenant_config").select("*")
-    const { data: allUsers } = await db.from("users").select("id,email,name,tenant_id,dept,role")
+    const { data: allUsers } = await db.from("users").select("id,email,name,tenant_id,dept,role,admin_roles")
     const { data: allUserRoles } = await db.from("user_change_roles").select("user_id,role_key,tenant_id")
 
     const tenantConfigById: Record<string, any> = {}
@@ -126,6 +127,14 @@ serve(async (req) => {
         .map(r => r.user_id)
       return userIds.map(id => usersById[id]?.email).filter(Boolean)
     }
+
+    const isAdminUser = (u: any): boolean =>
+      !!u && (["super_admin", "facility_admin", "it_admin", "admin"].includes(u.role) || (Array.isArray(u.admin_roles) && u.admin_roles.length > 0))
+
+    const userByEmail = (email: string) => (allUsers || []).find(u => u.email === email)
+
+    const crUrl = (crId: string) => `${APP_URL}/change_requests?cr=${crId}`
+    const linkFor = (u: any, crId: string) => isAdminUser(u) ? `${ADMIN_APP_URL}/change_requests` : crUrl(crId)
 
     let reminders = 0
     let escalations = 0
@@ -195,7 +204,7 @@ serve(async (req) => {
                 tblRow("Current Stage", stageLabel) +
                 tblRow("SLA", `${slaHours} hour(s)`)
               )}
-              ${cta(`${APP_URL}/change_requests?cr=${cr.id}`, "Review Change Request →", RED)}
+              ${cta(linkFor(escalationUser, cr.id), "Review Change Request →", RED)}
             `)
           )
           const sent = await sendEmail(to, `ESCALATION: ${cr.id} — ${stageLabel} overdue`, html, cc)
@@ -217,7 +226,7 @@ serve(async (req) => {
         !cr.reminder_sent_at
       ) {
         if (recipientEmails.length) {
-          const html = wrap(
+          const reminderHtml = (link: string) => wrap(
             hdr(AMB, "Approval Reminder", `${stageLabel} is awaiting action`) + body(`
               ${p("This is a reminder that the following change request is still awaiting your action.")}
               ${hl(`⏳ Pending for <strong>${Math.round(elapsedHours)} hour(s)</strong> — SLA is ${slaHours}h. Please review at your earliest convenience.`, AMB, ABG)}
@@ -226,10 +235,15 @@ serve(async (req) => {
                 tblRow("Title", cr.title) +
                 tblRow("Current Stage", stageLabel)
               )}
-              ${cta(`${APP_URL}/change_requests?cr=${cr.id}`, "Review & Approve Now →", AMB)}
+              ${cta(link, "Review & Approve Now →", AMB)}
             `)
           )
-          const sent = await sendEmail(recipientEmails, `Reminder: ${cr.id} is awaiting your approval — Facilflow`, html)
+          const staffRecipients = recipientEmails.filter(e => !isAdminUser(userByEmail(e)))
+          const adminRecipients = recipientEmails.filter(e => isAdminUser(userByEmail(e)))
+          const subject = `Reminder: ${cr.id} is awaiting your approval — Facilflow`
+          const sentStaff = staffRecipients.length ? await sendEmail(staffRecipients, subject, reminderHtml(crUrl(cr.id))) : false
+          const sentAdmin = adminRecipients.length ? await sendEmail(adminRecipients, subject, reminderHtml(`${ADMIN_APP_URL}/change_requests`)) : false
+          const sent = sentStaff || sentAdmin
           if (sent) {
             await db.from("change_requests").update({ reminder_sent_at: now.toISOString() }).eq("id", cr.id)
             await db.from("audit_log").insert([{

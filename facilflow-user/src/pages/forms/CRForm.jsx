@@ -8,7 +8,7 @@ import { CR_CATEGORIES, CR_MODULES, DOC_LABELS } from "../../constants.js";
 import { uploadCRAttachment } from "../../lib/supabase.js";
 
 const DOC_RULES = {
-  "New Feature": { mandatory: ["uat_signoff","test_scripts"], oneOf: [] },
+  "New Feature": { mandatory: ["uat_signoff"], oneOf: [] },
   "Enhancement": { mandatory: [], oneOf: ["uat_signoff","user_concurrence"] },
   "Fix":         { mandatory: [], oneOf: [] },
 };
