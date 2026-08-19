@@ -173,11 +173,13 @@ export default function CRDetail({cr,onClose,ctx,onAction}){
                 <div style={{fontSize:11,color:C.muted}}>{mgr?.email}</div>
               </div>
               <div style={{marginLeft:"auto"}}>
-                {cr.status==="pending_manager"
-                  ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.amberBg,color:C.amber}}>Pending</span>
-                  :cr.status==="rejected"
-                    ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.redBg,color:C.red}}>Rejected</span>
-                    :<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.greenBg,color:C.green,display:"inline-flex",alignItems:"center",gap:4}}>Approved <Check size={12}/></span>}
+                {cr.status==="pending_line_manager"
+                  ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:"#F8FAFC",color:C.muted}}>Awaiting</span>
+                  :cr.status==="pending_manager"
+                    ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.amberBg,color:C.amber}}>Pending</span>
+                    :cr.status==="rejected"
+                      ?<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.redBg,color:C.red}}>Rejected</span>
+                      :<span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.greenBg,color:C.green,display:"inline-flex",alignItems:"center",gap:4}}>Approved <Check size={12}/></span>}
               </div>
             </div>
           </div>

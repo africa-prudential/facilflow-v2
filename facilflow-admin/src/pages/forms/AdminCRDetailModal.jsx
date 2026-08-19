@@ -138,6 +138,13 @@ export default function AdminCRDetailModal({cr, onClose, ctx, uniqueUsers, stage
         newHistory[last] = {...newHistory[last], label:`[Admin Override] ${newHistory[last].label}`};
       }
 
+      const stageChanged = nextStage !== cr.current_stage;
+      if(stageChanged){
+        extra.stage_entered_at = iso;
+        extra.reminder_sent_at = null;
+        extra.escalated_at     = null;
+      }
+
       const saved = await updateCR(cr.id,{
         ...extra, status:nextStatus, current_stage:nextStage,
         current_level:nextLevel, history:newHistory,
